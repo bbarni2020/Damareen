@@ -12,3 +12,5 @@ class EmailConfig:
     
     VERIFICATION_TOKEN_EXPIRATION_HOURS = 24
     VERIFICATION_URL_BASE = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    
+    REQUIRE_EMAIL_VERIFICATION = os.environ.get('REQUIRE_EMAIL_VERIFICATION', 'false').lower() == 'true'
