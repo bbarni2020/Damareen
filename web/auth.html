@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damareen - Bejelentkezés/Regisztráció</title>
+</head>
+<body>
+    <div id="auth-container">
+        <div id="login-form" class="form-container">
+            <h2>Bejelentkezés</h2>
+            <form id="loginForm">
+                <div>
+                    <label for="login-username">Felhasználónév vagy E-mail:</label>
+                    <input type="text" id="login-username" name="username" required>
+                </div>
+                <div>
+                    <label for="login-password">Jelszó:</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit">Bejelentkezés</button>
+                <p id="login-message"></p>
+            </form>
+            <p>Nincs még fiókod? <a href="#" id="show-register">Regisztrálj itt</a></p>
+        </div>
+
+        <div id="register-form" class="form-container" style="display: none;">
+            <h2>Regisztráció</h2>
+            <form id="registerForm">
+                <div>
+                    <label for="register-username">Felhasználónév:</label>
+                    <input type="text" id="register-username" name="username" required>
+                </div>
+                <div>
+                    <label for="register-email">E-mail:</label>
+                    <input type="email" id="register-email" name="email" required>
+                </div>
+                <div>
+                    <label for="register-password">Jelszó:</label>
+                    <input type="password" id="register-password" name="password" required>
+                </div>
+                <div>
+                    <label for="register-password-confirm">Jelszó megerősítése:</label>
+                    <input type="password" id="register-password-confirm" name="password-confirm" required>
+                </div>
+                <button type="submit">Regisztráció</button>
+                <p id="register-message"></p>
+            </form>
+            <p>Van már fiókod? <a href="#" id="show-login">Jelentkezz be itt</a></p>
+        </div>
+
+        <div id="verification-form" class="form-container" style="display: none;">
+            <h2>E-mail megerősítés</h2>
+            <p>Kérjük, ellenőrizd az e-mail fiókodat és kattints a megerősítő linkre.</p>
+            <form id="resendForm">
+                <div>
+                    <label for="resend-email">E-mail cím:</label>
+                    <input type="email" id="resend-email" name="email" required>
+                </div>
+                <button type="submit">Új megerősítő e-mail küldése</button>
+                <p id="resend-message"></p>
+            </form>
+            <p><a href="#" id="back-to-login">Vissza a bejelentkezéshez</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:7621/api';
+
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const resendForm = document.getElementById('resendForm');
+        
+        const loginContainer = document.getElementById('login-form');
+        const registerContainer = document.getElementById('register-form');
+        const verificationContainer = document.getElementById('verification-form');
+        
+        const loginMessage = document.getElementById('login-message');
+        const registerMessage = document.getElementById('register-message');
+        const resendMessage = document.getElementById('resend-message');
+
+        document.getElementById('show-register').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'block';
+            verificationContainer.style.display = 'none';
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+            verificationContainer.style.display = 'none';
+        });
+
+        document.getElementById('back-to-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+            verificationContainer.style.display = 'none';
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginMessage.textContent = '';
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loginMessage.textContent = data.data.message;
+                    loginMessage.style.color = 'green';
+                    
+                    if (data.data.requires_verification) {
+                        setTimeout(() => {
+                            loginContainer.style.display = 'none';
+                            verificationContainer.style.display = 'block';
+                        }, 2000);
+                    }
+                } else {
+                    loginMessage.textContent = data.error;
+                    loginMessage.style.color = 'red';
+                    
+                    if (response.status === 403) {
+                        setTimeout(() => {
+                            loginContainer.style.display = 'none';
+                            verificationContainer.style.display = 'block';
+                        }, 2000);
+                    }
+                }
+            } catch (error) {
+                loginMessage.textContent = 'Hiba történt a bejelentkezés során: ' + error.message;
+                loginMessage.style.color = 'red';
+                console.error('Login error:', error);
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            registerMessage.textContent = '';
+            
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                registerMessage.textContent = 'A jelszavak nem egyeznek';
+                registerMessage.style.color = 'red';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    registerMessage.textContent = data.data.message;
+                    registerMessage.style.color = 'green';
+                    
+                    setTimeout(() => {
+                        registerContainer.style.display = 'none';
+                        verificationContainer.style.display = 'block';
+                        document.getElementById('resend-email').value = email;
+                    }, 2000);
+                } else {
+                    registerMessage.textContent = data.error;
+                    registerMessage.style.color = 'red';
+                }
+            } catch (error) {
+                registerMessage.textContent = 'Hiba történt a regisztráció során: ' + error.message;
+                registerMessage.style.color = 'red';
+                console.error('Register error:', error);
+            }
+        });
+
+        resendForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resendMessage.textContent = '';
+            
+            const email = document.getElementById('resend-email').value;
+
+            try {
+                const response = await fetch(`${API_URL}/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resendMessage.textContent = data.data.message;
+                    resendMessage.style.color = 'green';
+                } else {
+                    resendMessage.textContent = data.error;
+                    resendMessage.style.color = 'red';
+                }
+            } catch (error) {
+                resendMessage.textContent = 'Hiba történt az e-mail küldése során: ' + error.message;
+                resendMessage.style.color = 'red';
+                console.error('Resend error:', error);
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (token) {
+            verifyToken(token);
+        }
+
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${API_URL}/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.data.message);
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    window.location.href = '/';
+                } else {
+                    alert(data.error);
+                    loginContainer.style.display = 'block';
+                }
+            } catch (error) {
+                alert('Hiba történt a megerősítés során: ' + error.message);
+                loginContainer.style.display = 'block';
+                console.error('Verification error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
