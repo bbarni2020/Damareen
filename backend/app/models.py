@@ -35,42 +35,41 @@ class User(db.Model):
         return f'<User {self.username}>'
 
 
-class Game(db.Model):
-    __tablename__ = 'games'
-    
+class Card(db.Model):
+    __tablename__ = 'cards'
+
     id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     world_id = db.Column(db.String(32), nullable=False)
-    user_id = db.Column(db.String(32), nullable=False)
+    owner_id = db.Column(db.String(32), nullable=False)
     name = db.Column(db.String(16), nullable=False)
     picture = db.Column(db.LargeBinary, nullable=True)
     health = db.Column(db.Integer, nullable=False)
     damage = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(6), nullable=False)
     position = db.Column(db.Integer, nullable=False)
-    vezer = db.Column(db.Boolean, nullable=False)
-    is_in_dungeon = db.Column(db.Boolean, default=False, nullable=False)
+    is_leader = db.Column(db.Boolean, nullable=False)
 
     def to_dict(self):
         return {
             'id': self.id,
             'world_id': self.world_id,
-            'user_id': self.user_id,
+            'owner_id': self.owner_id,
             'name': self.name,
             'picture': self.picture.decode('utf-8') if self.picture else None,
             'health': self.health,
             'damage': self.damage,
+            'type': self.type,
             'position': self.position,
-            'vezer': self.vezer,
-            'is_in_dungeon': self.is_in_dungeon
+            'is_leader': self.is_leader,
         }
     
     def __repr__(self):
-        return f'<Game {self.name} - World {self.world_id}>'
+        return f'<Card {self.name} - World {self.world_id}>'
 
 
 class World(db.Model):
     __tablename__ = 'worlds'
-    
+
     world_id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
     
@@ -82,3 +81,23 @@ class World(db.Model):
     
     def __repr__(self):
         return f'<World {self.name}>'
+
+
+class Dungeon(db.Model):
+    __tablename__ = 'dungeons'
+    
+    id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    world_id = db.Column(db.String(32), nullable=False)
+    list_of_card_ids = db.Column(db.JSON, nullable=True, default=list)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'world_id': self.world_id,
+            'list_of_card_ids': self.list_of_card_ids,
+        }
+    
+    def __repr__(self):
+        return f'<Dungeon {self.name} - World {self.world_id}>'

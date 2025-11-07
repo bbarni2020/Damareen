@@ -2,11 +2,11 @@ from flask import Blueprint, jsonify, request
 import time
 from functools import wraps
 from datetime import datetime
-from app.models import db, User, World, Game
+from app.models import db, User, World, Card, Dungeon
 from app.utils import (
     success_response, error_response, validate_email, 
     validate_username, validate_password, hash_password,
-    verify_password, generate_token, require_auth
+    verify_password, generate_token, require_auth, generate_unique_id
 )
 from app.email_service import (
     send_verification_email, send_login_verification_email,
@@ -366,27 +366,22 @@ def create_world():
         return error_response('A világ neve kötelező', 400)
     
     try:
-        last_world = World.query.order_by(World.world_id.desc()).first()
-        
-        if last_world:
+        for _ in range(5):
             try:
-                new_id = str(int(last_world.world_id) + 1)
-            except ValueError:
-                new_id = "1"
-        else:
-            new_id = "1"
-        
-        new_world = World(
-            world_id=new_id,
-            name=name
-        )
-        db.session.add(new_world)
-        db.session.commit()
-        
-        return success_response({
-            'message': 'Világ sikeresen létrehozva',
-            'world': new_world.to_dict()
-        }, 201)
+                new_world = World(
+                    world_id=generate_unique_id(),
+                    name=name
+                )
+                db.session.add(new_world)
+                db.session.commit()
+                return success_response({
+                    'message': 'Világ sikeresen létrehozva',
+                    'world': new_world.to_dict()
+                }, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
     except Exception as e:
         db.session.rollback()
         return error_response('A világ létrehozása sikertelen', 500)
@@ -402,15 +397,6 @@ def create_card():
         return error_response('A kérés törzse kötelező', 400)
     
     try:
-        last_card = Game.query.order_by(Game.id.desc()).first()
-        if last_card:
-            try:
-                new_id = str(int(last_card.id) + 1)
-            except ValueError:
-                new_id = "1"
-        else:
-            new_id = "1"
-        
         world_id = data.get('world_id', '0') if isinstance(data.get('world_id', '0'), str) else str(data.get('world_id', '0'))
         user_id = data.get('user_id', '0') if isinstance(data.get('user_id', '0'), str) else str(data.get('user_id', '0'))
         name = data.get('name', '0') if isinstance(data.get('name', '0'), str) else str(data.get('name', '0'))
@@ -439,33 +425,77 @@ def create_card():
         health = to_int(data.get('health', 0), 0)
         damage = to_int(data.get('damage', 0), 0)
         position = to_int(data.get('position', 0), 0)
-        vezer = to_bool(data.get('vezer', 0), False)
-        is_in_dungeon = to_bool(data.get('is_dungeon', 0), False)
-        
-        new_card = Game(
-            id=new_id,
-            world_id=world_id,
-            user_id=user_id,
-            name=name,
-            picture=picture_bytes,
-            health=health,
-            damage=damage,
-            type=card_type,
-            position=position,
-            vezer=vezer,
-            is_in_dungeon=is_in_dungeon
-        )
-        db.session.add(new_card)
-        db.session.commit()
-        
-        return success_response({
-            'message': 'Kártya sikeresen létrehozva',
-            'card': new_card.to_dict()
-        }, 201)
+        is_leader = to_bool(data.get('is_leader', 0), False)
+
+        for _ in range(5):
+            try:
+                new_card = Card(
+                    id=generate_unique_id(),
+                    world_id=world_id,
+                    owner_id=user_id,
+                    name=name,
+                    picture=picture_bytes,
+                    health=health,
+                    damage=damage,
+                    type=card_type,
+                    position=position,
+                    is_leader=is_leader,
+                )
+                db.session.add(new_card)
+                db.session.commit()
+                return success_response({
+                    'message': 'Kártya sikeresen létrehozva',
+                    'card': new_card.to_dict()
+                }, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
     except Exception as e:
         db.session.rollback()
         return error_response('A kártya létrehozása sikertelen', 500)
-
+@api.route('/create/dungeon', methods=['POST'])
+@ratelimit
+@require_auth
+def create_dungeon():
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
+    world_id = data.get('world_id')
+    list_ids = data.get('list_of_cards_ids', [])
+    if not name:
+        return error_response('A dungeon neve kötelező', 400)
+    if world_id is None:
+        return error_response('A világ azonosítója kötelező', 400)
+    try:
+        world_id = str(world_id)
+    except Exception:
+        return error_response('A világ azonosítónak egész számnak kell lennie', 400)
+    if not isinstance(list_ids, list):
+        return error_response('A list_of_cards_ids-nak listának kell lennie', 400)
+    try:
+        for _ in range(5):
+            try:
+                new_dungeon = Dungeon(
+                    id=generate_unique_id(),
+                    name=name,
+                    world_id=str(world_id).strip(),
+                    list_of_card_ids=list_ids
+                )
+                db.session.add(new_dungeon)
+                db.session.commit()
+                return success_response({
+                    'message': 'Dungeon sikeresen létrehozva',
+                    'dungeon': new_dungeon.to_dict()
+                }, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A dungeon létrehozása sikertelen', 500)
 
 @api.route('/health', methods=['GET'])
 @ratelimit
