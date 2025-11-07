@@ -248,7 +248,7 @@ def view_table(db_name, table):
         </html>
     ''', db_name=db_name, table=table, columns=columns, rows=rows)
 
-@app.route('/db/<db_name>/<table>/edit/<int:record_id>')
+@app.route('/db/<db_name>/<table>/edit/<record_id>')
 def edit_record(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
@@ -306,7 +306,7 @@ def edit_record(db_name, table, record_id):
         </html>
     ''', db_name=db_name, table=table, record_id=record_id, schema=schema, record=record)
 
-@app.route('/db/<db_name>/<table>/update/<int:record_id>', methods=['POST'])
+@app.route('/db/<db_name>/<table>/update/<record_id>', methods=['POST'])
 def update_record_route(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
@@ -323,7 +323,7 @@ def update_record_route(db_name, table, record_id):
     except Exception as e:
         return f"Error updating record: {e}", 500
 
-@app.route('/db/<db_name>/<table>/delete/<int:record_id>')
+@app.route('/db/<db_name>/<table>/delete/<record_id>')
 def delete_record_confirm(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
@@ -378,7 +378,7 @@ def delete_record_confirm(db_name, table, record_id):
         </html>
     ''', db_name=db_name, table=table, record_id=record_id, record=record)
 
-@app.route('/db/<db_name>/<table>/delete/<int:record_id>/execute')
+@app.route('/db/<db_name>/<table>/delete/<record_id>/execute')
 def delete_record_execute(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
