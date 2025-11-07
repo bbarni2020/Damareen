@@ -1,0 +1,194 @@
+from flask import Blueprint, jsonify, request
+import time
+from functools import wraps
+from app.models import db, User
+from app.utils import (
+    success_response, error_response, validate_email, 
+    validate_username, validate_password, hash_password,
+    verify_password, generate_token, require_auth
+)
+from sqlalchemy.exc import IntegrityError
+
+
+api = Blueprint('api', __name__)
+
+_rate_limit_store = {}
+_RATE_LIMIT_WINDOW = 10 
+_RATE_LIMIT_MAX = 5
+
+def ratelimit(endpoint):
+    @wraps(endpoint)
+    def wrapper(*args, **kwargs):
+        ip = request.remote_addr or 'unknown'
+        key = f"{ip}:{request.endpoint}"
+        now = time.time()
+        window_start = now - _RATE_LIMIT_WINDOW
+        reqs = _rate_limit_store.get(key, [])
+        reqs = [t for t in reqs if t > window_start]
+        if len(reqs) >= _RATE_LIMIT_MAX:
+            return error_response('Kéréskorlát túllépve', 429)
+        reqs.append(now)
+        _rate_limit_store[key] = reqs
+        return endpoint(*args, **kwargs)
+    return wrapper
+
+
+@api.route('/register', methods=['POST'])
+@ratelimit
+def register():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    username = data.get('username', '').strip() if isinstance(data.get('username'), str) else ''
+    email = data.get('email', '').strip() if isinstance(data.get('email'), str) else ''
+    password = data.get('password', '')
+    
+    if not username:
+        return error_response('A felhasználónév kötelező', 400)
+    if not email:
+        return error_response('Az e-mail kötelező', 400)
+    if not password:
+        return error_response('A jelszó kötelező', 400)
+    
+    if not validate_username(username):
+        return error_response('A felhasználónév 3–80 karakter hosszú legyen, és csak betűket, számokat vagy aláhúzásjelet tartalmazhat', 400)
+    
+    if not validate_email(email):
+        return error_response('Érvénytelen e-mail formátum', 400)
+    
+    if not validate_password(password):
+        return error_response('A jelszónak legalább 8 karakter hosszúnak kell lennie, és tartalmaznia kell nagy- és kisbetűt, valamint számot', 400)
+    
+    existing_user = User.query.filter(
+        (User.username == username) | (User.email == email)
+    ).first()
+    
+    if existing_user:
+        if existing_user.username == username:
+            return error_response('A felhasználónév már létezik', 409)
+        if existing_user.email == email:
+            return error_response('Az e-mail már létezik', 409)
+    
+    try:
+        password_hash = hash_password(password)
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=password_hash,
+            world_ids=[],
+            settings={}
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        
+        from flask import current_app
+        token = generate_token(new_user.id, current_app.config['SECRET_KEY'])
+        
+        return success_response({
+            'user': new_user.to_dict(),
+            'token': token
+        }, 201)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response('A felhasználó már létezik', 409)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A felhasználó létrehozása sikertelen', 500)
+
+
+@api.route('/login', methods=['POST'])
+@ratelimit
+def login():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    username_or_email = data.get('username', '').strip() if isinstance(data.get('username'), str) else ''
+    password = data.get('password', '')
+    
+    if not username_or_email:
+        return error_response('Felhasználónév vagy e-mail szükséges', 400)
+    if not password:
+        return error_response('A jelszó kötelező', 400)
+    
+    user = User.query.filter(
+        (User.username == username_or_email) | (User.email == username_or_email)
+    ).first()
+    
+    if not user:
+        return error_response('Érvénytelen hitelesítő adatok', 401)
+    
+    if not verify_password(password, user.password_hash):
+        return error_response('Érvénytelen hitelesítő adatok', 401)
+    
+    from flask import current_app
+    token = generate_token(user.id, current_app.config['SECRET_KEY'])
+    
+    return success_response({
+        'user': user.to_dict(),
+        'token': token
+    })
+
+
+@api.route('/account', methods=['DELETE'])
+@ratelimit
+def delete_account():
+    from flask import current_app
+    
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return error_response('Az Authorization fejléc hiányzik', 401)
+    
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != 'bearer':
+        return error_response('Érvénytelen Authorization fejléc formátum', 401)
+    
+    token = parts[1]
+    from app.utils import decode_token
+    payload = decode_token(token, current_app.config['SECRET_KEY'])
+    
+    if not payload:
+        return error_response('Érvénytelen vagy lejárt token', 401)
+    
+    user_id = payload.get('user_id')
+    user = User.query.get(user_id)
+    
+    if not user:
+        return error_response('Felhasználó nem található', 404)
+    
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    password = data.get('password', '')
+    if not password:
+        return error_response('A fiók törléséhez jelszó szükséges', 400)
+    
+    if not verify_password(password, user.password_hash):
+        return error_response('Érvénytelen jelszó', 401)
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return success_response({'message': 'A fiók sikeresen törölve'})
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A fiók törlése sikertelen', 500)
+
+
+@api.route('/health', methods=['GET'])
+@ratelimit
+def health_check():
+    return success_response({'status': 'egészséges'})
+
+@api.errorhandler(404)
+def not_found(error):
+    return error_response('Erőforrás nem található', 404)
+
+
+@api.errorhandler(500)
+def internal_error(error):
+    return error_response('Belső szerverhiba', 500)
