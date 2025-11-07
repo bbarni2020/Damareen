@@ -41,13 +41,14 @@ class Game(db.Model):
     id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     world_id = db.Column(db.String(32), nullable=False)
     user_id = db.Column(db.String(32), nullable=False)
-    name = db.Column(db.String(120), nullable=False)
+    name = db.Column(db.String(16), nullable=False)
     picture = db.Column(db.LargeBinary, nullable=True)
     health = db.Column(db.Integer, nullable=False)
     damage = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.String(6), nullable=False)
     position = db.Column(db.Integer, nullable=False)
     vezer = db.Column(db.Boolean, nullable=False)
-    is_dungeon = db.Column(db.Boolean, default=False, nullable=False)
+    is_in_dungeon = db.Column(db.Boolean, default=False, nullable=False)
 
     def to_dict(self):
         return {
@@ -60,7 +61,7 @@ class Game(db.Model):
             'damage': self.damage,
             'position': self.position,
             'vezer': self.vezer,
-            'is_dungeon': self.is_dungeon
+            'is_in_dungeon': self.is_in_dungeon
         }
     
     def __repr__(self):

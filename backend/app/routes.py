@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 import time
 from functools import wraps
 from datetime import datetime
-from app.models import db, User
+from app.models import db, User, World, Game
 from app.utils import (
     success_response, error_response, validate_email, 
     validate_username, validate_password, hash_password,
@@ -349,6 +349,122 @@ def resend_verification():
     return success_response({
         'message': 'Új megerősítő e-mailt küldtünk'
     })
+
+
+@api.route('/create/world', methods=['POST'])
+@ratelimit
+@require_auth
+def create_world():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
+    
+    if not name:
+        return error_response('A világ neve kötelező', 400)
+    
+    try:
+        last_world = World.query.order_by(World.world_id.desc()).first()
+        
+        if last_world:
+            try:
+                new_id = str(int(last_world.world_id) + 1)
+            except ValueError:
+                new_id = "1"
+        else:
+            new_id = "1"
+        
+        new_world = World(
+            world_id=new_id,
+            name=name
+        )
+        db.session.add(new_world)
+        db.session.commit()
+        
+        return success_response({
+            'message': 'Világ sikeresen létrehozva',
+            'world': new_world.to_dict()
+        }, 201)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A világ létrehozása sikertelen', 500)
+
+
+@api.route('/create/card', methods=['POST'])
+@ratelimit
+@require_auth
+def create_card():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    try:
+        last_card = Game.query.order_by(Game.id.desc()).first()
+        if last_card:
+            try:
+                new_id = str(int(last_card.id) + 1)
+            except ValueError:
+                new_id = "1"
+        else:
+            new_id = "1"
+        
+        world_id = data.get('world_id', '0') if isinstance(data.get('world_id', '0'), str) else str(data.get('world_id', '0'))
+        user_id = data.get('user_id', '0') if isinstance(data.get('user_id', '0'), str) else str(data.get('user_id', '0'))
+        name = data.get('name', '0') if isinstance(data.get('name', '0'), str) else str(data.get('name', '0'))
+        card_type = data.get('type', '0') if isinstance(data.get('type', '0'), str) else str(data.get('type', '0'))
+        picture_val = data.get('picture', None)
+        if isinstance(picture_val, str):
+            picture_bytes = picture_val.encode('utf-8')
+        else:
+            picture_bytes = None
+        
+        def to_int(v, default=0):
+            try:
+                return int(v)
+            except Exception:
+                return default
+        
+        def to_bool(v, default=False):
+            if isinstance(v, bool):
+                return v
+            if isinstance(v, int):
+                return v != 0
+            if isinstance(v, str):
+                return v.strip().lower() not in ('', '0', 'false', 'no', 'off')
+            return default
+        
+        health = to_int(data.get('health', 0), 0)
+        damage = to_int(data.get('damage', 0), 0)
+        position = to_int(data.get('position', 0), 0)
+        vezer = to_bool(data.get('vezer', 0), False)
+        is_in_dungeon = to_bool(data.get('is_dungeon', 0), False)
+        
+        new_card = Game(
+            id=new_id,
+            world_id=world_id,
+            user_id=user_id,
+            name=name,
+            picture=picture_bytes,
+            health=health,
+            damage=damage,
+            type=card_type,
+            position=position,
+            vezer=vezer,
+            is_in_dungeon=is_in_dungeon
+        )
+        db.session.add(new_card)
+        db.session.commit()
+        
+        return success_response({
+            'message': 'Kártya sikeresen létrehozva',
+            'card': new_card.to_dict()
+        }, 201)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A kártya létrehozása sikertelen', 500)
 
 
 @api.route('/health', methods=['GET'])
