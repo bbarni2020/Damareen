@@ -47,8 +47,8 @@ class Game(db.Model):
     damage = db.Column(db.Integer, nullable=False)
     position = db.Column(db.Integer, nullable=False)
     vezer = db.Column(db.Boolean, nullable=False)
+    is_dungeon = db.Column(db.Boolean, default=False, nullable=False)
 
-    
     def to_dict(self):
         return {
             'id': self.id,
@@ -59,7 +59,8 @@ class Game(db.Model):
             'health': self.health,
             'damage': self.damage,
             'position': self.position,
-            'vezer': self.vezer
+            'vezer': self.vezer,
+            'is_dungeon': self.is_dungeon
         }
     
     def __repr__(self):
