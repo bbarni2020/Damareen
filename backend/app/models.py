@@ -64,3 +64,19 @@ class Game(db.Model):
     
     def __repr__(self):
         return f'<Game {self.name} - World {self.world_id}>'
+
+
+class World(db.Model):
+    __tablename__ = 'worlds'
+    
+    world_id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    
+    def to_dict(self):
+        return {
+            'world_id': self.world_id,
+            'name': self.name
+        }
+    
+    def __repr__(self):
+        return f'<World {self.name}>'
