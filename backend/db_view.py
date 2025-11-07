@@ -9,10 +9,10 @@ DB_DIR = os.path.join(BASE_DIR, 'backend/instance')
 
 def safe_db_path(db_name):
     if '/' in db_name or '\\' in db_name or not db_name.endswith('.db'):
-        abort(400, "Invalid database name")
+        abort(400, "Érvénytelen adatbázis név")
     db_path = os.path.abspath(os.path.join(DB_DIR, db_name))
     if not db_path.startswith(os.path.abspath(DB_DIR)):
-        abort(400, "Invalid database path")
+        abort(400, "Érvénytelen adatbázis elérési út")
     return db_path
 
 def get_db_tables(db_path):
@@ -25,7 +25,7 @@ def get_db_tables(db_path):
 
 def get_table_data(db_path, table):
     if not table.replace('_', '').isalnum():
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     if table == 'logs':
@@ -39,7 +39,7 @@ def get_table_data(db_path, table):
 
 def get_table_schema(db_path, table):
     if not table.isalnum() and '_' not in table:
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(f"PRAGMA table_info(`{table}`)")
@@ -49,7 +49,7 @@ def get_table_schema(db_path, table):
 
 def update_record(db_path, table, record_id, data):
     if not table.replace('_', '').isalnum():
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
@@ -68,7 +68,7 @@ def update_record(db_path, table, record_id, data):
 
 def delete_record(db_path, table, record_id):
     if not table.replace('_', '').isalnum():
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(f"DELETE FROM `{table}` WHERE id = ?", (record_id,))
@@ -77,7 +77,7 @@ def delete_record(db_path, table, record_id):
 
 def add_record(db_path, table, data):
     if not table.replace('_', '').isalnum():
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
@@ -96,7 +96,7 @@ def add_record(db_path, table, data):
 
 def delete_all_records(db_path, table):
     if not table.replace('_', '').isalnum():
-        raise ValueError("Invalid table name")
+        raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(f"DELETE FROM `{table}`")
@@ -107,7 +107,7 @@ def delete_all_records(db_path, table):
 def index():
     db_files = [f for f in os.listdir(DB_DIR) if f.endswith('.db')]
     return render_template_string('''
-        <h2>Available Databases</h2>
+        <h2>Elérhető adatbázisok</h2>
         <ul>
         {% for db in db_files %}
             <li><a href="{{ url_for('view_db', db_name=db) }}">{{ db }}</a></li>
@@ -119,27 +119,27 @@ def index():
 def view_db(db_name):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     tables = get_db_tables(db_path)
     return render_template_string('''
-        <h2>Tables in {{ db_name }}</h2>
+        <h2>Táblák a {{ db_name }} adatbázisban</h2>
         <ul>
         {% for table in tables %}
             <li><a href="{{ url_for('view_table', db_name=db_name, table=table) }}">{{ table }}</a></li>
         {% endfor %}
         </ul>
-        <a href="{{ url_for('index') }}">Back</a>
+        <a href="{{ url_for('index') }}">Vissza</a>
     ''', db_name=db_name, tables=tables)
 
 @app.route('/db/<db_name>/<table>')
 def view_table(db_name, table):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     try:
         columns, rows = get_table_data(db_path, table)
     except Exception as e:
-        return f"Error: {e}", 500
+        return f"Hiba: {e}", 500
     return render_template_string('''
         <html>
         <head>
@@ -225,7 +225,7 @@ def view_table(db_name, table):
             {% for col in columns %}
                 <th>{{ col }}</th>
             {% endfor %}
-            <th>Actions</th>
+            <th>Műveletek</th>
             </tr>
             {% for row in rows %}
             <tr>
@@ -233,17 +233,17 @@ def view_table(db_name, table):
                 <td>{{ cell }}</td>
                 {% endfor %}
                 <td>
-                    <a href="{{ url_for('edit_record', db_name=db_name, table=table, record_id=row[0]) }}" style="background:#28a745;margin:2px;">Edit</a>
-                    <a href="{{ url_for('delete_record_confirm', db_name=db_name, table=table, record_id=row[0]) }}" style="background:#dc3545;margin:2px;">Delete</a>
+                    <a href="{{ url_for('edit_record', db_name=db_name, table=table, record_id=row[0]) }}" style="background:#28a745;margin:2px;">Szerkesztés</a>
+                    <a href="{{ url_for('delete_record_confirm', db_name=db_name, table=table, record_id=row[0]) }}" style="background:#dc3545;margin:2px;">Törlés</a>
                 </td>
             </tr>
             {% endfor %}
         </table>
         <div style="text-align:center;margin:20px;">
-            <a href="{{ url_for('add_record_form', db_name=db_name, table=table) }}" style="background:#007bff;">Add New Record</a>
-            <a href="{{ url_for('delete_all_confirm', db_name=db_name, table=table) }}" style="background:#dc3545;margin-left:10px;">Delete All Records</a>
+            <a href="{{ url_for('add_record_form', db_name=db_name, table=table) }}" style="background:#007bff;">Új rekord hozzáadása</a>
+            <a href="{{ url_for('delete_all_confirm', db_name=db_name, table=table) }}" style="background:#dc3545;margin-left:10px;">Minden rekord törlése</a>
         </div>
-        <a href="{{ url_for('view_db', db_name=db_name) }}">Back</a>
+        <a href="{{ url_for('view_db', db_name=db_name) }}">Vissza</a>
         </body>
         </html>
     ''', db_name=db_name, table=table, columns=columns, rows=rows)
@@ -252,7 +252,7 @@ def view_table(db_name, table):
 def edit_record(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         schema = get_table_schema(db_path, table)
@@ -263,15 +263,15 @@ def edit_record(db_name, table, record_id):
         conn.close()
         
         if not record:
-            return "Record not found", 404
+            return "Rekord nem található", 404
             
     except Exception as e:
-        return f"Error: {e}", 500
+        return f"Hiba: {e}", 500
     
     return render_template_string('''
         <html>
         <head>
-        <title>Edit Record - {{ table }} ({{ db_name }})</title>
+    <title>Rekord szerkesztése - {{ table }} ({{ db_name }})</title>
         <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fa; color: #222; margin: 0; padding: 40px; }
             h2 { text-align: center; color: #2d3748; }
@@ -287,10 +287,10 @@ def edit_record(db_name, table, record_id):
         </style>
         </head>
         <body>
-        <h2>Edit Record - {{ table }} ({{ db_name }})</h2>
+    <h2>Rekord szerkesztése - {{ table }} ({{ db_name }})</h2>
         <form method="POST" action="{{ url_for('update_record_route', db_name=db_name, table=table, record_id=record_id) }}">
             {% for i in range(schema|length) %}
-                <label for="{{ schema[i][1] }}">{{ schema[i][1] }}{% if schema[i][3] %} (Required){% endif %}:</label>
+                <label for="{{ schema[i][1] }}">{{ schema[i][1] }}{% if schema[i][3] %} (Kötelező){% endif %}:</label>
                 {% if schema[i][1] == 'id' %}
                     <input type="text" id="{{ schema[i][1] }}" name="{{ schema[i][1] }}" value="{{ record[i] }}" readonly>
                 {% else %}
@@ -298,8 +298,8 @@ def edit_record(db_name, table, record_id):
                 {% endif %}
             {% endfor %}
             <div class="button-group">
-                <button type="submit">Update Record</button>
-                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Cancel</a>
+                <button type="submit">Rekord frissítése</button>
+                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Mégsem</a>
             </div>
         </form>
         </body>
@@ -310,7 +310,7 @@ def edit_record(db_name, table, record_id):
 def update_record_route(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         data = {}
@@ -321,13 +321,13 @@ def update_record_route(db_name, table, record_id):
         update_record(db_path, table, record_id, data)
         return redirect(url_for('view_table', db_name=db_name, table=table))
     except Exception as e:
-        return f"Error updating record: {e}", 500
+        return f"Hiba a rekord frissítése közben: {e}", 500
 
 @app.route('/db/<db_name>/<table>/delete/<record_id>')
 def delete_record_confirm(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         conn = sqlite3.connect(db_path)
@@ -337,15 +337,15 @@ def delete_record_confirm(db_name, table, record_id):
         conn.close()
         
         if not record:
-            return "Record not found", 404
+            return "Rekord nem található", 404
             
     except Exception as e:
-        return f"Error: {e}", 500
+        return f"Hiba: {e}", 500
     
     return render_template_string('''
         <html>
         <head>
-        <title>Delete Record - {{ table }} ({{ db_name }})</title>
+    <title>Rekord törlése - {{ table }} ({{ db_name }})</title>
         <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fa; color: #222; margin: 0; padding: 40px; text-align: center; }
             h2 { color: #2d3748; }
@@ -361,17 +361,17 @@ def delete_record_confirm(db_name, table, record_id):
         </head>
         <body>
         <div class="warning">
-            <h2>Confirm Delete</h2>
-            <p>Are you sure you want to delete this record from <strong>{{ table }}</strong>?</p>
+            <h2>Törlés megerősítése</h2>
+            <p>Biztosan törölni szeretnéd ezt a rekordot a <strong>{{ table }}</strong> táblából?</p>
             <div class="record-info">
-                Record ID: {{ record_id }}<br>
+                Rekord azonosító: {{ record_id }}<br>
                 {% if record %}
-                    Preview: {{ record[:3]|join(', ') }}{% if record|length > 3 %}...{% endif %}
+                    Előnézet: {{ record[:3]|join(', ') }}{% if record|length > 3 %}...{% endif %}
                 {% endif %}
             </div>
             <div class="button-group">
-                <a href="{{ url_for('delete_record_execute', db_name=db_name, table=table, record_id=record_id) }}" class="btn btn-delete">Yes, Delete</a>
-                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Cancel</a>
+                <a href="{{ url_for('delete_record_execute', db_name=db_name, table=table, record_id=record_id) }}" class="btn btn-delete">Igen, törlés</a>
+                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Mégsem</a>
             </div>
         </div>
         </body>
@@ -382,29 +382,29 @@ def delete_record_confirm(db_name, table, record_id):
 def delete_record_execute(db_name, table, record_id):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         delete_record(db_path, table, record_id)
         return redirect(url_for('view_table', db_name=db_name, table=table))
     except Exception as e:
-        return f"Error deleting record: {e}", 500
+        return f"Hiba a rekord törlése közben: {e}", 500
 
 @app.route('/db/<db_name>/<table>/add')
 def add_record_form(db_name, table):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         schema = get_table_schema(db_path, table)
     except Exception as e:
-        return f"Error: {e}", 500
+        return f"Hiba: {e}", 500
     
     return render_template_string('''
         <html>
         <head>
-        <title>Add Record - {{ table }} ({{ db_name }})</title>
+    <title>Új rekord hozzáadása - {{ table }} ({{ db_name }})</title>
         <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fa; color: #222; margin: 0; padding: 40px; }
             h2 { text-align: center; color: #2d3748; }
@@ -420,20 +420,20 @@ def add_record_form(db_name, table):
         </style>
         </head>
         <body>
-        <h2>Add New Record - {{ table }} ({{ db_name }})</h2>
+    <h2>Új rekord hozzáadása - {{ table }} ({{ db_name }})</h2>
         <form method="POST" action="{{ url_for('add_record_submit', db_name=db_name, table=table) }}">
             {% for col in schema %}
                 {% if col[1] != 'id' or not col[5] %}
-                    <label for="{{ col[1] }}">{{ col[1] }}{% if col[3] %} (Required){% endif %}:</label>
+                    <label for="{{ col[1] }}">{{ col[1] }}{% if col[3] %} (Kötelező){% endif %}:</label>
                     <input type="text" id="{{ col[1] }}" name="{{ col[1] }}" {% if col[3] %}required{% endif %}>
                     {% if col[1] == 'id' %}
-                        <div class="note">Leave empty for auto-increment</div>
+                        <div class="note">Hagyd üresen automatikus növeléshez</div>
                     {% endif %}
                 {% endif %}
             {% endfor %}
             <div class="button-group">
-                <button type="submit">Add Record</button>
-                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Cancel</a>
+                <button type="submit">Rekord hozzáadása</button>
+                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Mégsem</a>
             </div>
         </form>
         </body>
@@ -444,7 +444,7 @@ def add_record_form(db_name, table):
 def add_record_submit(db_name, table):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         data = {}
@@ -455,13 +455,13 @@ def add_record_submit(db_name, table):
         add_record(db_path, table, data)
         return redirect(url_for('view_table', db_name=db_name, table=table))
     except Exception as e:
-        return f"Error adding record: {e}", 500
+        return f"Hiba a rekord hozzáadása közben: {e}", 500
 
 @app.route('/db/<db_name>/<table>/delete_all')
 def delete_all_confirm(db_name, table):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         conn = sqlite3.connect(db_path)
@@ -470,12 +470,12 @@ def delete_all_confirm(db_name, table):
         count = cursor.fetchone()[0]
         conn.close()
     except Exception as e:
-        return f"Error: {e}", 500
+        return f"Hiba: {e}", 500
     
     return render_template_string('''
         <html>
         <head>
-        <title>Delete All Records - {{ table }} ({{ db_name }})</title>
+    <title>Minden rekord törlése - {{ table }} ({{ db_name }})</title>
         <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fa; color: #222; margin: 0; padding: 40px; text-align: center; }
             h2 { color: #2d3748; }
@@ -492,16 +492,16 @@ def delete_all_confirm(db_name, table):
         </head>
         <body>
         <div class="warning">
-            <h2>⚠️ Confirm Delete All Records</h2>
-            <div class="danger-text">This action cannot be undone!</div>
-            <p>Are you sure you want to delete <strong>ALL</strong> records from table <strong>{{ table }}</strong>?</p>
-            <div class="count-info">
-                {{ count }} record(s) will be permanently deleted
-            </div>
-            <p>This will completely empty the table but keep its structure intact.</p>
+            <h2>⚠️ Minden rekord törlésének megerősítése</h2>
+                <div class="danger-text">Ezt a műveletet nem lehet visszavonni!</div>
+                <p>Biztosan törölni szeretnéd a <strong>{{ table }}</strong> tábla <strong>ÖSSZES</strong> rekordját?</p>
+                <div class="count-info">
+                    {{ count }} rekord kerül véglegesen törlésre
+                </div>
+                <p>Ez teljesen kiüríti a táblát, de a struktúrát megtartja.</p>
             <div class="button-group">
-                <a href="{{ url_for('delete_all_execute', db_name=db_name, table=table) }}" class="btn btn-delete">Yes, Delete All {{ count }} Records</a>
-                <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Cancel</a>
+                    <a href="{{ url_for('delete_all_execute', db_name=db_name, table=table) }}" class="btn btn-delete">Igen, töröld az összes ({{ count }}) rekordot</a>
+                    <a href="{{ url_for('view_table', db_name=db_name, table=table) }}" class="btn btn-cancel">Mégsem</a>
             </div>
         </div>
         </body>
@@ -512,13 +512,13 @@ def delete_all_confirm(db_name, table):
 def delete_all_execute(db_name, table):
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
-        return "Database not found", 404
+        return "Adatbázis nem található", 404
     
     try:
         delete_all_records(db_path, table)
         return redirect(url_for('view_table', db_name=db_name, table=table))
     except Exception as e:
-        return f"Error deleting all records: {e}", 500
+        return f"Hiba az összes rekord törlése közben: {e}", 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=6970, debug=True)
