@@ -7,7 +7,7 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -38,20 +38,29 @@ class User(db.Model):
 class Game(db.Model):
     __tablename__ = 'games'
     
-    id = db.Column(db.Integer, primary_key=True)
-    player_id = db.Column(db.Integer, nullable=False)
-    card_ids = db.Column(db.JSON, nullable=True, default=list)
-    player_won = db.Column(db.Boolean, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
+    world_id = db.Column(db.String(32), nullable=False)
+    user_id = db.Column(db.String(32), nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    picture = db.Column(db.LargeBinary, nullable=True)
+    health = db.Column(db.Integer, nullable=False)
+    damage = db.Column(db.Integer, nullable=False)
+    position = db.Column(db.Integer, nullable=False)
+    vezer = db.Column(db.Boolean, nullable=False)
+
     
     def to_dict(self):
         return {
             'id': self.id,
-            'player_id': self.player_id,
-            'card_ids': self.card_ids,
-            'player_won': self.player_won,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'world_id': self.world_id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'picture': self.picture.decode('utf-8') if self.picture else None,
+            'health': self.health,
+            'damage': self.damage,
+            'position': self.position,
+            'vezer': self.vezer
         }
     
     def __repr__(self):
-        return f'<Game {self.id} - Player {self.player_id}>'
+        return f'<Game {self.name} - World {self.world_id}>'

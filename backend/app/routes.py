@@ -82,41 +82,47 @@ def register():
         verification_token = generate_verification_token()
         verification_expires = get_verification_expiry()
         
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=password_hash,
-            world_ids=[],
-            settings={},
-            email_verified=not EmailConfig.REQUIRE_EMAIL_VERIFICATION,
-            verification_token=verification_token,
-            verification_token_expires=verification_expires
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        
-        send_verification_email(email, username, verification_token)
-        
-        if EmailConfig.REQUIRE_EMAIL_VERIFICATION:
-            return success_response({
-                'message': 'Regisztráció sikeres. Kérjük, ellenőrizd az e-mail fiókodat a megerősítéshez.',
-                'user': {
-                    'id': new_user.id,
-                    'username': new_user.username,
-                    'email': new_user.email,
-                    'email_verified': new_user.email_verified
-                },
-                'requires_verification': True
-            }, 201)
-        else:
-            from flask import current_app
-            token = generate_token(new_user.id, current_app.config['SECRET_KEY'])
-            return success_response({
-                'message': 'Regisztráció sikeres.',
-                'user': new_user.to_dict(),
-                'token': token,
-                'requires_verification': False
-            }, 201)
+        from app.utils import generate_unique_id
+        for _ in range(5):
+            try:
+                new_user = User(
+                    id=generate_unique_id(),
+                    username=username,
+                    email=email,
+                    password_hash=password_hash,
+                    world_ids=[],
+                    settings={},
+                    email_verified=not EmailConfig.REQUIRE_EMAIL_VERIFICATION,
+                    verification_token=verification_token,
+                    verification_token_expires=verification_expires
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                send_verification_email(email, username, verification_token)
+                if EmailConfig.REQUIRE_EMAIL_VERIFICATION:
+                    return success_response({
+                        'message': 'Regisztráció sikeres. Kérjük, ellenőrizd az e-mail fiókodat a megerősítéshez.',
+                        'user': {
+                            'id': new_user.id,
+                            'username': new_user.username,
+                            'email': new_user.email,
+                            'email_verified': new_user.email_verified
+                        },
+                        'requires_verification': True
+                    }, 201)
+                else:
+                    from flask import current_app
+                    token = generate_token(new_user.id, current_app.config['SECRET_KEY'])
+                    return success_response({
+                        'message': 'Regisztráció sikeres.',
+                        'user': new_user.to_dict(),
+                        'token': token,
+                        'requires_verification': False
+                    }, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        return error_response('Nem sikerült egyedi azonosítót generálni, próbáld újra később.', 500)
     except IntegrityError:
         db.session.rollback()
         return error_response('A felhasználó már létezik', 409)
