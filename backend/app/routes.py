@@ -22,9 +22,9 @@ _rate_limit_store = {}
 _RATE_LIMIT_WINDOW = 10 
 _RATE_LIMIT_MAX = 5
 
-def ratelimit(endpoint):
-    @wraps(endpoint)
-    def wrapper(*args, **kwargs):
+def ratelimit(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
         ip = request.remote_addr or 'unknown'
         key = f"{ip}:{request.endpoint}"
         now = time.time()
@@ -35,8 +35,8 @@ def ratelimit(endpoint):
             return error_response('Kéréskorlát túllépve', 429)
         reqs.append(now)
         _rate_limit_store[key] = reqs
-        return endpoint(*args, **kwargs)
-    return wrapper
+        return func(*args, **kwargs)
+    return decorated_function
 
 
 @api.route('/register', methods=['POST'])
