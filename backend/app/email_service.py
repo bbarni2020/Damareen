@@ -16,7 +16,7 @@ def get_verification_expiry():
 
 def send_verification_email(recipient_email, username, verification_token):
     try:
-        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/verify?token={verification_token}"
+        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/auth.html?token={verification_token}"
         
         html_content = f"""
 <!DOCTYPE html>
@@ -117,7 +117,7 @@ Ez a link 24 órán belül lejár. Ha nem te regisztráltál, kérjük, hagyd fi
 
 def send_login_verification_email(recipient_email, username, verification_token):
     try:
-        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/verify-login?token={verification_token}"
+        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/auth.html?login=1&token={verification_token}"
         
         html_content = f"""
 <!DOCTYPE html>

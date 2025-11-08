@@ -380,14 +380,16 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        
+        const isLoginVerification = urlParams.has('login') || window.location.pathname.includes('/verify-login');
+
         if (token) {
-            verifyToken(token);
+            verifyToken(token, isLoginVerification);
         }
 
-        async function verifyToken(token) {
+        async function verifyToken(token, isLogin) {
             try {
-                const response = await fetch(`${API_URL}/verify-email`, {
+                const endpoint = isLogin ? 'verify-login' : 'verify-email';
+                const response = await fetch(`${API_URL}/${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
