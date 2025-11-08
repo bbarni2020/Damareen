@@ -36,7 +36,7 @@ def send_verification_email(recipient_email, username, verification_token):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <h1 style="font-family: 'Jaro', sans-serif; color: #C49B3B; margin: 0; font-size: 3.2rem; letter-spacing: 4px; text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);">Damareen</h1>
+                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -137,7 +137,7 @@ def send_login_notification_email(recipient_email, username):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <h1 style="font-family: 'Jaro', sans-serif; color: #C49B3B; margin: 0; font-size: 3.2rem; letter-spacing: 4px; text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);">Damareen</h1>
+                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -225,7 +225,7 @@ def send_password_reset_email(recipient_email, username, reset_token):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <h1 style="font-family: 'Jaro', sans-serif; color: #C49B3B; margin: 0; font-size: 3.2rem; letter-spacing: 4px; text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);">Damareen</h1>
+                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
