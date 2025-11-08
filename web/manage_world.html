@@ -21,39 +21,21 @@ body {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
-.pause-btn,
 .world-actions {
   position: fixed;
   top: 25px;
   display: flex;
   z-index: 100;
+  left: 25px;
+  gap: 10px;
 }
-.pause-btn,
-body {
-  align-items: center;
-  justify-content: center;
-}
-.pause-btn {
-  right: 25px;
-  width: 55px;
-  height: 55px;
-  background: #c49b3b;
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.28s;
-  box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
-}
-.action-btn:hover,
-.pause-btn:hover {
+.action-btn:hover {
   background: #d4ab4f;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
-}
-.world-actions {
-  left: 25px;
-  gap: 10px;
 }
 .action-btn,
 h1 {
@@ -80,21 +62,6 @@ h1 {
 }
 .action-btn.danger:hover {
   background: #ff6b6b;
-}
-.pause-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.pause-icon::after,
-.pause-icon::before {
-  content: "";
-  width: 6px;
-  height: 24px;
-  background: #1a1a1d;
-  border-radius: 2px;
 }
 h1 {
   font-size: 4rem;
@@ -947,10 +914,6 @@ h1:focus {
   .panel-title {
     font-size: 1.5rem;
   }
-  .pause-btn {
-    width: 45px;
-    height: 45px;
-  }
 }
     </style>
 </head>
@@ -959,10 +922,6 @@ h1:focus {
         <button class="action-btn" id="create-world-btn" onclick="createWorld()">Világ létrehozása</button>
         <button class="action-btn danger" id="delete-world-btn" onclick="deleteWorld()" disabled style="opacity: 0.5; cursor: not-allowed;">Világ törlése</button>
     </div>
-
-    <button class="pause-btn" id="pause-btn" title="Szünet">
-        <div class="pause-icon"></div>
-    </button>
 
     <h1 id="world-name" contenteditable="true" spellcheck="false">Világ neve</h1>
 
@@ -1217,17 +1176,6 @@ h1:focus {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 this.blur();
-            }
-        });
-
-        document.getElementById('pause-btn').addEventListener('click', () => {
-            isPaused = !isPaused;
-            const pauseBtn = document.getElementById('pause-btn');
-            
-            if (isPaused) {
-                pauseBtn.style.background = '#ff6b6b';
-            } else {
-                pauseBtn.style.background = '#C49B3B';
             }
         });
 

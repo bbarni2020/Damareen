@@ -201,6 +201,33 @@ def delete_account():
         return error_response('Érvénytelen jelszó', 401)
     
     try:
+        
+        user_world_map = user.world_ids or {}
+        worlds_to_delete = []
+        
+        if isinstance(user_world_map, dict):
+            for world_id, is_master in user_world_map.items():
+                if is_master is True:
+                    worlds_to_delete.append(world_id)
+        
+        
+        for world_id in worlds_to_delete:
+            Card.query.filter_by(world_id=world_id).delete()
+            Dungeon.query.filter_by(world_id=world_id).delete()
+            
+            users = User.query.all()
+            for u in users:
+                if u.world_ids and world_id in u.world_ids:
+                    del u.world_ids[world_id]
+                    u.world_ids = dict(u.world_ids)
+        
+        
+        if worlds_to_delete:
+            World.query.filter(World.world_id.in_(worlds_to_delete)).delete(synchronize_session=False)
+        
+        
+        Card.query.filter_by(owner_id=user.id).delete()
+        
         db.session.delete(user)
         db.session.commit()
         return success_response({'message': 'A fiók sikeresen törölve'})
