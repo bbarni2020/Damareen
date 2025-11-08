@@ -500,6 +500,10 @@ def create_card():
         position = to_int(0)
         is_leader = ""
 
+        existing_card = Card.query.filter_by(world_id=world_id, name=name).first()
+        if existing_card:
+            return error_response('Már létezik kártya ezzel a névvel ebben a világban', 409)
+
         for _ in range(5):
             try:
                 new_card = Card(
@@ -702,6 +706,14 @@ def create_leader():
         
         if not original_card:
             return error_response('Nem található kártya a megadott azonosítóval', 404)
+        
+        existing_card_with_name = Card.query.filter_by(
+            world_id=original_card.world_id,
+            name=original_card.name
+        ).filter(Card.id != original_card.id).first()
+        
+        if existing_card_with_name:
+            return error_response('Már létezik kártya ezzel a névvel ebben a világban', 409)
         
         new_damage = original_card.damage
         new_health = original_card.health
