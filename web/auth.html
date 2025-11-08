@@ -166,7 +166,7 @@
         </div>
 
         <div id="register-form" class="form-container" style="display: none;">
-            <h2>Damareen Auth</h2>
+            <h2>Damareen Hitelesítés</h2>
             <form id="registerForm">
                 <div>
                     <label for="register-username">Felhasználónév:</label>
@@ -289,7 +289,7 @@
             } catch (error) {
                 loginMessage.textContent = 'Hiba történt a bejelentkezés során: ' + error.message;
                 loginMessage.style.color = 'red';
-                console.error('Login error:', error);
+                console.error('Bejelentkezési hiba:', error);
             }
         });
 
@@ -343,7 +343,7 @@
             } catch (error) {
                 registerMessage.textContent = 'Hiba történt a regisztráció során: ' + error.message;
                 registerMessage.style.color = 'red';
-                console.error('Register error:', error);
+                console.error('Regisztrációs hiba:', error);
             }
         });
 
@@ -374,7 +374,7 @@
             } catch (error) {
                 resendMessage.textContent = 'Hiba történt az e-mail küldése során: ' + error.message;
                 resendMessage.style.color = 'red';
-                console.error('Resend error:', error);
+                console.error('Újraküldés hibája:', error);
             }
         });
 
@@ -409,7 +409,7 @@
             } catch (error) {
                 alert('Hiba történt a megerősítés során: ' + error.message);
                 loginContainer.style.display = 'block';
-                console.error('Verification error:', error);
+                console.error('Megerősítési hiba:', error);
             }
         }
     </script>

@@ -126,24 +126,24 @@ def decode_token(token, secret_key):
         return None
 
 
-def require_auth(secret_key):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            auth_header = request.headers.get('Authorization')
-            if not auth_header:
-                return error_response('Az Authorization fejléc hiányzik', 401)
-            
-            parts = auth_header.split()
-            if len(parts) != 2 or parts[0].lower() != 'bearer':
-                return error_response('Érvénytelen Authorization fejléc formátum', 401)
-            
-            token = parts[1]
-            payload = decode_token(token, secret_key)
-            if not payload:
-                return error_response('Érvénytelen vagy lejárt token', 401)
-            
-            request.user_id = payload['user_id']
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
+def require_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        from flask import current_app
+        
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return error_response('Az Authorization fejléc hiányzik', 401)
+        
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != 'bearer':
+            return error_response('Érvénytelen Authorization fejléc formátum', 401)
+        
+        token = parts[1]
+        payload = decode_token(token, current_app.config['SECRET_KEY'])
+        if not payload:
+            return error_response('Érvénytelen vagy lejárt token', 401)
+        
+        request.user_id = payload['user_id']
+        return f(*args, **kwargs)
+    return decorated_function
