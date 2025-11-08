@@ -23,7 +23,7 @@ api = Blueprint('api', __name__)
 
 _rate_limit_store = {}
 _RATE_LIMIT_WINDOW = 10 
-_RATE_LIMIT_MAX = 5
+_RATE_LIMIT_MAX = 50 #Change in production!!!!!!
 
 def ratelimit(func):
     @wraps(func)
@@ -454,7 +454,7 @@ def create_world():
                 db.session.add(new_world)
                 db.session.flush()
                 
-                if user.world_ids is None:
+                if not isinstance(user.world_ids, dict):
                     user.world_ids = {}
                 user.world_ids[new_world.world_id] = is_master
                 
@@ -627,6 +627,15 @@ def create_dungeon():
             for i in range(len(ordered_cards) - 1):
                 if ordered_cards[i].is_leader != "":
                     return error_response('A kazamata kártyái közül csak az utolsó lehet vezér', 400)
+        
+        try:
+            for position, card_id in enumerate(list_ids):
+                card = card_dict[card_id]
+                card.position = position + 1
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return error_response('A kártyák pozíciójának frissítése sikertelen', 500)
     
     try:
         for _ in range(5):
@@ -839,7 +848,7 @@ def join_game():
     if not world:
         return error_response('A világ nem található', 404)
     
-    if user.world_ids is None:
+    if not isinstance(user.world_ids, dict):
         user.world_ids = {}
     
     if invite_code in user.world_ids:
@@ -854,6 +863,7 @@ def join_game():
             'world': world.to_dict()
         })
     except Exception as e:
+        print(e)
         db.session.rollback()
         return error_response('A csatlakozás sikertelen', 500)
 
@@ -1033,6 +1043,99 @@ def delete_dungeon():
         db.session.rollback()
         return error_response('A dungeon törlése sikertelen', 500)
 
+@api.route('/game/fight', methods=['GET'])
+@ratelimit
+@require_auth
+def fight():
+    user = request.current_user
+    dungeon_id = request.args.get('dungeon_id') or request.args.get('dungeoun_id')
+    if not dungeon_id:
+        return error_response('A dungeon azonosítója kötelező', 400)
+    dungeon = Dungeon.query.filter_by(id=str(dungeon_id)).first()
+    if not dungeon:
+        return error_response('Dungeon nem található', 404)
+    dungeon_card_ids = dungeon.list_of_card_ids or []
+    dungeon_cards = []
+    if dungeon_card_ids:
+        cards = Card.query.filter(Card.id.in_(dungeon_card_ids)).all()
+        card_map = {c.id: c for c in cards}
+        for cid in dungeon_card_ids:
+            if cid in card_map:
+                dungeon_cards.append(card_map[cid].to_dict())
+    player_cards = Card.query.filter(Card.owner_id == user.id, Card.position != 0).order_by(Card.position).all()
+    player_deck = []
+    for idx, c in enumerate(player_cards):
+        d = c.to_dict()
+        d['position'] = idx + 1
+        player_deck.append(d)
+
+    battles = []
+    beats = {'t': 'f', 'f': 'v', 'v': 'l', 'l': 't'}
+    pairs = min(len(dungeon_cards), len(player_deck))
+    for i in range(pairs):
+        dc = dungeon_cards[i]
+        pc = player_deck[i]
+        try:
+            p_damage = int(pc.get('damage', 0))
+        except Exception:
+            p_damage = 0
+        try:
+            d_damage = int(dc.get('damage', 0))
+        except Exception:
+            d_damage = 0
+        try:
+            p_health = int(pc.get('health', 0))
+        except Exception:
+            p_health = 0
+        try:
+            d_health = int(dc.get('health', 0))
+        except Exception:
+            d_health = 0
+
+        p_can_kill = p_damage > d_health
+        d_can_kill = d_damage > p_health
+
+        winner = None
+        reason = None
+        if p_can_kill and not d_can_kill:
+            winner = 'player'
+            reason = 'damage'
+        elif d_can_kill and not p_can_kill:
+            winner = 'dungeon'
+            reason = 'damage'
+        else:
+            p_type = (pc.get('type') or '').lower()
+            d_type = (dc.get('type') or '').lower()
+            if p_type and d_type and p_type != d_type:
+                if beats.get(p_type) == d_type:
+                    winner = 'player'
+                    reason = 'type'
+                elif beats.get(d_type) == p_type:
+                    winner = 'dungeon'
+                    reason = 'type'
+                else:
+                    winner = 'dungeon'
+                    reason = 'dungeon_fallback'
+            else:
+                winner = 'dungeon'
+                reason = 'dungeon_fallback'
+
+        battles.append({
+            'position': i + 1,
+            'player_card': pc,
+            'dungeon_card': dc,
+            'winner': winner,
+            'reason': reason
+        })
+
+    player_wins = sum(1 for b in battles if b.get('winner') == 'player')
+    dungeon_wins = sum(1 for b in battles if b.get('winner') == 'dungeon')
+    winner = 'player' if player_wins >= dungeon_wins else 'dungeon'
+
+    return success_response({
+        'winner': winner,
+        'battles': battles
+    })
 
 @api.route('/health', methods=['GET'])
 @ratelimit
