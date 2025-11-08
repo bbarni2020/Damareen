@@ -108,6 +108,7 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
             letter-spacing: 2px;
+            position: relative;
         }
 
         button[type="submit"]:hover {
@@ -119,6 +120,28 @@
 
         button[type="submit"]:active {
             transform: translateY(-1px);
+        }
+
+        button[type="submit"].loading {
+            pointer-events: none;
+            color: transparent;
+        }
+
+        button[type="submit"] .button-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(196, 155, 59, 0.2);
+            border-top: 3px solid #C49B3B;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        button[type="submit"].loading .button-spinner {
+            display: block;
         }
 
         p {
@@ -147,6 +170,10 @@
             font-weight: bold;
             min-height: 22px;
         }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -162,7 +189,10 @@
                     <label for="login-password">Jelszó:</label>
                     <input type="password" id="login-password" name="password" required>
                 </div>
-                <button type="submit">Bejelentkezés</button>
+                <button type="submit" id="login-btn">
+                    <span class="button-text">Bejelentkezés</span>
+                    <span class="button-spinner"></span>
+                </button>
                 <p id="login-message"></p>
             </form>
             <p>Nincs még fiókod? <a href="#" id="show-register">Regisztrálj itt</a></p>
@@ -188,7 +218,10 @@
                     <label for="register-password-confirm">Jelszó megerősítése:</label>
                     <input type="password" id="register-password-confirm" name="password-confirm" required>
                 </div>
-                <button type="submit">Regisztráció</button>
+                <button type="submit" id="register-btn">
+                    <span class="button-text">Regisztráció</span>
+                    <span class="button-spinner"></span>
+                </button>
                 <p id="register-message"></p>
             </form>
             <p>Van már fiókod? <a href="#" id="show-login">Jelentkezz be itt</a></p>
@@ -319,7 +352,8 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginMessage.textContent = '';
-            
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.classList.add('loading');
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
@@ -331,9 +365,8 @@
                     },
                     body: JSON.stringify({ username, password })
                 });
-
                 const data = await response.json();
-
+                loginBtn.classList.remove('loading');
                 if (data.success) {
                     loginMessage.textContent = data.data.message;
                     loginMessage.style.color = 'green';
@@ -362,6 +395,7 @@
                     }
                 }
             } catch (error) {
+                loginBtn.classList.remove('loading');
                 loginMessage.textContent = 'Hiba történt a bejelentkezés során: ' + error.message;
                 loginMessage.style.color = 'red';
                 console.error('Bejelentkezési hiba:', error);
@@ -371,7 +405,7 @@
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             registerMessage.textContent = '';
-            
+            const registerBtn = document.getElementById('register-btn');
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
@@ -383,6 +417,8 @@
                 return;
             }
 
+            registerBtn.classList.add('loading');
+
             try {
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
@@ -391,9 +427,8 @@
                     },
                     body: JSON.stringify({ username, email, password })
                 });
-
                 const data = await response.json();
-
+                registerBtn.classList.remove('loading');
                 if (data.success) {
                     registerMessage.textContent = data.data.message;
                     registerMessage.style.color = 'green';
@@ -416,6 +451,7 @@
                     registerMessage.style.color = 'red';
                 }
             } catch (error) {
+                registerBtn.classList.remove('loading');
                 registerMessage.textContent = 'Hiba történt a regisztráció során: ' + error.message;
                 registerMessage.style.color = 'red';
                 console.error('Regisztrációs hiba:', error);
