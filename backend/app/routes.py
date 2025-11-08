@@ -443,7 +443,7 @@ def create_card():
         health = to_int(data.get('health', 0), 0)
         damage = to_int(data.get('damage', 0), 0)
         position = to_int(data.get('position', 0), 0)
-        is_leader = to_bool(data.get('is_leader', 0), False)
+        is_leader = ""
 
         for _ in range(5):
             try:
@@ -610,7 +610,6 @@ def create_leader():
         
         new_damage = original_card.damage
         new_health = original_card.health
-        is_leader = True
         
         if damage_doubled:
             new_damage = original_card.damage * 2
@@ -629,7 +628,7 @@ def create_leader():
                     damage=new_damage,
                     type=original_card.type,
                     position=original_card.position,
-                    is_leader=is_leader
+                    is_leader=original_card.id
                 )
                 db.session.add(new_leader)
                 db.session.commit()

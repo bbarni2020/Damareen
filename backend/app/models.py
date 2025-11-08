@@ -47,7 +47,7 @@ class Card(db.Model):
     damage = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(6), nullable=False)
     position = db.Column(db.Integer, nullable=False)
-    is_leader = db.Column(db.Boolean, nullable=False)
+    is_leader = db.Column(db.String(32), nullable=False)
 
     def to_dict(self):
         return {
