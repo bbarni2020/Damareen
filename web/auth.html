@@ -18,7 +18,7 @@
 
         body {
             font-family: 'Jaro', sans-serif;
-            background: #0F0D13 url('src/background.png') center/cover no-repeat fixed;
+            background: #1A1A1D url('src/background.png') center/cover no-repeat fixed;
             color: #D9D9D9;
             display: flex;
             justify-content: center;
@@ -35,9 +35,10 @@
         .form-container {
             text-align: center;
             padding: 35px 25px;
-            border: 2.5px solid rgba(196, 155, 59, 0.35);
-            border-radius: 18px;
-            background: rgba(196, 155, 59, 0.02);
+            border: 2.5px solid rgba(196, 155, 59, 0.4);
+            border-radius: 15px;
+            background: rgba(26, 26, 29, 0.75);
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
         }
 
         h2 {
@@ -46,8 +47,8 @@
             font-weight: bold;
             color: #C49B3B;
             margin-bottom: 55px;
-            letter-spacing: 3.5px;
-            text-shadow: 0 0 25px rgba(196, 155, 59, 0.4);
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
         }
 
         form {
@@ -76,48 +77,48 @@
         input[type="password"] {
             width: 100%;
             padding: 13px 22px;
-            background: rgba(15, 13, 19, 0.5);
-            border: 2.5px solid #D9D9D9;
-            border-radius: 28px;
+            background: rgba(26, 26, 29, 0.6);
+            border: 2px solid rgba(196, 155, 59, 0.3);
+            border-radius: 8px;
             color: #D9D9D9;
             font-size: 1.02rem;
             outline: none;
-            transition: all 0.25s ease-out;
+            transition: all 0.3s;
         }
 
         input[type="text"]:focus,
         input[type="email"]:focus,
         input[type="password"]:focus {
             border-color: #C49B3B;
-            background: rgba(196, 155, 59, 0.06);
-            box-shadow: 0 0 18px rgba(196, 155, 59, 0.25);
-            transform: scale(1.01);
+            background: rgba(26, 26, 29, 0.8);
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
         }
 
         button[type="submit"] {
             margin-top: 24px;
             padding: 13px 55px;
-            background: rgba(196, 155, 59, 0.08);
-            border: 2.8px solid #C49B3B;
-            border-radius: 27px;
+            background: transparent;
+            border: 3px solid #C49B3B;
+            border-radius: 8px;
             color: #C49B3B;
+            font-family: 'Jaro', sans-serif;
             font-size: 1.25rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.28s;
-            box-shadow: 0 3px 12px rgba(196, 155, 59, 0.25);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
+            letter-spacing: 2px;
         }
 
         button[type="submit"]:hover {
             background: #C49B3B;
-            color: #0F0D13;
-            transform: translateY(-2.5px);
-            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.45);
+            color: #1A1A1D;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.4);
         }
 
         button[type="submit"]:active {
-            transform: translateY(0px);
-            box-shadow: 0 2px 8px rgba(196, 155, 59, 0.35);
+            transform: translateY(-1px);
         }
 
         p {
