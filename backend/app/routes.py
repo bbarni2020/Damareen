@@ -852,20 +852,26 @@ def is_master():
 @require_auth
 def list_user_worlds():
     user = request.current_user
-    world_map = user.world_ids or {}
-    world_ids = list(world_map.keys()) if isinstance(world_map, dict) else []
-    worlds = World.query.filter(World.world_id.in_(world_ids)).all() if world_ids else []
-    name_by_id = {w.world_id: w.name for w in worlds}
-    result = []
-    for wid, is_master in (world_map.items() if isinstance(world_map, dict) else []):
-        result.append({
-            'world_id': wid,
-            'name': name_by_id.get(wid, wid),
-            'is_master': bool(is_master)
-        })
-    return success_response({'worlds': result})
-
-
+    
+    
+    all_worlds = World.query.all()
+    worlds_dict = {w.world_id: w.name for w in all_worlds}
+    
+    user_world_map = user.world_ids or {}
+    where_user_is_master = []
+    already_joined_worlds = {}
+    
+    if isinstance(user_world_map, dict):
+        for world_id, is_master in user_world_map.items():
+            already_joined_worlds[world_id] = worlds_dict.get(world_id, world_id)
+            if is_master is True:
+                where_user_is_master.append(world_id)
+    
+    return success_response({
+        'worlds': worlds_dict,
+        'where_user_is_master': where_user_is_master,
+        'already_joined_worlds': already_joined_worlds
+    })
 @api.route('/world/list/dungeons', methods=['GET'])
 @ratelimit
 @require_auth
