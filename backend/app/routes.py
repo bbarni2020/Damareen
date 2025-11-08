@@ -11,7 +11,7 @@ from app.utils import (
     require_master, is_master_of_world, check_master_status
 )
 from app.email_service import (
-    send_verification_email, send_login_verification_email,
+    send_verification_email, send_login_notification_email,
     generate_verification_token, get_verification_expiry,
     send_password_reset_email
 )
@@ -170,37 +170,17 @@ def login():
             
             send_verification_email(user.email, user.username, verification_token)
             return error_response('Az e-mail cím még nincs megerősítve. Új megerősítő e-mailt küldtünk.', 403)
-        
-        login_token = generate_verification_token()
-        login_token_expires = get_verification_expiry()
-        user.login_verification_token = login_token
-        user.login_verification_token_expires = login_token_expires
-        db.session.commit()
-        
-        send_login_verification_email(user.email, user.username, login_token)
-        
-        return success_response({
-            'message': 'Bejelentkezési megerősítő e-mailt küldtünk. Kérjük, ellenőrizd az e-mail fiókodat.',
-            'requires_verification': True
-        })
-    else:
-        login_token = generate_verification_token()
-        login_token_expires = get_verification_expiry()
-        user.login_verification_token = login_token
-        user.login_verification_token_expires = login_token_expires
-        db.session.commit()
-        
-        send_login_verification_email(user.email, user.username, login_token)
-        
-        from flask import current_app
-        token = generate_token(user.id, current_app.config['SECRET_KEY'])
-        
-        return success_response({
-            'message': 'Bejelentkezés sikeres.',
-            'user': user.to_dict(),
-            'token': token,
-            'requires_verification': False
-        })
+    
+    from flask import current_app
+    token = generate_token(user.id, current_app.config['SECRET_KEY'])
+    
+    send_login_notification_email(user.email, user.username)
+    
+    return success_response({
+        'message': 'Bejelentkezés sikeres.',
+        'user': user.to_dict(),
+        'token': token
+    })
 
 
 @api.route('/user/delete', methods=['DELETE'])
@@ -344,41 +324,6 @@ def verify_email():
     
     return success_response({
         'message': 'E-mail cím sikeresen megerősítve',
-        'user': user.to_dict(),
-        'token': access_token
-    })
-
-
-@api.route('/user/verify-login', methods=['POST'])
-@ratelimit
-def verify_login():
-    data = request.get_json()
-    
-    if not data:
-        return error_response('A kérés törzse kötelező', 400)
-    
-    token = data.get('token', '')
-    
-    if not token:
-        return error_response('A megerősítő token kötelező', 400)
-    
-    user = User.query.filter_by(login_verification_token=token).first()
-    
-    if not user:
-        return error_response('Érvénytelen bejelentkezési token', 400)
-    
-    if user.login_verification_token_expires < datetime.utcnow():
-        return error_response('A bejelentkezési token lejárt', 400)
-    
-    user.login_verification_token = None
-    user.login_verification_token_expires = None
-    db.session.commit()
-    
-    from flask import current_app
-    access_token = generate_token(user.id, current_app.config['SECRET_KEY'])
-    
-    return success_response({
-        'message': 'Bejelentkezés sikeresen megerősítve',
         'user': user.to_dict(),
         'token': access_token
     })
