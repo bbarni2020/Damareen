@@ -6,7 +6,8 @@ from app.models import db, User, World, Card, Dungeon
 from app.utils import (
     success_response, error_response, validate_email, 
     validate_username, validate_password, hash_password,
-    verify_password, generate_token, require_auth, generate_unique_id
+    verify_password, generate_token, require_auth, generate_unique_id,
+    require_master, is_master_of_world, check_master_status
 )
 from app.email_service import (
     send_verification_email, send_login_verification_email,
@@ -473,6 +474,7 @@ def create_world():
 @api.route('/create/card', methods=['POST'])
 @ratelimit
 @require_auth
+@require_master
 def create_card():
     user = request.current_user
     
@@ -542,6 +544,7 @@ def create_card():
 @api.route('/create/dungeon', methods=['POST'])
 @ratelimit
 @require_auth
+@require_master
 def create_dungeon():
     data = request.get_json()
     if not data:
@@ -585,6 +588,7 @@ def create_dungeon():
 @api.route('/create/collection', methods=['POST'])
 @ratelimit
 @require_auth
+@require_master
 def create_collection():
     data = request.get_json()
     
@@ -654,6 +658,7 @@ def create_collection():
 @api.route('/create/leader', methods=['POST'])
 @ratelimit
 @require_auth
+@require_master
 def create_leader():
     data = request.get_json()
     
@@ -753,6 +758,13 @@ def join_game():
     except Exception as e:
         db.session.rollback()
         return error_response('A csatlakozás sikertelen', 500)
+
+
+@api.route('/user/is-master', methods=['GET'])
+@ratelimit
+@require_auth
+def is_master():
+    return check_master_status()
 
 
 @api.route('/health', methods=['GET'])
