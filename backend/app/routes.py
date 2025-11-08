@@ -361,9 +361,21 @@ def create_world():
         return error_response('A kérés törzse kötelező', 400)
     
     name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
+    user_id = data.get('user_id', '').strip() if isinstance(data.get('user_id'), str) else ''
+    is_master = data.get('is_master', False)
     
     if not name:
         return error_response('A világ neve kötelező', 400)
+    
+    if not user_id:
+        return error_response('A felhasználó azonosítója kötelező', 400)
+    
+    if not isinstance(is_master, bool):
+        return error_response('Az is_master értéknek boolean-nak kell lennie', 400)
+    
+    user = User.query.get(user_id)
+    if not user:
+        return error_response('Felhasználó nem található', 404)
     
     try:
         for _ in range(5):
@@ -373,6 +385,12 @@ def create_world():
                     name=name
                 )
                 db.session.add(new_world)
+                db.session.flush()
+                
+                if user.world_ids is None:
+                    user.world_ids = {}
+                user.world_ids[new_world.world_id] = is_master
+                
                 db.session.commit()
                 return success_response({
                     'message': 'Világ sikeresen létrehozva',
