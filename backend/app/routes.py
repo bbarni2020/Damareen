@@ -559,6 +559,58 @@ def create_card():
     except Exception as e:
         db.session.rollback()
         return error_response('A kártya létrehozása sikertelen', 500)
+
+@api.route('/world/user/addcard', methods=['POST'])
+@ratelimit
+@require_auth
+@require_master
+def add_card_to_user():
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
+    user_id = data.get('user_id', '').strip() if isinstance(data.get('user_id'), str) else ''
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    if not card_id:
+        return error_response('A kártya azonosítója kötelező', 400)
+    if not user_id:
+        return error_response('A felhasználó azonosítója kötelező', 400)
+    target_user = User.query.get(user_id)
+    if not target_user:
+        return error_response('Felhasználó nem található', 404)
+    wm = target_user.world_ids or {}
+    if not (isinstance(wm, dict) and str(world_id) in wm):
+        return error_response('Felhasználó nincs ebben a világban', 400)
+    original_card = Card.query.get(card_id)
+    if not original_card or original_card.world_id != world_id:
+        return error_response('Nem található kártya a megadott azonosítóval', 404)
+    try:
+        for _ in range(5):
+            try:
+                new_card = Card(
+                    id=generate_unique_id(),
+                    world_id=original_card.world_id,
+                    owner_id=user_id,
+                    name=original_card.name,
+                    picture=original_card.picture,
+                    health=original_card.health,
+                    damage=original_card.damage,
+                    type=original_card.type,
+                    position=original_card.position,
+                    is_leader=original_card.is_leader
+                )
+                db.session.add(new_card)
+                db.session.commit()
+                return success_response({'message': 'Kártya hozzáadva a felhasználóhoz', 'card': new_card.to_dict()}, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
+    except Exception:
+        db.session.rollback()
+        return error_response('A kártya hozzáadása sikertelen', 500)
     
 @api.route('/create/dungeon', methods=['POST'])
 @ratelimit
