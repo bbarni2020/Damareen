@@ -19,6 +19,7 @@ from app.email_config import EmailConfig
 from sqlalchemy.exc import IntegrityError
 
 
+
 api = Blueprint('api', __name__)
 
 _rate_limit_store = {}
@@ -964,6 +965,66 @@ def list_world_users():
             })
     return success_response({'users': result})
 
+
+
+@api.route('/delete/card', methods=['DELETE'])
+@ratelimit
+@require_auth
+@require_master
+def delete_card():
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
+    if not card_id:
+        return error_response('A kártya azonosítója kötelező', 400)
+    card = Card.query.get(card_id)
+    if not card:
+        return error_response('Kártya nem található', 404)
+    cards_to_delete = Card.query.filter_by(name=card.name, world_id=card.world_id).all()
+    card_ids_to_delete = [c.id for c in cards_to_delete]
+    leader_cards = Card.query.filter(Card.world_id == card.world_id, Card.is_leader.in_(card_ids_to_delete)).all()
+    leader_card_ids = [c.id for c in leader_cards]
+    all_ids_to_delete = set(card_ids_to_delete + leader_card_ids)
+    try:
+        dungeons = Dungeon.query.filter(Dungeon.list_of_card_ids != None, Dungeon.world_id == card.world_id).all()
+        for dungeon in dungeons:
+            if hasattr(dungeon, 'list_of_card_ids') and isinstance(dungeon.list_of_card_ids, list):
+                dungeon.list_of_card_ids = [cid for cid in dungeon.list_of_card_ids if cid not in all_ids_to_delete]
+        for c in cards_to_delete:
+            db.session.delete(c)
+        for c in leader_cards:
+            db.session.delete(c)
+        db.session.commit()
+        return success_response({'message': 'Kártyák (és vezérek) sikeresen törölve minden felhasználótól'})
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A kártyák törlése sikertelen', 500)
+
+@api.route('/edit/world', methods=['PUT'])
+@ratelimit
+@require_auth
+@require_master
+def edit_world():
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    new_name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    if not new_name:
+        return error_response('Az új név kötelező', 400)
+    world = World.query.get(world_id)
+    if not world:
+        return error_response('A világ nem található', 404)
+    try:
+        world.name = new_name
+        db.session.commit()
+        return success_response({'message': 'A világ neve frissítve', 'world': world.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A világ frissítése sikertelen', 500)
 
 @api.route('/delete/world', methods=['DELETE'])
 @ratelimit

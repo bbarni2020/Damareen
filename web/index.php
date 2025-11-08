@@ -13,7 +13,7 @@ if ($request === 'auth') {
 }
 
 if ($request === 'manage-world') {
-    include __DIR__ . '/manage-world.html';
+    include __DIR__ . '/manage_world.html';
     return;
 }
 
