@@ -155,3 +155,42 @@ def require_auth(f):
         request.current_user = user
         return f(*args, **kwargs)
     return decorated_function
+
+
+def is_master_of_world(user, world_id):
+    if not user or not user.world_ids:
+        return False
+    return user.world_ids.get(str(world_id)) is True
+
+
+def require_master(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = request.current_user
+        data = request.get_json()
+        
+        world_id = data.get('world_id') if data else None
+        
+        if not world_id:
+            return error_response('A világ azonosítója kötelező', 400)
+        
+        if not is_master_of_world(user, world_id):
+            return error_response('Nincs jogosultságod ehhez a művelethez', 403)
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def check_master_status():
+    user = request.current_user
+    world_id = request.args.get('world_id')
+    
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    
+    is_master = is_master_of_world(user, world_id)
+    
+    return success_response({
+        'is_master': is_master,
+        'world_id': world_id
+    })
