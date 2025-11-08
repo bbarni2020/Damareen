@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damareen - World Creation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jaro', sans-serif;
+            background-color: #1A1A1D;
+            color: #D9D9D9;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-btn {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            width: 55px;
+            height: 55px;
+            background: #C49B3B;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.28s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+            z-index: 100;
+        }
+
+        .pause-btn:hover {
+            background: #d4ab4f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+        }
+
+        .pause-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .pause-icon::before,
+        .pause-icon::after {
+            content: '';
+            width: 6px;
+            height: 24px;
+            background: #1A1A1D;
+            border-radius: 2px;
+        }
+
+        h1 {
+            font-family: 'Jaro', sans-serif;
+            font-size: 4rem;
+            font-weight: bold;
+            color: #C49B3B;
+            margin-bottom: 40px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px 30px;
+            border-radius: 10px;
+        }
+
+        h1:hover {
+            background: rgba(196, 155, 59, 0.1);
+        }
+
+        h1:focus {
+            outline: 2px solid #C49B3B;
+            outline-offset: 5px;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 500px;
+            border: 6px solid #C49B3B;
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
+        }
+
+        .left-panel {
+            flex: 1;
+            background: #1A1A1D;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid #C49B3B;
+            overflow: hidden;
+        }
+
+        .tabs-container {
+            display: flex;
+            border-bottom: 3px solid #C49B3B;
+            background: #1A1A1D;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            color: rgba(196, 155, 59, 0.5);
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+
+        .tab-button:hover {
+            color: rgba(196, 155, 59, 0.8);
+            background: rgba(196, 155, 59, 0.05);
+        }
+
+        .tab-button.active {
+            color: #C49B3B;
+            border-bottom-color: #C49B3B;
+            background: rgba(196, 155, 59, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: #1A1A1D;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-family: 'Jaro', sans-serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #C49B3B;
+            margin-bottom: 25px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .card-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .card-preview {
+            width: 220px;
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
+            border: 4px solid #C49B3B;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .card-preview-image {
+            width: 100%;
+            height: 45%;
+            background: rgba(196, 155, 59, 0.1);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .card-preview-image:hover {
+            background: rgba(196, 155, 59, 0.2);
+        }
+
+        .card-preview-image::after {
+            content: '📁';
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card-preview-image:hover::after {
+            opacity: 0.7;
+        }
+
+        .card-preview-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .card-preview-image input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .card-preview-name {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.1rem;
+            color: #C49B3B;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            padding: 5px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .card-preview-name:hover,
+        .card-preview-name:focus {
+            border-color: rgba(196, 155, 59, 0.5);
+            background: rgba(196, 155, 59, 0.1);
+            outline: none;
+        }
+
+        .card-preview-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 2px solid rgba(196, 155, 59, 0.3);
+            gap: 10px;
+        }
+
+        .preview-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .preview-stat-label {
+            font-size: 0.75rem;
+            color: rgba(196, 155, 59, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-stat-input {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.3rem;
+            color: #D9D9D9;
+            font-weight: bold;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            text-align: center;
+            width: 60px;
+            padding: 3px;
+            transition: all 0.3s;
+        }
+
+        .preview-stat-input:hover,
+        .preview-stat-input:focus {
+            border-color: rgba(196, 155, 59, 0.5);
+            background: rgba(196, 155, 59, 0.1);
+            outline: none;
+        }
+
+        .card-preview-type {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(196, 155, 59, 0.95);
+            color: #1A1A1D;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            min-width: 80px;
+        }
+
+        .card-preview-type:hover {
+            background: rgba(196, 155, 59, 1);
+            transform: scale(1.08);
+        }
+
+        .type-selector {
+            background: rgba(196, 155, 59, 0.95);
+            border: 2px solid rgba(196, 155, 59, 0.5);
+            border-radius: 15px;
+            color: #1A1A1D;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .type-selector:focus {
+            outline: none;
+            border-color: #C49B3B;
+            background: rgba(196, 155, 59, 1);
+            transform: scale(1.08);
+        }
+
+        .dungeon-builder {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .available-cards {
+            flex: 1;
+            background: rgba(196, 155, 59, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .available-cards-title {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.3rem;
+            color: #C49B3B;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .available-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .mini-card {
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
+            border: 2px solid #C49B3B;
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .mini-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
+            border-color: #d4ab4f;
+        }
+
+        .mini-card.selected {
+            border-color: #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+        }
+
+        .mini-card-image {
+            width: 100%;
+            height: 50%;
+            background: rgba(196, 155, 59, 0.1);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            overflow: hidden;
+        }
+
+        .mini-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mini-card-name {
+            font-family: 'Jaro', sans-serif;
+            font-size: 0.75rem;
+            color: #C49B3B;
+            text-align: center;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mini-card-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: auto;
+            font-size: 0.7rem;
+        }
+
+        .selection-order {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #4CAF50;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .dungeon-sequence {
+            background: rgba(196, 155, 59, 0.1);
+            border: 2px solid rgba(196, 155, 59, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            min-height: 80px;
+        }
+
+        .dungeon-sequence-title {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.1rem;
+            color: #C49B3B;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .sequence-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            min-height: 40px;
+        }
+
+        .sequence-item {
+            background: rgba(196, 155, 59, 0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: #D9D9D9;
+            font-family: 'Fira Code', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .sequence-number {
+            background: #C49B3B;
+            color: #1A1A1D;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .clear-sequence-btn {
+            padding: 8px 20px;
+            background: rgba(255, 107, 107, 0.8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .clear-sequence-btn:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: translateY(-2px);
+        }
+
+        .empty-message {
+            text-align: center;
+            color: rgba(196, 155, 59, 0.4);
+            font-style: italic;
+        }
+
+        .create-btn {
+            margin-top: 10px;
+            padding: 12px 30px;
+            background: #C49B3B;
+            border: none;
+            border-radius: 8px;
+            color: #1A1A1D;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+        }
+
+        .create-btn:hover {
+            background: #d4ab4f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
+        }
+
+        .create-btn:active {
+            transform: translateY(0);
+        }
+
+        .collection-area {
+            flex: 1;
+            background: rgba(196, 155, 59, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        .collection-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .collection-area::-webkit-scrollbar-track {
+            background: rgba(196, 155, 59, 0.1);
+            border-radius: 10px;
+        }
+
+        .collection-area::-webkit-scrollbar-thumb {
+            background: rgba(196, 155, 59, 0.5);
+            border-radius: 10px;
+        }
+
+        .collection-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(196, 155, 59, 0.7);
+        }
+
+        .collection-placeholder {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: rgba(196, 155, 59, 0.5);
+            font-size: 1.2rem;
+            margin-top: 50px;
+        }
+
+        .game-card {
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
+            border: 3px solid #C49B3B;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(196, 155, 59, 0.4);
+            border-color: #d4ab4f;
+        }
+
+        .game-card.in-sequence {
+            border-color: #4CAF50;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .game-card .sequence-badge {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #4CAF50;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            z-index: 5;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 50%;
+            background: rgba(196, 155, 59, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-name {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1rem;
+            color: #C49B3B;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 2px solid rgba(196, 155, 59, 0.3);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: rgba(196, 155, 59, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.2rem;
+            color: #D9D9D9;
+            font-weight: bold;
+        }
+
+        .card-type {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(196, 155, 59, 0.9);
+            color: #1A1A1D;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255, 107, 107, 0.9);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .game-card:hover .delete-btn.visible {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.1);
+        }
+
+        .edit-btn {
+            position: absolute;
+            top: 8px;
+            left: 36px;
+            background: rgba(196, 155, 59, 0.9);
+            color: #1A1A1D;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .game-card:hover .edit-btn.visible {
+            opacity: 1;
+        }
+
+        .edit-btn:hover {
+            background: rgba(196, 155, 59, 1);
+            transform: scale(1.1);
+        }
+
+        .leader-btn {
+            position: absolute;
+            top: 8px;
+            left: 64px;
+            background: rgba(138, 43, 226, 0.9);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .game-card:hover .leader-btn.visible {
+            opacity: 1;
+        }
+
+        .leader-btn:hover {
+            background: rgba(138, 43, 226, 1);
+            transform: scale(1.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
+            border: 4px solid #C49B3B;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-family: 'Jaro', sans-serif;
+            font-size: 2rem;
+            color: #C49B3B;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-label {
+            font-family: 'Jaro', sans-serif;
+            color: #C49B3B;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .modal-input {
+            padding: 10px 15px;
+            background: rgba(196, 155, 59, 0.1);
+            border: 2px solid rgba(196, 155, 59, 0.3);
+            border-radius: 8px;
+            color: #D9D9D9;
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #C49B3B;
+            background: rgba(196, 155, 59, 0.15);
+        }
+
+        .stat-choice {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .stat-option {
+            flex: 1;
+            padding: 15px;
+            background: rgba(196, 155, 59, 0.1);
+            border: 2px solid rgba(196, 155, 59, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .stat-option:hover {
+            border-color: #C49B3B;
+            background: rgba(196, 155, 59, 0.2);
+        }
+
+        .stat-option.selected {
+            border-color: #8A2BE2;
+            background: rgba(138, 43, 226, 0.2);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .stat-option-label {
+            font-family: 'Jaro', sans-serif;
+            color: #C49B3B;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-option-value {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.5rem;
+            color: #D9D9D9;
+            font-weight: bold;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .modal-btn-create {
+            background: #8A2BE2;
+            color: white;
+        }
+
+        .modal-btn-create:hover {
+            background: #9d4eed;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-cancel {
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                max-height: 80vh;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 3px solid #C49B3B;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .panel-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+            }
+
+            .main-container {
+                width: 95%;
+                border-width: 4px;
+            }
+
+            .cards-grid {
+                gap: 15px;
+            }
+
+            .panel-title {
+                font-size: 1.5rem;
+            }
+
+            .pause-btn {
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="pause-btn" id="pause-btn" title="Szünet">
+        <div class="pause-icon"></div>
+    </button>
+
+    <h1 id="world-name" contenteditable="true" spellcheck="false">Világ neve</h1>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="tabs-container">
+                <button class="tab-button active" data-tab="card-creation">Kártyakészítés</button>
+                <button class="tab-button" data-tab="dungeon-creation">Kazamata készítés</button>
+            </div>
+
+            <div class="tab-content active" id="card-creation">
+                <form class="card-form" id="card-form">
+                    <div class="card-preview">
+                        <select class="card-preview-type type-selector" id="card-type" required>
+                            <option value="">Típus</option>
+                            <option value="monster">🔥 Tűz</option>
+                            <option value="hero">💧 Víz</option>
+                            <option value="spell">🌍 Föld</option>
+                            <option value="defense">🌬️ Levegő</option>
+                        </select>
+                        
+                        <div class="card-preview-image" id="preview-area">
+                            <input type="file" id="card-picture" accept="image/*">
+                            <span id="placeholder-icon">🃏</span>
+                            <img id="preview-image" style="display: none;">
+                        </div>
+                        
+                        <input 
+                            type="text" 
+                            class="card-preview-name" 
+                            id="card-name" 
+                            placeholder="Kártya neve" 
+                            required
+                        >
+                        
+                        <div class="card-preview-stats">
+                            <div class="preview-stat">
+                                <div class="preview-stat-label">HP</div>
+                                <input 
+                                    type="number" 
+                                    class="preview-stat-input" 
+                                    id="card-health" 
+                                    placeholder="100" 
+                                    min="1" 
+                                    required
+                                >
+                            </div>
+                            <div class="preview-stat">
+                                <div class="preview-stat-label">DMG</div>
+                                <input 
+                                    type="number" 
+                                    class="preview-stat-input" 
+                                    id="card-damage" 
+                                    placeholder="25" 
+                                    min="0" 
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="create-btn">Kártya létrehozása</button>
+                </form>
+            </div>
+
+            <div class="tab-content" id="dungeon-creation">
+                <div class="dungeon-builder">
+                    <div class="available-cards">
+                        <div class="available-cards-title">Elérhető kártyák</div>
+                        <div class="available-cards-grid" id="available-cards-grid">
+                            <div class="empty-message">Még nincsenek kártyák...</div>
+                        </div>
+                    </div>
+                    <div class="dungeon-sequence">
+                        <div class="dungeon-sequence-title">Kazamata sorrend</div>
+                        <div class="sequence-list" id="sequence-list">
+                            <div class="empty-message">Kattints a kártyákra a sorrend kialakításához</div>
+                        </div>
+                        <button class="clear-sequence-btn" id="clear-sequence-btn" style="display: none;">Törlés</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="panel-title">Gyűjtemény</div>
+            <div class="collection-area" id="collection-area">
+                <div class="collection-placeholder">Még nincsenek kártyák...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="leader-modal">
+        <div class="modal-content">
+            <div class="modal-title">Vezérkártya készítése</div>
+            <form class="modal-form" id="leader-form">
+                <div class="modal-form-group">
+                    <label class="modal-label" for="leader-name">Vezérkártya neve</label>
+                    <input type="text" class="modal-input" id="leader-name" placeholder="Pl.: Sárkány Vezér" required>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">Melyik statot duplázod?</label>
+                    <div class="stat-choice">
+                        <div class="stat-option" data-stat="health">
+                            <div class="stat-option-label">Életerő</div>
+                            <div class="stat-option-value" id="leader-health-preview">0</div>
+                        </div>
+                        <div class="stat-option" data-stat="damage">
+                            <div class="stat-option-label">Sebzés</div>
+                            <div class="stat-option-value" id="leader-damage-preview">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-btn modal-btn-create">Létrehozás</button>
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancel-leader">Mégse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://damareen.deakteri.fun/api';
+        
+        let isPaused = false;
+        let cards = [];
+        let cardIdCounter = 0;
+        let currentImageData = null;
+        let dungeonSequence = [];
+        let editingCardId = null;
+        let leaderBaseCard = null;
+        let selectedStat = null;
+        let currentWorldId = null;
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+                
+                if (tabName === 'dungeon-creation') {
+                    renderAvailableCards();
+                    renderCollection();
+                } else if (tabName === 'card-creation' && editingCardId) {
+                    cancelEdit();
+                }
+            });
+        });
+
+        document.getElementById('card-picture').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('preview-image');
+            const placeholder = document.getElementById('placeholder-icon');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentImageData = event.target.result;
+                    preview.src = currentImageData;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('world-name').addEventListener('blur', function() {
+            if (this.textContent.trim() === '') {
+                this.textContent = 'Világ neve';
+            }
+        });
+
+        document.getElementById('world-name').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', () => {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pause-btn');
+            
+            if (isPaused) {
+                pauseBtn.style.background = '#ff6b6b';
+            } else {
+                pauseBtn.style.background = '#C49B3B';
+            }
+        });
+
+        document.getElementById('card-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (editingCardId) {
+                const cardIndex = cards.findIndex(c => c.id === editingCardId);
+                if (cardIndex !== -1) {
+                    cards[cardIndex] = {
+                        id: editingCardId,
+                        name: document.getElementById('card-name').value,
+                        health: document.getElementById('card-health').value,
+                        damage: document.getElementById('card-damage').value,
+                        type: document.getElementById('card-type').value,
+                        picture: currentImageData || cards[cardIndex].picture
+                    };
+                }
+                editingCardId = null;
+                document.querySelector('.create-btn').textContent = 'Kártya létrehozása';
+            } else {
+                const cardData = {
+                    id: ++cardIdCounter,
+                    name: document.getElementById('card-name').value,
+                    health: document.getElementById('card-health').value,
+                    damage: document.getElementById('card-damage').value,
+                    type: document.getElementById('card-type').value,
+                    picture: currentImageData
+                };
+                cards.push(cardData);
+            }
+            
+            renderCollection();
+            
+            e.target.reset();
+            document.getElementById('preview-image').style.display = 'none';
+            document.getElementById('placeholder-icon').style.display = 'block';
+            currentImageData = null;
+            document.getElementById('card-name').focus();
+        });
+
+        document.getElementById('clear-sequence-btn').addEventListener('click', () => {
+            dungeonSequence = [];
+            renderDungeonSequence();
+            renderAvailableCards();
+        });
+
+        document.querySelectorAll('.stat-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.stat-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedStat = option.dataset.stat;
+            });
+        });
+
+        document.getElementById('cancel-leader').addEventListener('click', () => {
+            closeLeaderModal();
+        });
+
+        document.getElementById('leader-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'leader-modal') {
+                closeLeaderModal();
+            }
+        });
+
+        document.getElementById('leader-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!leaderBaseCard || !selectedStat) {
+                return;
+            }
+            
+            const leaderName = document.getElementById('leader-name').value;
+            const baseCard = cards.find(c => c.id === leaderBaseCard);
+            
+            if (!baseCard) return;
+            
+            const leaderCard = {
+                id: ++cardIdCounter,
+                name: leaderName,
+                health: selectedStat === 'health' ? baseCard.health * 2 : baseCard.health,
+                damage: selectedStat === 'damage' ? baseCard.damage * 2 : baseCard.damage,
+                type: baseCard.type,
+                picture: baseCard.picture,
+                isLeader: true,
+                baseCardId: baseCard.id
+            };
+            
+            cards.push(leaderCard);
+            renderCollection();
+            closeLeaderModal();
+        });
+
+        function closeLeaderModal() {
+            document.getElementById('leader-modal').classList.remove('active');
+            document.getElementById('leader-form').reset();
+            document.querySelectorAll('.stat-option').forEach(opt => opt.classList.remove('selected'));
+            leaderBaseCard = null;
+            selectedStat = null;
+        }
+
+        function renderAvailableCards() {
+            const grid = document.getElementById('available-cards-grid');
+            
+            if (cards.length === 0) {
+                grid.innerHTML = '<div class="empty-message">Még nincsenek kártyák...</div>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            
+            const typeLabels = {
+                monster: '🔥 Tűz',
+                hero: '💧 Víz',
+                spell: '🌍 Föld',
+                defense: '🌬️ Levegő'
+            };
+            
+            cards.forEach(card => {
+                const position = dungeonSequence.indexOf(card.id);
+                const isSelected = position !== -1;
+                
+                const miniCard = document.createElement('div');
+                miniCard.className = 'mini-card' + (isSelected ? ' selected' : '');
+                miniCard.dataset.cardId = card.id;
+                
+                miniCard.innerHTML = `
+                    ${isSelected ? `<div class="selection-order">${position + 1}</div>` : ''}
+                    <div class="mini-card-image">
+                        ${card.picture ? `<img src="${card.picture}" alt="${card.name}">` : '🃏'}
+                    </div>
+                    <div class="mini-card-name">${card.name}</div>
+                    <div class="mini-card-stats">
+                        <span>HP: ${card.health}</span>
+                        <span>DMG: ${card.damage}</span>
+                    </div>
+                `;
+                
+                miniCard.addEventListener('click', () => {
+                    if (isSelected) {
+                        dungeonSequence = dungeonSequence.filter(id => id !== card.id);
+                    } else {
+                        dungeonSequence.push(card.id);
+                    }
+                    renderDungeonSequence();
+                    renderAvailableCards();
+                });
+                
+                grid.appendChild(miniCard);
+            });
+        }
+
+        function renderDungeonSequence() {
+            const sequenceList = document.getElementById('sequence-list');
+            const clearBtn = document.getElementById('clear-sequence-btn');
+            
+            if (dungeonSequence.length === 0) {
+                sequenceList.innerHTML = '<div class="empty-message">Kattints a kártyákra a sorrend kialakításához</div>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            clearBtn.style.display = 'block';
+            sequenceList.innerHTML = '';
+            
+            dungeonSequence.forEach((cardId, index) => {
+                const card = cards.find(c => c.id === cardId);
+                if (!card) return;
+                
+                const item = document.createElement('div');
+                item.className = 'sequence-item';
+                item.innerHTML = `
+                    <div class="sequence-number">${index + 1}</div>
+                    <span>${card.name}</span>
+                `;
+                sequenceList.appendChild(item);
+            });
+        }
+
+        function renderCollection() {
+            const collectionArea = document.getElementById('collection-area');
+            const currentTab = document.querySelector('.tab-button.active')?.dataset.tab || 'card-creation';
+            
+            if (cards.length === 0) {
+                collectionArea.innerHTML = '<div class="collection-placeholder">Még nincsenek kártyák...</div>';
+                return;
+            }
+
+            collectionArea.innerHTML = '';
+            
+            cards.forEach(card => {
+                const position = dungeonSequence.indexOf(card.id);
+                const isInSequence = position !== -1;
+                
+                const cardElement = document.createElement('div');
+                cardElement.className = 'game-card' + (isInSequence ? ' in-sequence' : '');
+                cardElement.dataset.cardId = card.id;
+                
+                const typeLabels = {
+                    monster: '🔥 Tűz',
+                    hero: '💧 Víz',
+                    spell: '🌍 Föld',
+                    defense: '🌬️ Levegő'
+                };
+                
+                const showActionBtns = currentTab === 'card-creation' ? 'visible' : '';
+                
+                cardElement.innerHTML = `
+                    ${isInSequence && currentTab === 'dungeon-creation' ? `<div class="sequence-badge">${position + 1}</div>` : ''}
+                    <button class="delete-btn ${showActionBtns}" onclick="deleteCard(${card.id})">×</button>
+                    <button class="edit-btn ${showActionBtns}" onclick="editCard(${card.id})">✏️</button>
+                    ${!card.isLeader ? `<button class="leader-btn ${showActionBtns}" onclick="createLeaderCard(${card.id})">👑</button>` : ''}
+                    <div class="card-type">${typeLabels[card.type]}</div>
+                    <div class="card-image">
+                        ${card.picture ? `<img src="${card.picture}" alt="${card.name}">` : '🃏'}
+                    </div>
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-stats">
+                        <div class="stat">
+                            <div class="stat-label">HP</div>
+                            <div class="stat-value">${card.health}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">DMG</div>
+                            <div class="stat-value">${card.damage}</div>
+                        </div>
+                    </div>
+                `;
+                
+                cardElement.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn') ||
+                        e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn') ||
+                        e.target.classList.contains('leader-btn') || e.target.closest('.leader-btn')) {
+                        return;
+                    }
+                    
+                    if (currentTab === 'dungeon-creation') {
+                        if (isInSequence) {
+                            dungeonSequence = dungeonSequence.filter(id => id !== card.id);
+                        } else {
+                            dungeonSequence.push(card.id);
+                        }
+                        renderDungeonSequence();
+                        renderCollection();
+                    }
+                });
+                
+                collectionArea.appendChild(cardElement);
+            });
+        }
+
+        function createLeaderCard(cardId) {
+            const currentTab = document.querySelector('.tab-button.active')?.dataset.tab;
+            
+            if (currentTab !== 'card-creation') {
+                return;
+            }
+            
+            const baseCard = cards.find(c => c.id === cardId);
+            if (!baseCard) return;
+            
+            leaderBaseCard = cardId;
+            document.getElementById('leader-health-preview').textContent = baseCard.health * 2;
+            document.getElementById('leader-damage-preview').textContent = baseCard.damage * 2;
+            document.getElementById('leader-name').value = baseCard.name + ' Vezér';
+            
+            document.getElementById('leader-modal').classList.add('active');
+        }
+
+        function editCard(cardId) {
+            const currentTab = document.querySelector('.tab-button.active')?.dataset.tab;
+            
+            if (currentTab !== 'card-creation') {
+                return;
+            }
+            
+            const card = cards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            editingCardId = cardId;
+            
+            document.getElementById('card-name').value = card.name;
+            document.getElementById('card-health').value = card.health;
+            document.getElementById('card-damage').value = card.damage;
+            document.getElementById('card-type').value = card.type;
+            
+            if (card.picture) {
+                currentImageData = card.picture;
+                document.getElementById('preview-image').src = card.picture;
+                document.getElementById('preview-image').style.display = 'block';
+                document.getElementById('placeholder-icon').style.display = 'none';
+            }
+            
+            document.querySelector('.create-btn').textContent = 'Kártya mentése';
+            document.getElementById('card-name').focus();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingCardId = null;
+            document.getElementById('card-form').reset();
+            document.getElementById('preview-image').style.display = 'none';
+            document.getElementById('placeholder-icon').style.display = 'block';
+            currentImageData = null;
+            document.querySelector('.create-btn').textContent = 'Kártya létrehozása';
+        }
+
+        function deleteCard(cardId) {
+            const currentTab = document.querySelector('.tab-button.active')?.dataset.tab;
+            
+            if (currentTab !== 'card-creation') {
+                return;
+            }
+            
+            cards = cards.filter(card => card.id !== cardId);
+            dungeonSequence = dungeonSequence.filter(id => id !== cardId);
+            renderCollection();
+            renderDungeonSequence();
+        }
+    </script>
+</body>
+</html>

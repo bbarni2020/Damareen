@@ -374,16 +374,13 @@ def create_world():
     
     name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
     user_id = data.get('user_id', '').strip() if isinstance(data.get('user_id'), str) else ''
-    is_master = data.get('is_master', False)
+    is_master = True
     
     if not name:
         return error_response('A világ neve kötelező', 400)
     
     if not user_id:
         return error_response('A felhasználó azonosítója kötelező', 400)
-    
-    if not isinstance(is_master, bool):
-        return error_response('Az is_master értéknek boolean-nak kell lennie', 400)
     
     user = User.query.get(user_id)
     if not user:
