@@ -1048,7 +1048,7 @@ def delete_dungeon():
 @require_auth
 def fight():
     user = request.current_user
-    dungeon_id = request.args.get('dungeon_id') or request.args.get('dungeoun_id')
+    dungeon_id = request.args.get('dungeon_id')
     if not dungeon_id:
         return error_response('A dungeon azonosítója kötelező', 400)
     dungeon = Dungeon.query.filter_by(id=str(dungeon_id)).first()
