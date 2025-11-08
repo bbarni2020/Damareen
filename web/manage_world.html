@@ -50,6 +50,44 @@
             box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
         }
 
+        .world-actions {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            background: #C49B3B;
+            border: none;
+            border-radius: 8px;
+            color: #1A1A1D;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+        }
+
+        .action-btn:hover {
+            background: #d4ab4f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
+        }
+
+        .action-btn.danger {
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(255, 107, 107, 1);
+        }
+
         .pause-icon {
             width: 24px;
             height: 24px;
@@ -1015,6 +1053,11 @@
     </style>
 </head>
 <body>
+    <div class="world-actions">
+        <button class="action-btn" onclick="createWorld()">Világ létrehozása</button>
+        <button class="action-btn danger" onclick="deleteWorld()">Világ törlése</button>
+    </div>
+
     <button class="pause-btn" id="pause-btn" title="Szünet">
         <div class="pause-icon"></div>
     </button>
@@ -1095,7 +1138,10 @@
                         <div class="sequence-list" id="sequence-list">
                             <div class="empty-message">Kattints a kártyákra a sorrend kialakításához</div>
                         </div>
-                        <button class="clear-sequence-btn" id="clear-sequence-btn" style="display: none;">Törlés</button>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="clear-sequence-btn" id="clear-sequence-btn" style="display: none; flex: 1;">Törlés</button>
+                            <button class="action-btn" onclick="createDungeon()" style="flex: 1; margin: 0;">Kazamata létrehozása</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1211,8 +1257,20 @@
             }
         });
 
-        document.getElementById('card-form').addEventListener('submit', (e) => {
+        document.getElementById('card-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!currentWorldId) {
+                alert('Először hozz létre egy világot!');
+                return;
+            }
+            
+            const typeMapping = {
+                'monster': 't',
+                'hero': 'v',
+                'spell': 'f',
+                'defense': 'l'
+            };
             
             if (editingCardId) {
                 const cardIndex = cards.findIndex(c => c.id === editingCardId);
@@ -1229,15 +1287,47 @@
                 editingCardId = null;
                 document.querySelector('.create-btn').textContent = 'Kártya létrehozása';
             } else {
+                const selectedType = document.getElementById('card-type').value;
                 const cardData = {
-                    id: ++cardIdCounter,
                     name: document.getElementById('card-name').value,
-                    health: document.getElementById('card-health').value,
-                    damage: document.getElementById('card-damage').value,
-                    type: document.getElementById('card-type').value,
-                    picture: currentImageData
+                    health: parseInt(document.getElementById('card-health').value),
+                    damage: parseInt(document.getElementById('card-damage').value),
+                    type: typeMapping[selectedType] || selectedType,
+                    picture: currentImageData,
+                    world_id: currentWorldId
                 };
-                cards.push(cardData);
+                
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_URL}/create/card`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(cardData)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        cards.push({
+                            id: result.data.card.id || ++cardIdCounter,
+                            name: cardData.name,
+                            health: cardData.health,
+                            damage: cardData.damage,
+                            type: selectedType,
+                            picture: cardData.picture
+                        });
+                    } else {
+                        const errorData = await response.json();
+                        alert('Hiba: ' + (errorData.error || 'Nem sikerült létrehozni a kártyát'));
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error creating card:', error);
+                    alert('Hiba történt a kártya létrehozása során!');
+                    return;
+                }
             }
             
             renderCollection();
@@ -1273,7 +1363,7 @@
             }
         });
 
-        document.getElementById('leader-form').addEventListener('submit', (e) => {
+        document.getElementById('leader-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (!leaderBaseCard || !selectedStat) {
@@ -1285,18 +1375,65 @@
             
             if (!baseCard) return;
             
-            const leaderCard = {
-                id: ++cardIdCounter,
+            const leaderData = {
                 name: leaderName,
                 health: selectedStat === 'health' ? baseCard.health * 2 : baseCard.health,
                 damage: selectedStat === 'damage' ? baseCard.damage * 2 : baseCard.damage,
                 type: baseCard.type,
                 picture: baseCard.picture,
-                isLeader: true,
-                baseCardId: baseCard.id
+                base_card_id: baseCard.id,
+                doubled_stat: selectedStat
             };
             
-            cards.push(leaderCard);
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/create/leader`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(leaderData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    cards.push({
+                        id: result.leader_id || ++cardIdCounter,
+                        name: leaderName,
+                        health: leaderData.health,
+                        damage: leaderData.damage,
+                        type: baseCard.type,
+                        picture: baseCard.picture,
+                        isLeader: true,
+                        baseCardId: baseCard.id
+                    });
+                } else {
+                    cards.push({
+                        id: ++cardIdCounter,
+                        name: leaderName,
+                        health: leaderData.health,
+                        damage: leaderData.damage,
+                        type: baseCard.type,
+                        picture: baseCard.picture,
+                        isLeader: true,
+                        baseCardId: baseCard.id
+                    });
+                }
+            } catch (error) {
+                console.error('Error creating leader:', error);
+                cards.push({
+                    id: ++cardIdCounter,
+                    name: leaderName,
+                    health: leaderData.health,
+                    damage: leaderData.damage,
+                    type: baseCard.type,
+                    picture: baseCard.picture,
+                    isLeader: true,
+                    baseCardId: baseCard.id
+                });
+            }
+            
             renderCollection();
             closeLeaderModal();
         });
@@ -1307,6 +1444,186 @@
             document.querySelectorAll('.stat-option').forEach(opt => opt.classList.remove('selected'));
             leaderBaseCard = null;
             selectedStat = null;
+        }
+
+        async function loadCards() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/world/list/cards`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    cards = data.cards || [];
+                    if (cards.length > 0) {
+                        cardIdCounter = Math.max(...cards.map(c => c.id));
+                    }
+                    renderCollection();
+                }
+            } catch (error) {
+                console.error('Error loading cards:', error);
+            }
+        }
+
+        async function createWorld() {
+            const worldName = document.getElementById('world-name').textContent.trim();
+            
+            if (worldName === 'Világ neve' || worldName === '') {
+                alert('Kérlek adj nevet a világnak!');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const userStr = localStorage.getItem('user');
+                
+                if (!userStr) {
+                    alert('Nem található felhasználó adat. Kérlek jelentkezz be újra!');
+                    return;
+                }
+                
+                const user = JSON.parse(userStr);
+                const userId = user.id;
+                
+                if (!userId) {
+                    alert('Nem található felhasználó azonosító. Kérlek jelentkezz be újra!');
+                    return;
+                }
+                
+                const response = await fetch(`${API_URL}/create/world`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: worldName,
+                        user_id: userId
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    currentWorldId = result.data.world.world_id;
+                    alert('Világ sikeresen létrehozva!');
+                } else {
+                    const errorData = await response.json();
+                    alert('Hiba: ' + (errorData.error || 'Nem sikerült létrehozni a világot'));
+                }
+            } catch (error) {
+                console.error('Error creating world:', error);
+                alert('Hiba történt a világ létrehozása során!');
+            }
+        }
+
+        async function createDungeon() {
+            if (dungeonSequence.length === 0) {
+                alert('Kérlek válassz ki legalább egy kártyát a kazamatához!');
+                return;
+            }
+            
+            if (!currentWorldId) {
+                alert('Először hozz létre egy világot!');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/create/dungeon`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        world_id: currentWorldId,
+                        card_sequence: dungeonSequence
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Kazamata sikeresen létrehozva!');
+                    dungeonSequence = [];
+                    renderDungeonSequence();
+                    renderAvailableCards();
+                    renderCollection();
+                } else {
+                    const error = await response.json();
+                    alert('Hiba: ' + (error.message || 'Nem sikerült létrehozni a kazamatát'));
+                }
+            } catch (error) {
+                console.error('Error creating dungeon:', error);
+                alert('Hiba történt a kazamata létrehozása során!');
+            }
+        }
+
+        async function deleteWorld() {
+            if (!currentWorldId) {
+                alert('Nincs aktív világ törölni!');
+                return;
+            }
+            
+            if (!confirm('Biztosan törölni szeretnéd ezt a világot? Ez nem visszavonható!')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/delete/world`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        world_id: currentWorldId
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Világ sikeresen törölve!');
+                    currentWorldId = null;
+                    document.getElementById('world-name').textContent = 'Világ neve';
+                } else {
+                    alert('Hiba történt a világ törlése során!');
+                }
+            } catch (error) {
+                console.error('Error deleting world:', error);
+                alert('Hiba történt a világ törlése során!');
+            }
+        }
+
+        async function deleteDungeon(dungeonId) {
+            if (!confirm('Biztosan törölni szeretnéd ezt a kazamatát?')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/delete/dungeon`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        dungeon_id: dungeonId
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Kazamata sikeresen törölve!');
+                } else {
+                    alert('Hiba történt a kazamata törlése során!');
+                }
+            } catch (error) {
+                console.error('Error deleting dungeon:', error);
+                alert('Hiba történt a kazamata törlése során!');
+            }
         }
 
         function renderAvailableCards() {
@@ -1528,6 +1845,10 @@
             renderCollection();
             renderDungeonSequence();
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCards();
+        });
     </script>
 </body>
 </html>
