@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 import time
+import random
 from functools import wraps
 from datetime import datetime, timedelta
 from app.models import db, User, World, Card, Dungeon
@@ -855,6 +856,36 @@ def join_game():
     except Exception as e:
         db.session.rollback()
         return error_response('A csatlakozás sikertelen', 500)
+
+
+@api.route('/game/dungeon', methods=['GET'])
+@ratelimit
+@require_auth
+def get_game_dungeon():
+    world_id = request.args.get('world_id')
+    
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    
+    dungeons = Dungeon.query.filter_by(world_id=str(world_id)).all()
+    
+    if len(dungeons) == 0:
+        return error_response('A játékmester még nem hozott létre kazamatát ebben a világban', 404)
+    
+    if len(dungeons) == 1:
+        selected_dungeons = dungeons
+    else:
+        selected_dungeons = random.sample(dungeons, min(2, len(dungeons)))
+    
+    result = [
+        {
+            'id': dungeon.id,
+            'number_of_cards': len(dungeon.list_of_card_ids)
+        }
+        for dungeon in selected_dungeons
+    ]
+    
+    return success_response({'dungeons': result})
 
 
 @api.route('/user/is-master', methods=['GET'])
