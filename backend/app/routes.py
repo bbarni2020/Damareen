@@ -487,7 +487,14 @@ def create_card():
         world_id = data.get('world_id', '0') if isinstance(data.get('world_id', '0'), str) else str(data.get('world_id', '0'))
         user_id = user.id
         name = data.get('name', '0') if isinstance(data.get('name', '0'), str) else str(data.get('name', '0'))
-        card_type = data.get('type', '0') if isinstance(data.get('type', '0'), str) else str(data.get('type', '0'))
+        raw_type = data.get('type', '')
+        if isinstance(raw_type, str):
+            card_type = raw_type.strip().lower()
+        else:
+            card_type = str(raw_type).strip().lower()
+
+        if card_type not in ('t', 'f', 'v', 'l'):
+            return error_response('Érvénytelen típus. Csak a következők engedélyezettek: t, f, v, l', 400)
         picture_val = data.get('picture', None)
         if isinstance(picture_val, str):
             picture_bytes = picture_val.encode('utf-8')
