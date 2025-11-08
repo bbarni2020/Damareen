@@ -582,6 +582,13 @@ def create_dungeon():
         db.session.rollback()
         return error_response('A dungeon létrehozása sikertelen', 500)
 
+
+@api.route('/health', methods=['GET'])
+@ratelimit
+def health_check():
+    return success_response({'status': 'egészséges'})
+
+
 @api.route('/game/join', methods=['POST'])
 @ratelimit
 @require_auth
@@ -621,10 +628,6 @@ def join_game():
         db.session.rollback()
         return error_response('A csatlakozás sikertelen', 500)
 
-@api.route('/health', methods=['GET'])
-@ratelimit
-def health_check():
-    return success_response({'status': 'egészséges'})
 
 @api.errorhandler(404)
 def not_found(error):
