@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 PORT=5000
 export PORT
 
