@@ -1,463 +1,307 @@
 # Damareen
 
-Egy kártyajáték backend API és webes frontend – Flask-kel, SQLAlchemy-vel meg egy kis e-mail verifikációval. Azért csináltam, mert kellett valami projekthez meg jó móka volt összedobni.
+Backend az I. forduló (Web-mobil, 2025. nov 7–9) feladatához. Gyűjtögetős fantasy kártyajáték API – Flask, SQLAlchemy, JWT, meg egy kis e-mailes móka. Én is így csinálnám legközelebb, csak kevesebb kávéval.
 
 
-## Tech stack
+## Gyors indító (Install + Run)
 
-**Backend:**
-- Flask 3.0.0
-- Flask-SQLAlchemy (SQLite adatbázissal)
-- Flask-CORS (hogy a frontend tudjon beszélni vele)
-- bcrypt (jelszó hash-eléshez)
-- PyJWT (token-ös auth)
-- python-dotenv (környezeti változókhoz)
+1) Klónozás és csomagok:
 
-**Frontend:**
-- Vanilla JS + HTML/CSS (semmi fancy framework)
-- Google Fonts (Jaro, Fira Code)
-
-## Telepítés
-
-Klónozd le a repót:
 ```bash
 git clone https://github.com/bbarni2020/Damareen.git
-cd Damareen
-```
-
-Telepítsd a Python csomagokat:
-```bash
-cd backend
+cd Damareen/backend
 pip install -r requirements.txt
 ```
 
-Környezeti változók (opcionális, `.env` fájlban):
+2) Opcionális `.env` (ha nincs, dev defaultok élnek):
+
 ```
-SECRET_KEY=valami-titkos-kulcs
-JWT_SECRET_KEY=masik-titkos-kulcs
+SECRET_KEY=change-me
 DATABASE_URL=sqlite:///app.db
-EMAIL_USERNAME=damareen@deakteri.fun
-EMAIL_PASSWORD=titkos-jelszo
+EMAIL_USERNAME=damareen@example.com
+EMAIL_PASSWORD=secret
 FRONTEND_URL=http://localhost:3000
 REQUIRE_EMAIL_VERIFICATION=false
 PORT=7621
 ```
 
-Ha nincs `.env`, akkor dev-secret-key-ekkel fog menni minden.
+3) Futtatás:
 
-## Futtatás
-
-Backend indítása:
 ```bash
-cd backend
 python run.py
 ```
 
-Alapból a `http://localhost:7621` címen fog futni.
+Backend: http://localhost:7621
 
-A frontend megnyitásához csak nyisd meg a `web/auth.html` fájlt egy böngészőben, vagy használj egy local servert (pl. Live Server VSCode-ban).
+Frontend (egyszerű demó): `web/auth.html` megnyitása böngészőben (vagy VS Code Live Server).
 
-## API Endpointok
 
-Minden endpoint a `/api` prefix-szel kezdődik. Rate limiting be van kapcsolva: **5 kérés / 10 másodperc** IP-nként.
+## API alapok
 
-### Hitelesítés
+- Alap URL: `/api` (CORS: localhost:3000 és 7621)
+- Rate limit: 5 kérés / 10 mp / IP
+- Auth: `Authorization: Bearer <jwt>` (24 óráig érvényes)
+- E-mail verifikáció: kapcsolható (`REQUIRE_EMAIL_VERIFICATION`), ha be van kapcsolva, loginkor is kérhet megerősítést e-mailben.
 
-#### `POST /api/register`
-Új felhasználó regisztrálása.
+Kártyatípusok rövidkódjai (a harci logikához):
 
-**Request Body:**
+- `t` = tűz veri a földet
+- `f` = föld veri a vizet
+- `v` = víz veri a levegőt
+- `l` = levegő veri a tüzet
+
+
+## Endpontok (főleg ezek miatt vagy itt)
+
+Minden válasz egységesített forma: `{ success: boolean, data?: any, error?: string }`.
+
+### Hitelesítés és fiók
+
+1) POST `/api/user/register` – regisztráció
+
+Body:
+```json
+{ "username": "janos", "email": "janos@example.com", "password": "Jelszo123" }
+```
+Szabályok: username 3–80 (betű/szám/underscore), valid e-mail, jelszó min 8 (kis+nagybetű+szám).
+
+2) POST `/api/user/login` – bejelentkezés (username vagy e-mail)
+
+Body:
+```json
+{ "username": "janos", "password": "Jelszo123" }
+```
+Ha kell e-mail megerősítés, azt kéri; különben visszaad JWT-t.
+
+3) POST `/api/user/verify-email` – regisztráció megerősítése
+
+Body: `{ "token": "..." }`
+
+4) POST `/api/user/verify-login` – bejelentkezés megerősítése (ha ilyen mód be van kapcsolva)
+
+Body: `{ "token": "..." }`
+
+5) POST `/api/user/resend-verification` – új megerősítő e-mail
+
+Body: `{ "email": "janos@example.com" }`
+
+6) POST `/api/user/password-reset` – jelszó-visszaállítás kérése
+
+Body: `{ "email": "janos@example.com" }`
+
+7) PUT `/api/user/password-reset` – jelszó beállítása tokennel
+
+Body: `{ "token": "...", "password": "UjJelszo123" }`
+
+8) GET `/api/user` – aktuális felhasználó adatai
+
+Header: `Authorization: Bearer <jwt>`
+
+9) DELETE `/api/user/delete` – fiók törlése
+
+Header: `Authorization: Bearer <jwt>`
+
+Body: `{ "password": "Jelszo123" }`
+
+
+### Világok és tagság
+
+1) POST `/api/create/world` – világ létrehozása (nem kell master jog, de beállíthatod)
+
+Header: `Authorization`
+
+Body:
+```json
+{ "name": "Középfölde", "user_id": "<sajat-id>", "is_master": true }
+```
+Vissza: új világ, a saját `world_ids` meződben `is_master` szerint rögzül.
+
+2) POST `/api/game/join` – csatlakozás világba kóddal
+
+Header: `Authorization`
+
+Body: `{ "invite_code": "<world_id>" }`
+
+3) GET `/api/user/list/worlds` – világaid listája (és hogy master vagy-e bennük)
+
+Header: `Authorization`
+
+4) GET `/api/user/is-master?world_id=...` – gyors státusz
+
+Header: `Authorization`
+
+5) DELETE `/api/delete/world` – világ törlése (master kell)
+
+Header: `Authorization`
+
+Body: `{ "world_id": "..." }`
+
+
+### Kártyák és vezérek
+
+1) POST `/api/create/card` – kártya létrehozása (master kell az adott világhoz)
+
+Header: `Authorization`
+
+Body (lényeges mezők):
 ```json
 {
-  "username": "janos",
-  "email": "janos@example.com",
-  "password": "Jelszo123"
+  "world_id": "...",
+  "name": "Aragorn",
+  "type": "t|f|v|l",
+  "health": 5,
+  "damage": 2,
+  "picture": "opcionális string"
 }
 ```
+Megkötések: `name` max 16 karakter (DB limit), `health` 1–100 (egész), `damage` 2–100 (egész). A `type` csak a fenti rövidkódok egyike. A backend az aktuális user-t teszi tulajdonosnak (`owner_id`).
 
-**Validációs szabályok:**
-- Felhasználónév: 3–80 karakter, csak betű, szám, aláhúzás
-- E-mail: valid e-mail formátum
-- Jelszó: min. 8 karakter, kis- és nagybetű, szám kell
+2) POST `/api/create/leader` – vezér kártya származtatása
 
-**Response (201):**
+Header: `Authorization`
+
+Body:
+```json
+{ "card_id": "<eredeti-kartya-id>", "damage_doubled": true }
+```
+Ha `damage_doubled=false`, akkor az életerő duplázódik. A vezér az `is_leader` mezőben az eredeti kártya ID-ját hordozza (igen, stringként – így döntöttünk, működik).
+
+3) POST `/api/create/collection` – játékos gyűjtemény feltöltése másolt lapokkal (master kell)
+
+Header: `Authorization`
+
+Body:
 ```json
 {
-  "success": true,
-  "data": {
-    "message": "Regisztráció sikeres. Kérjük, ellenőrizd az e-mail fiókodat a megerősítéshez.",
-    "user": {
-      "id": "abc123...",
-      "username": "janos",
-      "email": "janos@example.com",
-      "email_verified": false
-    },
-    "requires_verification": true
-  }
+  "owner_id": "<jatekos-id>",
+  "list_of_cards_ids": ["<vilag-kartya-id>", "..."] ,
+  "world_id": "<kotelezo a master ellenorzeshez>"
 }
 ```
+Megjegyzés: a middleware a `world_id`-t kéri a master ellenőrzéshez, ezért ide is be kell tenni (maga a handler nem használja, de a jogosultság igen).
 
-Ha az `REQUIRE_EMAIL_VERIFICATION=false`, akkor azonnal visszaad egy token-t is.
 
----
+### Kazamaták (dungeons)
 
-#### `POST /api/login`
-Bejelentkezés felhasználónévvel vagy e-mail-lel.
+1) POST `/api/create/dungeon` – kazamata létrehozása (master kell)
 
-**Request Body:**
+Header: `Authorization`
+
+Body:
 ```json
-{
-  "username": "janos",
-  "password": "Jelszo123"
-}
+{ "name": "A mélység királynője", "world_id": "...", "list_of_cards_ids": ["...", "...", "...", "<vezér>"] }
 ```
+Szabályok: a lista hossza csak 1 (egyszerű találkozás), 4 (kis kazamata: 3 sima + 1 vezér) vagy 6 (nagy kazamata: 5 sima + 1 vezér). 4/6 esetén az utolsó lap kötelezően vezér, az előzők nem lehetnek vezérek. A megadott sorrendet pozícióként is beírjuk.
 
-**Response (200):**
+2) GET `/api/world/list/dungeons?world_id=...` – világ kazamatái (master)
+
+3) DELETE `/api/delete/dungeon` – kazamata törlése (master)
+
+Header: `Authorization`
+
+Body: `{ "dungeon_id": "...", "world_id": "..." }`
+
+
+### Listázások (master jogosultság kell)
+
+- GET `/api/world/list/cards?world_id=...` – a világ összes kártyája
+- GET `/api/world/list/users?world_id=...` – a világban lévő felhasználók (és hogy master-e az adott világban)
+
+
+### Pakli és harc
+
+1) POST `/api/deck` – pakli beállítása
+
+Header: `Authorization`
+
+Body (bármelyik kulcs jó):
 ```json
-{
-  "success": true,
-  "data": {
-    "message": "Bejelentkezési megerősítő e-mailt küldtünk.",
-    "requires_verification": true
-  }
-}
+{ "cards": ["id1", "id2", "..." ] }
 ```
+Megkötés: pontosan 1, 4 vagy 6 egyedi ID, és mind a saját kártyád legyen. A sorrend -> pozíció.
 
-Ha nincs e-mail verifikáció, akkor egy JWT token-t kapsz vissza, amit az `Authorization: Bearer <token>` headerben tudsz használni.
+2) GET `/api/game/dungeon?world_id=...` – kihívható kazamaták (1 vagy 2 darab visszaadása)
 
----
+3) GET `/api/game/fight?dungeon_id=...` – harc lefolytatása
 
-#### `POST /api/verify-email`
-E-mail cím megerősítése regisztráció után.
+Vissza: csaták listája (ki nyert és miért: `damage` / `type` / `dungeon_fallback`) és a teljes harc győztese. Nyeremény kiosztás jelenleg nincs automatizálva (lásd lentebb).
 
-**Request Body:**
-```json
-{
-  "token": "verification-token-from-email"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "E-mail cím sikeresen megerősítve",
-    "user": { ... },
-    "token": "jwt-token"
-  }
-}
-```
-
----
-
-#### `POST /api/verify-login`
-Bejelentkezési token megerősítése (ha be van kapcsolva az e-mail-es bejelentkezési verifikáció).
-
-**Request Body:**
-```json
-{
-  "token": "login-verification-token"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Bejelentkezés sikeresen megerősítve",
-    "user": { ... },
-    "token": "jwt-token"
-  }
-}
-```
-
----
-
-#### `POST /api/resend-verification`
-Új megerősítő e-mail küldése, ha lejárt az előző.
-
-**Request Body:**
-```json
-{
-  "email": "janos@example.com"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Új megerősítő e-mailt küldtünk"
-  }
-}
-```
-
----
-
-#### `DELETE /api/account`
-Felhasználói fiók törlése (autentikált végpont).
-
-**Headers:**
-```
-Authorization: Bearer <jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "password": "Jelszo123"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "A fiók sikeresen törölve"
-  }
-}
-```
-
----
-
-### Játékelemek
-
-#### `POST /api/create/world`
-Új világ létrehozása (autentikált végpont).
-
-**Headers:**
-```
-Authorization: Bearer <jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "name": "Középfölde"
-}
-```
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Világ sikeresen létrehozva",
-    "world": {
-      "world_id": "abc123...",
-      "name": "Középfölde"
-    }
-  }
-}
-```
-
----
-
-#### `POST /api/create/card`
-Új kártya létrehozása (autentikált végpont).
-
-**Headers:**
-```
-Authorization: Bearer <jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "world_id": "abc123",
-  "user_id": "user456",
-  "name": "Sárkány",
-  "type": "enemy",
-  "health": 100,
-  "damage": 25,
-  "position": 1,
-  "is_leader": false,
-  "picture": "base64_encoded_string_or_null"
-}
-```
-
-**Mezők:**
-- `world_id` (string): Világ azonosítója
-- `user_id` (string): Tulajdonos azonosítója
-- `name` (string, max 16 karakter): Kártya neve
-- `type` (string, max 6 karakter): Kártyatípus (pl. "enemy", "hero", stb.)
-- `health` (int): Életerő
-- `damage` (int): Sebzés
-- `position` (int): Pozíció a játéktéren
-- `is_leader` (bool): Vezér-e
-- `picture` (string/null): Kép base64 kódolással vagy null
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Kártya sikeresen létrehozva",
-    "card": {
-      "id": "card789",
-      "world_id": "abc123",
-      "owner_id": "user456",
-      "name": "Sárkány",
-      "picture": null,
-      "health": 100,
-      "damage": 25,
-      "type": "enemy",
-      "position": 1,
-      "is_leader": false
-    }
-  }
-}
-```
-
----
-
-#### `POST /api/create/dungeon`
-Új dungeon létrehozása (autentikált végpont).
-
-**Headers:**
-```
-Authorization: Bearer <jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "name": "Sötét barlang",
-  "world_id": "abc123",
-  "list_of_cards_ids": ["card789", "card012"]
-}
-```
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Dungeon sikeresen létrehozva",
-    "dungeon": {
-      "id": "dungeon345",
-      "name": "Sötét barlang",
-      "world_id": "abc123",
-      "list_of_card_ids": ["card789", "card012"]
-    }
-  }
-}
-```
-
----
 
 ### Egyéb
 
-#### `GET /api/health`
-Szerver állapot ellenőrzése.
+GET `/api/health` – állapotjelzés: `{ "status": "egészséges" }`
 
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "status": "egészséges"
-  }
-}
+
+## Gyors curl példák
+
+Regisztráció:
+```bash
+curl -X POST http://localhost:7621/api/user/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"janos","email":"janos@example.com","password":"Jelszo123"}'
 ```
 
----
-
-## Adatbázis modellek
-
-### User
-```python
-id: String (32 karakter, UUID hex)
-username: String (80, unique)
-email: String (120, unique)
-password_hash: String (256)
-world_ids: JSON lista
-settings: JSON objektum
-email_verified: Boolean
-verification_token: String (256)
-verification_token_expires: DateTime
-login_verification_token: String (256)
-login_verification_token_expires: DateTime
-created_at: DateTime
+Világ létrehozása (masterként):
+```bash
+curl -X POST http://localhost:7621/api/create/world \
+  -H 'Authorization: Bearer <JWT>' -H 'Content-Type: application/json' \
+  -d '{"name":"Kozeppfolde","user_id":"<sajat-id>","is_master":true}'
 ```
 
-### World
-```python
-world_id: String (32 karakter, UUID hex)
-name: String (120)
+Kazamata harc:
+```bash
+curl "http://localhost:7621/api/game/fight?dungeon_id=<id>" \
+  -H 'Authorization: Bearer <JWT>'
 ```
 
-### Card
-```python
-id: String (32 karakter, UUID hex)
-world_id: String (32)
-owner_id: String (32)
-name: String (16)
-picture: LargeBinary (opcionális)
-health: Integer
-damage: Integer
-type: String (6)
-position: Integer
-is_leader: Boolean
-```
 
-### Dungeon
-```python
-id: String (32 karakter, UUID hex)
-name: String (120)
-world_id: String (32)
-list_of_card_ids: JSON lista
-```
+## Ami a versenyhez kell (és ami hiányzik)
 
----
+Elkészült:
+- Világok, világkártyák (sima/vezér), kazamaták (1/4/6 szabályokkal)
+- Játékos gyűjtemény (master duplikál a világból a játékosnak)
+- Pakli összeállítása és harci szimuláció
+- Több világ + több játékos, jogosultság master ellenőrzéssel
 
-## Konfiguráció
-
-A `backend/config.py`-ban van a konfig. Három környezet:
-- **development** (alapértelmezett): DEBUG be, SQLite
-- **production**: DEBUG ki
-- **testing**: külön test.db adatbázis
-
-JWT token lejárati idő:
-- Access token: 1 óra (de a `generate_token()` függvényben ez átírható)
-- Refresh token: 30 nap (nincs még implementálva)
-
-E-mail konfig (`backend/app/email_config.py`):
-- SMTP: `smtp.dreamhost.com:587` (TLS)
-- Token lejárat: 24 óra
-
----
-
-## Biztonság
-
-- Jelszavak bcrypt-tel hash-elve (rounds alapértelmezett: 12)
-- JWT tokenek HS256 algoritmussal
-- CORS csak megadott originokra engedélyezett
-- Rate limiting az összes endpointra
-- E-mail verifikáció kapcsolható
-
-**Figyelem:** Az `SECRET_KEY` és `JWT_SECRET_KEY` éles környezetben legyen rendesen generálva, ne használd a default értékeket!
-
----
+Hiányok / ismert korlátok:
+- Nyeremény kiosztás győzelem után (pl. +sebzés/+élet) nincs még automatizálva endponton – most kézzel kellene módosítani a kártyát.
+- Egyedi névellenőrzés világon belül nincs kikényszerítve (DB csak a hosszt limitálja 16-ra).
+- `create_collection` használatához a body-ba be kell tenni `world_id`-t a master ellenőrzés miatt (handler nem használja, middleware igen).
+- Képfeltöltés nincs (a `picture` most egyszerű stringként megy a DB-be).
+- Előre feltöltött „bemutató játékkörnyezet” nincs automatikusan – kézzel hoztam létre a világot/kazikat.
 
 
-## Fejlesztés / Hozzájárulás
+## Tech stack (röviden)
 
-Ha hibát találsz vagy jobb ötleted van, nyiss issue-t vagy küldj PR-t. A kód nem tökéletes, de működik, és ez a lényeg.
+- Flask 3, Flask-SQLAlchemy (SQLite), Flask-CORS
+- bcrypt (jelszavak), PyJWT (token), python-dotenv
 
----
 
-## Licensz
+## Jegyzetek a fejlesztésből
 
-Nincs licensz megadva, szóval... használd szabadon? Ha valami fontosba akarod rakni, akkor írj előtte. :)
+- A vezér jelölése: az `is_leader` mező nem boolean, hanem az eredeti kártya ID-ja (nem szép, de praktikus a validációhoz). Ha üres string, akkor sima kártya.
+- A típusoknál a rövidkódot használom (`t/f/v/l`), a harc emiatt egyszerű és gyors.
+- A `position` mezőt használjuk pakli-sorrendként is, harc előtt újraszámozva.
+- Rate limitet adtam mindenre (5/10mp). Ha elérted, kapsz 429-et – várj egy pillit.
 
----
 
-## Kapcsolat
+## Roadmap / To-Do
 
-Ha kérdésed van vagy csak beszélgetni akarsz róla, keress nyugodtan GitHubon vagy az e-mail címen amit a commitokban látsz.
+- Nyeremény kiosztás endpont (kártya fejlődés: +1/+2/+3 megfelelően)
+- Előre feltöltött demo világ + kazamaták scriptből
+- Képkezelés (fájl / base64), egyszerű galéria
+- Szigorúbb név- és típusvalidáció világ szinten
+- Frontend UI a pakli szerkesztéséhez (most nagyon basic)
+
+
+## Biztonság (rövid megjegyzések)
+
+- Bcrypt hash jelszavakra, JWT HS256, CORS csak fejlesztői originre
+- Állíts rendes `SECRET_KEY`-et élesben, ne használd a defaultokat
+- Token lejár: 24 óra
+
+
+## Licenc / használat
+
+Nincs formális licenc. Használd nyugodtan, ha valami komolyba menne, dobj egy üzenetet. Ha eltöröd, megtarthatod mindkét darabot.
 
