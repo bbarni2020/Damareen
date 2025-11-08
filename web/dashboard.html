@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <!--
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damareen - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jaro', sans-serif;
+            background-color: #1A1A1D;
+            color: #D9D9D9;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .top-controls {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 55px;
+            height: 55px;
+            background: #C49B3B;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.28s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+            font-size: 2rem;
+            color: #1A1A1D;
+            font-weight: bold;
+        }
+
+        .control-btn:hover {
+            background: #d4ab4f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+        }
+
+        .control-btn:active {
+            transform: translateY(0px);
+        }
+
+        .pause-btn {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            width: 55px;
+            height: 55px;
+            background: #C49B3B;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.28s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+            z-index: 100;
+        }
+
+        .pause-btn:hover {
+            background: #d4ab4f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+        }
+
+        .pause-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .pause-icon::before,
+        .pause-icon::after {
+            content: '';
+            width: 6px;
+            height: 24px;
+            background: #1A1A1D;
+            border-radius: 2px;
+        }
+
+        #dashboard-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 20px 120px;
+        }
+
+        h1 {
+            font-family: 'Jaro', sans-serif;
+            font-size: 4rem;
+            font-weight: bold;
+            color: #C49B3B;
+            margin-bottom: 60px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+            text-align: center;
+        }
+
+        .worlds-container {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .worlds-scroll {
+            display: flex;
+            gap: 25px;
+            overflow-x: auto;
+            padding: 20px 10px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .worlds-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .worlds-scroll::-webkit-scrollbar-track {
+            background: rgba(196, 155, 59, 0.1);
+            border-radius: 10px;
+            margin: 0 20px;
+        }
+
+        .worlds-scroll::-webkit-scrollbar-thumb {
+            background: rgba(196, 155, 59, 0.5);
+            border-radius: 10px;
+        }
+
+        .worlds-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(196, 155, 59, 0.7);
+        }
+
+        .world-card {
+            min-width: 140px;
+            width: 140px;
+            height: 140px;
+            background: #C49B3B;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
+            position: relative;
+        }
+
+        .world-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(196, 155, 59, 0.5);
+            background: #d4ab4f;
+        }
+
+        .world-card:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .world-name {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1A1A1D;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .start-button {
+            padding: 15px 80px;
+            background: transparent;
+            border: 3px solid #C49B3B;
+            border-radius: 8px;
+            color: #C49B3B;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
+            letter-spacing: 2px;
+            margin-top: 20px;
+        }
+
+        .start-button:hover {
+            background: #C49B3B;
+            color: #1A1A1D;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.4);
+        }
+
+        .start-button:active {
+            transform: translateY(-1px);
+        }
+
+        #message {
+            margin-top: 30px;
+            font-weight: bold;
+            min-height: 22px;
+            color: #C49B3B;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+                margin-bottom: 40px;
+            }
+
+            .world-card {
+                min-width: 120px;
+                width: 120px;
+                height: 120px;
+            }
+
+            .world-name {
+                font-size: 1.2rem;
+            }
+
+            .start-button {
+                padding: 12px 60px;
+                font-size: 1.5rem;
+            }
+
+            .control-btn,
+            .pause-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-controls">
+        <button class="control-btn" id="add-world-btn" title="Világ hozzáadása">+</button>
+        <button class="control-btn" id="logout-btn" title="Kijelentkezés">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                <path d="M17 16L21 12M21 12L17 8M21 12L7 12M13 16V17C13 18.6569 11.6569 20 10 20H6C4.34315 20 3 18.6569 3 17V7C3 5.34315 4.34315 4 6 4H10C11.6569 4 13 5.34315 13 7V8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+        </button>
+    </div>
+
+    <button class="pause-btn" id="pause-btn" title="Szünet">
+        <div class="pause-icon"></div>
+    </button>
+
+    <div id="dashboard-container">
+        <h1>Válassz világot</h1>
+
+        <div class="worlds-container">
+            <div class="worlds-scroll" id="worlds-scroll">
+                <div class="world-card" data-world-id="1">
+                    <div class="world-name">Name1</div>
+                </div>
+                <div class="world-card" data-world-id="2">
+                    <div class="world-name">Name1</div>
+                </div>
+                <div class="world-card" data-world-id="3">
+                    <div class="world-name">Name1</div>
+                </div>
+                <div class="world-card" data-world-id="4">
+                    <div class="world-name">Name1</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="start-button" id="start-btn">Start</button>
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const API_URL = 'https://damareen.deakteri.fun/api/user';
+        const messageElement = document.getElementById('message');
+        
+        let selectedWorldId = null;
+        let isPaused = false;
+
+        
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(user);
+                console.log('Logged in as:', userData.username);
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+            }
+        }
+
+        
+
+        const worldCards = document.querySelectorAll('.world-card');
+        worldCards.forEach(card => {
+            card.addEventListener('click', () => {
+                worldCards.forEach(c => c.style.outline = 'none');
+                
+                card.style.outline = '3px solid #C49B3B';
+                card.style.outlineOffset = '5px';
+                selectedWorldId = card.dataset.worldId;
+                
+                messageElement.textContent = `Kiválasztva: ${card.querySelector('.world-name').textContent}`;
+                messageElement.style.color = '#C49B3B';
+            });
+        });
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (!selectedWorldId) {
+                messageElement.textContent = 'Kérlek válassz egy világot!';
+                messageElement.style.color = '#ff6b6b';
+                return;
+            }
+            
+            messageElement.textContent = 'Indítás...';
+            messageElement.style.color = '#C49B3B';
+            
+            setTimeout(() => {
+                console.log('Starting world:', selectedWorldId);
+                messageElement.textContent = 'Világ betöltve!';
+            }, 1000);
+        });
+
+        document.getElementById('add-world-btn').addEventListener('click', () => {
+            messageElement.textContent = 'Új világ hozzáadása...';
+            messageElement.style.color = '#C49B3B';
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'auth.html';
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', () => {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pause-btn');
+            
+            if (isPaused) {
+                pauseBtn.style.background = '#ff6b6b';
+                messageElement.textContent = 'Játék szüneteltetve';
+                messageElement.style.color = '#ff6b6b';
+            } else {
+                pauseBtn.style.background = '#C49B3B';
+                messageElement.textContent = 'Játék folytatva';
+                messageElement.style.color = '#C49B3B';
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                }, 2000);
+            }
+        });
+
+        checkAuth();
+    </script>
+</body>
+</html>

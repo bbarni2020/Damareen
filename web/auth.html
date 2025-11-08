@@ -274,7 +274,7 @@
                         localStorage.setItem('token', data.data.token);
                         localStorage.setItem('user', JSON.stringify(data.data.user));
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.href = 'dashboard.html';
                         }, 1000);
                     }
                 } else {
@@ -335,7 +335,7 @@
                         localStorage.setItem('token', data.data.token);
                         localStorage.setItem('user', JSON.stringify(data.data.user));
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.href = 'dashboard.html';
                         }, 1000);
                     }
                 } else {
@@ -405,7 +405,7 @@
                     alert(data.data.message);
                     localStorage.setItem('token', data.data.token);
                     localStorage.setItem('user', JSON.stringify(data.data.user));
-                    window.location.href = '/';
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error);
                     loginContainer.style.display = 'block';
