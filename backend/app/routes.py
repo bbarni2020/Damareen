@@ -582,6 +582,137 @@ def create_dungeon():
         db.session.rollback()
         return error_response('A dungeon létrehozása sikertelen', 500)
 
+@api.route('/create/collection', methods=['POST'])
+@ratelimit
+@require_auth
+def create_collection():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    owner_id = data.get('owner_id', '').strip() if isinstance(data.get('owner_id'), str) else ''
+    list_of_cards_ids = data.get('list_of_cards_ids', [])
+    
+    if not owner_id:
+        return error_response('A tulajdonos azonosítója kötelező', 400)
+    
+    if not isinstance(list_of_cards_ids, list):
+        return error_response('A list_of_cards_ids listának kell lennie', 400)
+    
+    if not list_of_cards_ids:
+        return error_response('A list_of_cards_ids nem lehet üres', 400)
+    
+    try:
+        original_cards = Card.query.filter(Card.id.in_(list_of_cards_ids)).all()
+        
+        if not original_cards:
+            return error_response('Nem található kártya a megadott azonosítókkal', 404)
+        
+        duplicated_cards = []
+        
+        for original_card in original_cards:
+            success = False
+            for _ in range(5):
+                try:
+                    new_card = Card(
+                        id=generate_unique_id(),
+                        world_id=original_card.world_id,
+                        owner_id=owner_id,
+                        name=original_card.name,
+                        picture=original_card.picture,
+                        health=original_card.health,
+                        damage=original_card.damage,
+                        type=original_card.type,
+                        position=original_card.position,
+                        is_leader=original_card.is_leader
+                    )
+                    db.session.add(new_card)
+                    db.session.flush()
+                    duplicated_cards.append(new_card)
+                    success = True
+                    break
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+            
+            if not success:
+                db.session.rollback()
+                return error_response('Nem sikerült egyedi azonosítót generálni a kártyához', 500)
+        
+        db.session.commit()
+        
+        return success_response({
+            'message': 'Kollekció sikeresen létrehozva',
+            'duplicated_cards': [card.to_dict() for card in duplicated_cards],
+            'count': len(duplicated_cards)
+        }, 201)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A kollekció létrehozása sikertelen', 500)
+
+@api.route('/create/leader', methods=['POST'])
+@ratelimit
+@require_auth
+def create_leader():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
+    damage_doubled = data.get('damage_doubled')
+    
+    if not card_id:
+        return error_response('A kártya azonosítója kötelező', 400)
+    
+    if not isinstance(damage_doubled, bool):
+        return error_response('A damage_doubled értéknek boolean-nak kell lennie', 400)
+    
+    try:
+        original_card = Card.query.get(card_id)
+        
+        if not original_card:
+            return error_response('Nem található kártya a megadott azonosítóval', 404)
+        
+        new_damage = original_card.damage
+        new_health = original_card.health
+        is_leader = True
+        
+        if damage_doubled:
+            new_damage = original_card.damage * 2
+        else:
+            new_health = original_card.health * 2
+        
+        for _ in range(5):
+            try:
+                new_leader = Card(
+                    id=generate_unique_id(),
+                    world_id=original_card.world_id,
+                    owner_id=original_card.owner_id,
+                    name=original_card.name,
+                    picture=original_card.picture,
+                    health=new_health,
+                    damage=new_damage,
+                    type=original_card.type,
+                    position=original_card.position,
+                    is_leader=is_leader
+                )
+                db.session.add(new_leader)
+                db.session.commit()
+                
+                return success_response({
+                    'message': 'Vezér sikeresen létrehozva',
+                    'leader': new_leader.to_dict()
+                }, 201)
+            except IntegrityError:
+                db.session.rollback()
+                continue
+        
+        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A vezér létrehozása sikertelen', 500)
 
 @api.route('/health', methods=['GET'])
 @ratelimit
