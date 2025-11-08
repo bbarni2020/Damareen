@@ -582,6 +582,45 @@ def create_dungeon():
         db.session.rollback()
         return error_response('A dungeon létrehozása sikertelen', 500)
 
+@api.route('/game/join', methods=['POST'])
+@ratelimit
+@require_auth
+def join_game():
+    user = request.current_user
+    
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    invite_code = data.get('invite_code', '').strip() if isinstance(data.get('invite_code'), str) else ''
+    
+    if not invite_code:
+        return error_response('A meghívó kód kötelező', 400)
+    
+    world = World.query.filter_by(world_id=invite_code).first()
+    
+    if not world:
+        return error_response('A világ nem található', 404)
+    
+    if user.world_ids is None:
+        user.world_ids = {}
+    
+    if invite_code in user.world_ids:
+        return error_response('Már csatlakoztál ehhez a világhoz', 409)
+    
+    try:
+        user.world_ids[invite_code] = False
+        db.session.commit()
+        
+        return success_response({
+            'message': 'Sikeresen csatlakoztál a világhoz',
+            'world': world.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A csatlakozás sikertelen', 500)
+
 @api.route('/health', methods=['GET'])
 @ratelimit
 def health_check():

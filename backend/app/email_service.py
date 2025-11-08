@@ -100,7 +100,9 @@ Ez a link 24 órán belül lejár. Ha nem te regisztráltál, kérjük, hagyd fi
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
+                server.ehlo()
                 server.starttls()
+                server.ehlo()
             server.login(EmailConfig.SMTP_USERNAME, EmailConfig.SMTP_PASSWORD)
             server.send_message(msg)
         
@@ -201,7 +203,9 @@ Ez a link 24 órán belül lejár. Ha nem te próbáltál meg bejelentkezni, ké
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
+                server.ehlo()
                 server.starttls()
+                server.ehlo()
             server.login(EmailConfig.SMTP_USERNAME, EmailConfig.SMTP_PASSWORD)
             server.send_message(msg)
         
@@ -302,7 +306,9 @@ Ez a link 1 órán belül lejár. Ha nem te kérted a jelszó visszaállításá
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
+                server.ehlo()
                 server.starttls()
+                server.ehlo()
             server.login(EmailConfig.SMTP_USERNAME, EmailConfig.SMTP_PASSWORD)
             server.send_message(msg)
         
