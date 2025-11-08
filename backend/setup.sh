@@ -9,5 +9,5 @@ pip install -r requirements.txt
 clear
 echo "Starting backend on port $PORT..."
 export FLASK_APP=run.py
-echo "Running server
+echo "Running server"
 python3 run.py

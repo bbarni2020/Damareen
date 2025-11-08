@@ -19,7 +19,7 @@ from app.email_config import EmailConfig
 from sqlalchemy.exc import IntegrityError
 
 
-api = Blueprint('api', __name__)
+api = Blueprint('', __name__)
 
 _rate_limit_store = {}
 _RATE_LIMIT_WINDOW = 10 
