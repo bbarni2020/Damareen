@@ -549,7 +549,7 @@ def create_card():
         if not (2 <= damage <= 100):
             return error_response('A sebzésnek 2 és 100 között kell lennie', 400)
         position = to_int(0)
-        is_leader = to_bool(data.get('is_leader', 0), False)
+        is_leader = ""
 
         for _ in range(5):
             try:
@@ -578,6 +578,7 @@ def create_card():
     except Exception as e:
         db.session.rollback()
         return error_response('A kártya létrehozása sikertelen', 500)
+    
 @api.route('/create/dungeon', methods=['POST'])
 @ratelimit
 @require_auth
