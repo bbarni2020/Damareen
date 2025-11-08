@@ -510,8 +510,38 @@ def create_card():
             return default
         
         health = to_int(data.get('health', 0), 0)
-        damage = to_int(data.get('damage', 0), 0)
-        position = to_int(data.get('position', 0), 0)
+        def is_whole_number(v):
+            if isinstance(v, int):
+                return True
+            if isinstance(v, float):
+                return v.is_integer()
+            if isinstance(v, str):
+                s = v.strip()
+                if s == '':
+                    return False
+                if s.lstrip('-').isdigit():
+                    return True
+            try:
+                f = float(s)
+            except Exception:
+                return False
+            return f.is_integer()
+            return False
+
+        raw_health = data.get('health', 0)
+        if not is_whole_number(raw_health):
+            return error_response('Az életerőnek egész számnak kell lennie', 400)
+        health = to_int(raw_health, 0)
+        if not (1 <= health <= 100):
+            return error_response('Az életerőnek 1 és 100 között kell lennie', 400)
+
+        raw_damage = data.get('damage', 0)
+        if not is_whole_number(raw_damage):
+            return error_response('A sebzésnek egész számnak kell lennie', 400)
+        damage = to_int(raw_damage, 0)
+        if not (2 <= damage <= 100):
+            return error_response('A sebzésnek 2 és 100 között kell lennie', 400)
+        position = to_int(0)
         is_leader = to_bool(data.get('is_leader', 0), False)
 
         for _ in range(5):
@@ -719,6 +749,39 @@ def create_leader():
         db.session.rollback()
         return error_response('A vezér létrehozása sikertelen', 500)
     
+@api.route('/deck', methods=['POST'])
+@ratelimit
+@require_auth
+def set_deck():
+    user = request.current_user
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    cards_list = data.get('cards') or data.get('card_ids') or []
+    if not isinstance(cards_list, list):
+        return error_response('A kártyák listájának listának kell lennie', 400)
+    cards_list = [str(x).strip() for x in cards_list if str(x).strip()]
+    if len(cards_list) not in (1, 4, 6):
+        return error_response('Pontosan 1, 4 vagy 6 kártyát kell megadni', 400)
+    if len(set(cards_list)) != len(cards_list):
+        return error_response('Ismétlődő kártya azonosítók', 400)
+    cards = Card.query.filter(Card.id.in_(cards_list)).all()
+    if len(cards) != len(cards_list):
+        return error_response('Nem található kártya a megadott azonosítókkal', 404)
+    for c in cards:
+        if c.owner_id != user.id:
+            return error_response('Csak a saját kártyáidat állíthatod be paklinak', 403)
+    pos_map = {cid: i + 1 for i, cid in enumerate(cards_list)}
+    try:
+        for c in cards:
+            c.position = pos_map.get(c.id, c.position)
+        db.session.commit()
+        cards_by_id = {c.id: c for c in cards}
+        ordered = [cards_by_id[cid].to_dict() for cid in cards_list]
+        return success_response({'message': 'Pakli frissítve', 'cards': ordered})
+    except Exception:
+        db.session.rollback()
+        return error_response('A pakli frissítése sikertelen', 500)
 
 @api.route('/game/join', methods=['POST'])
 @ratelimit
