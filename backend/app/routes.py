@@ -767,6 +767,73 @@ def is_master():
     return check_master_status()
 
 
+@api.route('/user/list/worlds', methods=['GET'])
+@ratelimit
+@require_auth
+def list_user_worlds():
+    user = request.current_user
+    world_map = user.world_ids or {}
+    world_ids = list(world_map.keys()) if isinstance(world_map, dict) else []
+    worlds = World.query.filter(World.world_id.in_(world_ids)).all() if world_ids else []
+    name_by_id = {w.world_id: w.name for w in worlds}
+    result = []
+    for wid, is_master in (world_map.items() if isinstance(world_map, dict) else []):
+        result.append({
+            'world_id': wid,
+            'name': name_by_id.get(wid, wid),
+            'is_master': bool(is_master)
+        })
+    return success_response({'worlds': result})
+
+
+@api.route('/world/list/dungeons', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_dungeons():
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    dungeons = Dungeon.query.filter_by(world_id=world_id).all()
+    return success_response({'dungeons': [d.to_dict() for d in dungeons]})
+
+
+@api.route('/world/list/cards', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_cards():
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    cards = Card.query.filter_by(world_id=world_id).all()
+    return success_response({'cards': [c.to_dict() for c in cards]})
+
+
+@api.route('/world/list/users', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_users():
+    current_user = request.current_user
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    users = User.query.all()
+    result = []
+    for u in users:
+        if u.id == current_user.id:
+            continue
+        wm = u.world_ids or {}
+        if isinstance(wm, dict) and str(world_id) in wm:
+            result.append({
+                'id': u.id,
+                'username': u.username,
+                'is_master': bool(wm.get(str(world_id)))
+            })
+    return success_response({'users': result})
+
+
 @api.route('/delete/world', methods=['DELETE'])
 @ratelimit
 @require_auth
@@ -806,6 +873,37 @@ def delete_world():
     except Exception as e:
         db.session.rollback()
         return error_response('A világ törlése sikertelen', 500)
+
+
+@api.route('/delete/dungeon', methods=['DELETE'])
+@ratelimit
+@require_auth
+@require_master
+def delete_dungeon():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    dungeon_id = data.get('dungeon_id', '').strip() if isinstance(data.get('dungeon_id'), str) else ''
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    
+    if not dungeon_id:
+        return error_response('A dungeon azonosítója kötelező', 400)
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    
+    dungeon = Dungeon.query.filter_by(id=dungeon_id, world_id=world_id).first()
+    if not dungeon:
+        return error_response('Dungeon nem található', 404)
+    
+    try:
+        db.session.delete(dungeon)
+        db.session.commit()
+        return success_response({'message': 'Dungeon sikeresen törölve'})
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A dungeon törlése sikertelen', 500)
 
 
 @api.route('/health', methods=['GET'])
