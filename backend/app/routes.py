@@ -23,7 +23,7 @@ api = Blueprint('api', __name__)
 
 _rate_limit_store = {}
 _RATE_LIMIT_WINDOW = 10 
-_RATE_LIMIT_MAX = 50 #Change in production!!!!!!
+_RATE_LIMIT_MAX = 5
 
 def ratelimit(func):
     @wraps(func)
