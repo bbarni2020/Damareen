@@ -1,7 +1,10 @@
 import smtplib
 import secrets
+import os
+import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from datetime import datetime, timedelta
 from app.email_config import EmailConfig
 
@@ -12,6 +15,17 @@ def generate_verification_token():
 
 def get_verification_expiry():
     return datetime.utcnow() + timedelta(hours=EmailConfig.VERIFICATION_TOKEN_EXPIRATION_HOURS)
+
+
+def get_logo_image():
+    logo_path = os.path.join(os.path.dirname(__file__), '../../web/src/logo.png')
+    try:
+        with open(logo_path, 'rb') as img_file:
+            img_data = img_file.read()
+        return img_data
+    except Exception as e:
+        print(f"Error loading logo: {str(e)}")
+        return None
 
 
 def send_verification_email(recipient_email, username, verification_token):
@@ -36,7 +50,7 @@ def send_verification_email(recipient_email, username, verification_token):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
+                            <img src="cid:logo" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -92,16 +106,26 @@ A link 24 órán belül lejár. Ha nem te regisztráltál, hagyd figyelmen kív�
 © 2025 Horváth András és Balogh Barnabás
 """
         
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart('related')
         msg['Subject'] = 'E-mail cím megerősítése - Damareen'
         msg['From'] = f'{EmailConfig.SENDER_NAME} <{EmailConfig.SENDER_EMAIL}>'
         msg['To'] = recipient_email
         
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+        
         part1 = MIMEText(text_content, 'plain', 'utf-8')
         part2 = MIMEText(html_content, 'html', 'utf-8')
         
-        msg.attach(part1)
-        msg.attach(part2)
+        msg_alternative.attach(part1)
+        msg_alternative.attach(part2)
+        
+        logo_data = get_logo_image()
+        if logo_data:
+            logo_img = MIMEImage(logo_data)
+            logo_img.add_header('Content-ID', '<logo>')
+            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
@@ -137,7 +161,7 @@ def send_login_notification_email(recipient_email, username):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
+                            <img src="cid:logo" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -178,16 +202,26 @@ Ha nem ismered fel ezt a bejelentkezést, változtasd meg a jelszavad azonnal.
 © 2025 Horváth András és Balogh Barnabás
 """
         
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart('related')
         msg['Subject'] = 'Bejelentkezés a fiókodba - Damareen'
         msg['From'] = f'{EmailConfig.SENDER_NAME} <{EmailConfig.SENDER_EMAIL}>'
         msg['To'] = recipient_email
         
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+        
         part1 = MIMEText(text_content, 'plain', 'utf-8')
         part2 = MIMEText(html_content, 'html', 'utf-8')
         
-        msg.attach(part1)
-        msg.attach(part2)
+        msg_alternative.attach(part1)
+        msg_alternative.attach(part2)
+        
+        logo_data = get_logo_image()
+        if logo_data:
+            logo_img = MIMEImage(logo_data)
+            logo_img.add_header('Content-ID', '<logo>')
+            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
@@ -225,7 +259,7 @@ def send_password_reset_email(recipient_email, username, reset_token):
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: rgba(26, 26, 29, 0.75); border: 2.5px solid rgba(196, 155, 59, 0.4); border-radius: 15px; box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);">
                     <tr>
                         <td style="padding: 50px 25px 35px; text-align: center;">
-                            <img src="{EmailConfig.VERIFICATION_URL_BASE}/src/logo.png" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
+                            <img src="cid:logo" alt="Damareen" style="width: 120px; height: 120px; display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -281,16 +315,26 @@ A link 1 órán belül lejár. Ha nem te kérted, hagyd figyelmen kívül ezt az
 © 2025 Horváth András és Balogh Barnabás
 """
         
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart('related')
         msg['Subject'] = 'Jelszó visszaállítása - Damareen'
         msg['From'] = f'{EmailConfig.SENDER_NAME} <{EmailConfig.SENDER_EMAIL}>'
         msg['To'] = recipient_email
         
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+        
         part1 = MIMEText(text_content, 'plain', 'utf-8')
         part2 = MIMEText(html_content, 'html', 'utf-8')
         
-        msg.attach(part1)
-        msg.attach(part2)
+        msg_alternative.attach(part1)
+        msg_alternative.attach(part2)
+        
+        logo_data = get_logo_image()
+        if logo_data:
+            logo_img = MIMEImage(logo_data)
+            logo_img.add_header('Content-ID', '<logo>')
+            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
             if EmailConfig.SMTP_USE_TLS:
