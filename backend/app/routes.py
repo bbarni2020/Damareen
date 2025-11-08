@@ -562,6 +562,33 @@ def create_dungeon():
         return error_response('A világ azonosítónak egész számnak kell lennie', 400)
     if not isinstance(list_ids, list):
         return error_response('A list_of_cards_ids-nak listának kell lennie', 400)
+    
+    if len(list_ids) not in [1, 4, 6]:
+        return error_response('A kazamata 1, 4 vagy 6 kártyából kell álljon', 400)
+    
+    if list_ids:
+        cards = Card.query.filter(Card.id.in_(list_ids)).all()
+        card_dict = {card.id: card for card in cards}
+        
+        if len(card_dict) != len(list_ids):
+            return error_response('Egy vagy több kártya azonosító nem található', 404)
+        
+        ordered_cards = [card_dict[card_id] for card_id in list_ids]
+        
+        if len(list_ids) == 1:
+
+            if ordered_cards[0].is_leader != "":
+                return error_response('Az egyszerű találkozás típusú kazamatában csak sima kártya lehet', 400)
+        
+        elif len(list_ids) in [4, 6]:
+            if ordered_cards[-1].is_leader == "":
+                return error_response('A kazamata utolsó kártyája vezér kell legyen', 400)
+            
+            
+            for i in range(len(ordered_cards) - 1):
+                if ordered_cards[i].is_leader != "":
+                    return error_response('A kazamata kártyái közül csak az utolsó lehet vezér', 400)
+    
     try:
         for _ in range(5):
             try:
