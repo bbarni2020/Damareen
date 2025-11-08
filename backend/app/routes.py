@@ -767,6 +767,47 @@ def is_master():
     return check_master_status()
 
 
+@api.route('/delete/world', methods=['DELETE'])
+@ratelimit
+@require_auth
+@require_master
+def delete_world():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    
+    world = World.query.get(world_id)
+    
+    if not world:
+        return error_response('A világ nem található', 404)
+    
+    try:
+        Card.query.filter_by(world_id=world_id).delete()
+        Dungeon.query.filter_by(world_id=world_id).delete()
+        
+        users = User.query.all()
+        for user in users:
+            if user.world_ids and world_id in user.world_ids:
+                del user.world_ids[world_id]
+                user.world_ids = dict(user.world_ids)
+        
+        db.session.delete(world)
+        db.session.commit()
+        
+        return success_response({
+            'message': 'A világ sikeresen törölve'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A világ törlése sikertelen', 500)
+
+
 @api.route('/health', methods=['GET'])
 @ratelimit
 def health_check():
