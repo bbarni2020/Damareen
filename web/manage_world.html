@@ -8,1054 +8,956 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Jaro', sans-serif;
-            background-color: #1A1A1D;
-            color: #D9D9D9;
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pause-btn {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            width: 55px;
-            height: 55px;
-            background: #C49B3B;
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.28s;
-            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
-            z-index: 100;
-        }
-
-        .pause-btn:hover {
-            background: #d4ab4f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
-        }
-
-        .world-actions {
-            position: fixed;
-            top: 25px;
-            left: 25px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .action-btn {
-            padding: 10px 20px;
-            background: #C49B3B;
-            border: none;
-            border-radius: 8px;
-            color: #1A1A1D;
-            font-family: 'Jaro', sans-serif;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
-        }
-
-        .action-btn:hover {
-            background: #d4ab4f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
-        }
-
-        .action-btn.danger {
-            background: rgba(255, 107, 107, 0.9);
-            color: white;
-        }
-
-        .action-btn.danger:hover {
-            background: rgba(255, 107, 107, 1);
-        }
-
-        .pause-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .pause-icon::before,
-        .pause-icon::after {
-            content: '';
-            width: 6px;
-            height: 24px;
-            background: #1A1A1D;
-            border-radius: 2px;
-        }
-
-        h1 {
-            font-family: 'Jaro', sans-serif;
-            font-size: 4rem;
-            font-weight: bold;
-            color: #C49B3B;
-            margin-bottom: 40px;
-            letter-spacing: 4px;
-            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            padding: 10px 30px;
-            border-radius: 10px;
-        }
-
-        h1:hover {
-            background: rgba(196, 155, 59, 0.1);
-        }
-
-        h1:focus {
-            outline: 2px solid #C49B3B;
-            outline-offset: 5px;
-        }
-
-        .main-container {
-            width: 90%;
-            max-width: 1200px;
-            height: 500px;
-            border: 6px solid #C49B3B;
-            border-radius: 20px;
-            display: flex;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
-        }
-
-        .left-panel {
-            flex: 1;
-            background: #1A1A1D;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            border-right: 3px solid #C49B3B;
-            overflow: hidden;
-        }
-
-        .tabs-container {
-            display: flex;
-            border-bottom: 3px solid #C49B3B;
-            background: #1A1A1D;
-        }
-
-        .tab-button {
-            flex: 1;
-            padding: 15px 20px;
-            background: transparent;
-            border: none;
-            color: rgba(196, 155, 59, 0.5);
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
-        }
-
-        .tab-button:hover {
-            color: rgba(196, 155, 59, 0.8);
-            background: rgba(196, 155, 59, 0.05);
-        }
-
-        .tab-button.active {
-            color: #C49B3B;
-            border-bottom-color: #C49B3B;
-            background: rgba(196, 155, 59, 0.1);
-        }
-
-        .tab-content {
-            display: none;
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .tab-content.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .right-panel {
-            flex: 1;
-            background: #1A1A1D;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel-title {
-            font-family: 'Jaro', sans-serif;
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: #C49B3B;
-            margin-bottom: 25px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-
-        .card-form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .card-preview {
-            width: 220px;
-            aspect-ratio: 2/3;
-            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
-            border: 4px solid #C49B3B;
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        .card-preview-image {
-            width: 100%;
-            height: 45%;
-            background: rgba(196, 155, 59, 0.1);
-            border-radius: 10px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .card-preview-image:hover {
-            background: rgba(196, 155, 59, 0.2);
-        }
-
-        .card-preview-image::after {
-            content: '📁';
-            position: absolute;
-            font-size: 2rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .card-preview-image:hover::after {
-            opacity: 0.7;
-        }
-
-        .card-preview-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .card-preview-image input[type="file"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .card-preview-name {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.1rem;
-            color: #C49B3B;
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            background: transparent;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            padding: 5px;
-            transition: all 0.3s;
-            width: 100%;
-        }
-
-        .card-preview-name:hover,
-        .card-preview-name:focus {
-            border-color: rgba(196, 155, 59, 0.5);
-            background: rgba(196, 155, 59, 0.1);
-            outline: none;
-        }
-
-        .card-preview-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 2px solid rgba(196, 155, 59, 0.3);
-            gap: 10px;
-        }
-
-        .preview-stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            flex: 1;
-        }
-
-        .preview-stat-label {
-            font-size: 0.75rem;
-            color: rgba(196, 155, 59, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .preview-stat-input {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.3rem;
-            color: #D9D9D9;
-            font-weight: bold;
-            background: transparent;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            text-align: center;
-            width: 60px;
-            padding: 3px;
-            transition: all 0.3s;
-        }
-
-        .preview-stat-input:hover,
-        .preview-stat-input:focus {
-            border-color: rgba(196, 155, 59, 0.5);
-            background: rgba(196, 155, 59, 0.1);
-            outline: none;
-        }
-
-        .card-preview-type {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(196, 155, 59, 0.95);
-            color: #1A1A1D;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            min-width: 80px;
-        }
-
-        .card-preview-type:hover {
-            background: rgba(196, 155, 59, 1);
-            transform: scale(1.08);
-        }
-
-        .type-selector {
-            background: rgba(196, 155, 59, 0.95);
-            border: 2px solid rgba(196, 155, 59, 0.5);
-            border-radius: 15px;
-            color: #1A1A1D;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            font-weight: bold;
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            min-width: 80px;
-        }
-
-        .type-selector:focus {
-            outline: none;
-            border-color: #C49B3B;
-            background: rgba(196, 155, 59, 1);
-            transform: scale(1.08);
-        }
-
-        .dungeon-builder {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .available-cards {
-            flex: 1;
-            background: rgba(196, 155, 59, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .available-cards-title {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.3rem;
-            color: #C49B3B;
-            margin-bottom: 15px;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .available-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-        }
-
-        .mini-card {
-            aspect-ratio: 2/3;
-            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
-            border: 2px solid #C49B3B;
-            border-radius: 10px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .mini-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
-            border-color: #d4ab4f;
-        }
-
-        .mini-card.selected {
-            border-color: #4CAF50;
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
-        }
-
-        .mini-card-image {
-            width: 100%;
-            height: 50%;
-            background: rgba(196, 155, 59, 0.1);
-            border-radius: 6px;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            overflow: hidden;
-        }
-
-        .mini-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .mini-card-name {
-            font-family: 'Jaro', sans-serif;
-            font-size: 0.75rem;
-            color: #C49B3B;
-            text-align: center;
-            margin-bottom: 6px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .mini-card-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: auto;
-            font-size: 0.7rem;
-        }
-
-        .selection-order {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #4CAF50;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .dungeon-sequence {
-            background: rgba(196, 155, 59, 0.1);
-            border: 2px solid rgba(196, 155, 59, 0.3);
-            border-radius: 15px;
-            padding: 15px;
-            min-height: 80px;
-        }
-
-        .dungeon-sequence-title {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.1rem;
-            color: #C49B3B;
-            margin-bottom: 10px;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .sequence-list {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            min-height: 40px;
-        }
-
-        .sequence-item {
-            background: rgba(196, 155, 59, 0.2);
-            padding: 8px 15px;
-            border-radius: 8px;
-            color: #D9D9D9;
-            font-family: 'Fira Code', monospace;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-
-        .sequence-number {
-            background: #C49B3B;
-            color: #1A1A1D;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .clear-sequence-btn {
-            padding: 8px 20px;
-            background: rgba(255, 107, 107, 0.8);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-family: 'Jaro', sans-serif;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
-
-        .clear-sequence-btn:hover {
-            background: rgba(255, 107, 107, 1);
-            transform: translateY(-2px);
-        }
-
-        .empty-message {
-            text-align: center;
-            color: rgba(196, 155, 59, 0.4);
-            font-style: italic;
-        }
-
-        .create-btn {
-            margin-top: 10px;
-            padding: 12px 30px;
-            background: #C49B3B;
-            border: none;
-            border-radius: 8px;
-            color: #1A1A1D;
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
-        }
-
-        .create-btn:hover {
-            background: #d4ab4f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
-        }
-
-        .create-btn:active {
-            transform: translateY(0);
-        }
-
-        .collection-area {
-            flex: 1;
-            background: rgba(196, 155, 59, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 20px;
-            align-content: start;
-        }
-
-        .collection-area::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .collection-area::-webkit-scrollbar-track {
-            background: rgba(196, 155, 59, 0.1);
-            border-radius: 10px;
-        }
-
-        .collection-area::-webkit-scrollbar-thumb {
-            background: rgba(196, 155, 59, 0.5);
-            border-radius: 10px;
-        }
-
-        .collection-area::-webkit-scrollbar-thumb:hover {
-            background: rgba(196, 155, 59, 0.7);
-        }
-
-        .collection-placeholder {
-            grid-column: 1 / -1;
-            text-align: center;
-            color: rgba(196, 155, 59, 0.5);
-            font-size: 1.2rem;
-            margin-top: 50px;
-        }
-
-        .game-card {
-            aspect-ratio: 2/3;
-            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
-            border: 3px solid #C49B3B;
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(196, 155, 59, 0.4);
-            border-color: #d4ab4f;
-        }
-
-        .game-card.in-sequence {
-            border-color: #4CAF50;
-            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .game-card .sequence-badge {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: #4CAF50;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            z-index: 5;
-        }
-
-        .card-image {
-            width: 100%;
-            height: 50%;
-            background: rgba(196, 155, 59, 0.1);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            overflow: hidden;
-        }
-
-        .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .card-name {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1rem;
-            color: #C49B3B;
-            text-align: center;
-            margin-bottom: 8px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .card-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: auto;
-            padding-top: 8px;
-            border-top: 2px solid rgba(196, 155, 59, 0.3);
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: rgba(196, 155, 59, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.2rem;
-            color: #D9D9D9;
-            font-weight: bold;
-        }
-
-        .card-type {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(196, 155, 59, 0.9);
-            color: #1A1A1D;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .delete-btn {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: rgba(255, 107, 107, 0.9);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1rem;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .game-card:hover .delete-btn.visible {
-            opacity: 1;
-        }
-
-        .delete-btn:hover {
-            background: rgba(255, 107, 107, 1);
-            transform: scale(1.1);
-        }
-
-        .edit-btn {
-            position: absolute;
-            top: 8px;
-            left: 36px;
-            background: rgba(196, 155, 59, 0.9);
-            color: #1A1A1D;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .game-card:hover .edit-btn.visible {
-            opacity: 1;
-        }
-
-        .edit-btn:hover {
-            background: rgba(196, 155, 59, 1);
-            transform: scale(1.1);
-        }
-
-        .leader-btn {
-            position: absolute;
-            top: 8px;
-            left: 64px;
-            background: rgba(138, 43, 226, 0.9);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .game-card:hover .leader-btn.visible {
-            opacity: 1;
-        }
-
-        .leader-btn:hover {
-            background: rgba(138, 43, 226, 1);
-            transform: scale(1.1);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #2a2a2e 0%, #1a1a1d 100%);
-            border: 4px solid #C49B3B;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-title {
-            font-family: 'Jaro', sans-serif;
-            font-size: 2rem;
-            color: #C49B3B;
-            margin-bottom: 20px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-
-        .modal-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .modal-form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .modal-label {
-            font-family: 'Jaro', sans-serif;
-            color: #C49B3B;
-            font-size: 1.1rem;
-            letter-spacing: 1px;
-        }
-
-        .modal-input {
-            padding: 10px 15px;
-            background: rgba(196, 155, 59, 0.1);
-            border: 2px solid rgba(196, 155, 59, 0.3);
-            border-radius: 8px;
-            color: #D9D9D9;
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: #C49B3B;
-            background: rgba(196, 155, 59, 0.15);
-        }
-
-        .stat-choice {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .stat-option {
-            flex: 1;
-            padding: 15px;
-            background: rgba(196, 155, 59, 0.1);
-            border: 2px solid rgba(196, 155, 59, 0.3);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .stat-option:hover {
-            border-color: #C49B3B;
-            background: rgba(196, 155, 59, 0.2);
-        }
-
-        .stat-option.selected {
-            border-color: #8A2BE2;
-            background: rgba(138, 43, 226, 0.2);
-            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
-        }
-
-        .stat-option-label {
-            font-family: 'Jaro', sans-serif;
-            color: #C49B3B;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .stat-option-value {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.5rem;
-            color: #D9D9D9;
-            font-weight: bold;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-        }
-
-        .modal-btn-create {
-            background: #8A2BE2;
-            color: white;
-        }
-
-        .modal-btn-create:hover {
-            background: #9d4eed;
-            transform: translateY(-2px);
-        }
-
-        .modal-btn-cancel {
-            background: rgba(255, 107, 107, 0.8);
-            color: white;
-        }
-
-        .modal-btn-cancel:hover {
-            background: rgba(255, 107, 107, 1);
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 1024px) {
-            .main-container {
-                flex-direction: column;
-                height: auto;
-                max-height: 80vh;
-            }
-
-            .left-panel {
-                border-right: none;
-                border-bottom: 3px solid #C49B3B;
-            }
-
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            h1 {
-                font-size: 3rem;
-            }
-
-            .panel-title {
-                font-size: 1.8rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-                margin-bottom: 30px;
-            }
-
-            .main-container {
-                width: 95%;
-                border-width: 4px;
-            }
-
-            .cards-grid {
-                gap: 15px;
-            }
-
-            .panel-title {
-                font-size: 1.5rem;
-            }
-
-            .pause-btn {
-                width: 45px;
-                height: 45px;
-            }
-        }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: "Jaro", sans-serif;
+  background-color: #1a1a1d;
+  color: #d9d9d9;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.pause-btn,
+.world-actions {
+  position: fixed;
+  top: 25px;
+  display: flex;
+  z-index: 100;
+}
+.pause-btn,
+body {
+  align-items: center;
+  justify-content: center;
+}
+.pause-btn {
+  right: 25px;
+  width: 55px;
+  height: 55px;
+  background: #c49b3b;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.28s;
+  box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+}
+.action-btn:hover,
+.pause-btn:hover {
+  background: #d4ab4f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+}
+.world-actions {
+  left: 25px;
+  gap: 10px;
+}
+.action-btn,
+h1 {
+  font-family: "Jaro", sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.action-btn {
+  padding: 10px 20px;
+  background: #c49b3b;
+  border: 0;
+  border-radius: 8px;
+  color: #1a1a1d;
+  font-size: 1rem;
+  box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+}
+.action-btn:hover {
+  box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
+}
+.action-btn.danger {
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+}
+.action-btn.danger:hover {
+  background: #ff6b6b;
+}
+.pause-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pause-icon::after,
+.pause-icon::before {
+  content: "";
+  width: 6px;
+  height: 24px;
+  background: #1a1a1d;
+  border-radius: 2px;
+}
+h1 {
+  font-size: 4rem;
+  color: #c49b3b;
+  margin-bottom: 40px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+  text-align: center;
+  padding: 10px 30px;
+  border-radius: 10px;
+}
+h1:hover {
+  background: rgba(196, 155, 59, 0.1);
+}
+h1:focus {
+  outline: 2px solid #c49b3b;
+  outline-offset: 5px;
+}
+.main-container {
+  width: 90%;
+  max-width: 1200px;
+  height: 500px;
+  border: 6px solid #c49b3b;
+  border-radius: 20px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
+}
+.left-panel,
+.tabs-container {
+  display: flex;
+  background: #1a1a1d;
+}
+.left-panel {
+  flex: 1;
+  padding: 0;
+  flex-direction: column;
+  border-right: 3px solid #c49b3b;
+  overflow: hidden;
+}
+.tabs-container {
+  border-bottom: 3px solid #c49b3b;
+}
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  background: 0 0;
+  border: 0;
+  color: rgba(196, 155, 59, 0.5);
+  font-family: "Jaro", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+}
+.tab-button:hover:not(:disabled) {
+  color: rgba(196, 155, 59, 0.8);
+  background: rgba(196, 155, 59, 0.05);
+}
+.tab-button.active {
+  color: #c49b3b;
+  border-bottom-color: #c49b3b;
+  background: rgba(196, 155, 59, 0.1);
+}
+.tab-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  color: rgba(196, 155, 59, 0.3);
+}
+.tab-content {
+  display: none;
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  position: relative;
+}
+.right-panel,
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+.tab-content.locked::before {
+  content: "🔒 Először hozz létre egy világot!";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 26, 29, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: rgba(196, 155, 59, 0.7);
+  z-index: 10;
+  padding: 20px;
+}
+.right-panel {
+  flex: 1;
+  background: #1a1a1d;
+  padding: 30px;
+}
+.panel-title,
+.tab-content.locked::before {
+  font-family: "Jaro", sans-serif;
+  text-align: center;
+}
+.panel-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #c49b3b;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
+.card-form,
+.card-preview {
+  display: flex;
+  flex-direction: column;
+}
+.card-form {
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+.card-preview {
+  width: 220px;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 4px solid #c49b3b;
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+.card-preview-image {
+  width: 100%;
+  height: 45%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.card-preview-image:hover {
+  background: rgba(196, 155, 59, 0.2);
+}
+.card-preview-image::after {
+  content: "📁";
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card-preview-image:hover::after {
+  opacity: 0.7;
+}
+.card-preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.card-preview-image input[type="file"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.card-preview-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.1rem;
+  color: #c49b3b;
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: 0 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 5px;
+  transition: all 0.3s;
+  width: 100%;
+}
+.card-preview-name:focus,
+.card-preview-name:hover,
+.preview-stat-input:focus,
+.preview-stat-input:hover {
+  border-color: rgba(196, 155, 59, 0.5);
+  background: rgba(196, 155, 59, 0.1);
+  outline: 0;
+}
+.card-preview-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 2px solid rgba(196, 155, 59, 0.3);
+  gap: 10px;
+}
+.preview-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+.preview-stat-label {
+  font-size: 0.75rem;
+  color: rgba(196, 155, 59, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.preview-stat-input {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.3rem;
+  color: #d9d9d9;
+  font-weight: 700;
+  background: 0 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  text-align: center;
+  width: 60px;
+  padding: 3px;
+  transition: all 0.3s;
+}
+.card-preview-type,
+.type-selector {
+  background: rgba(196, 155, 59, 0.95);
+  border-radius: 15px;
+  color: #1a1a1d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 80px;
+}
+.card-preview-type {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+}
+.card-preview-type:hover {
+  background: #c49b3b;
+  transform: scale(1.08);
+}
+.type-selector {
+  border: 2px solid rgba(196, 155, 59, 0.5);
+  font-family: "Fira Code", monospace;
+  text-align: center;
+}
+.type-selector:focus {
+  outline: 0;
+  border-color: #c49b3b;
+  background: #c49b3b;
+  transform: scale(1.08);
+}
+#card-picture:disabled,
+.card-preview-name:disabled,
+.create-btn:disabled,
+.preview-stat-input:disabled,
+.type-selector:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.dungeon-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+.available-cards {
+  flex: 1;
+  background: rgba(196, 155, 59, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  overflow-y: auto;
+}
+.available-cards-title {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.3rem;
+  color: #c49b3b;
+  margin-bottom: 15px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.available-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+}
+.mini-card {
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 2px solid #c49b3b;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+.mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
+  border-color: #d4ab4f;
+}
+.mini-card.selected {
+  border-color: #4caf50;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+.mini-card-image {
+  width: 100%;
+  height: 50%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  overflow: hidden;
+}
+.card-image img,
+.mini-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mini-card-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 0.75rem;
+  color: #c49b3b;
+  text-align: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mini-card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  font-size: 0.7rem;
+}
+.selection-order {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #4caf50;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.dungeon-sequence {
+  background: rgba(196, 155, 59, 0.1);
+  border: 2px solid rgba(196, 155, 59, 0.3);
+  border-radius: 15px;
+  padding: 15px;
+  min-height: 80px;
+}
+.dungeon-sequence-title {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.1rem;
+  color: #c49b3b;
+  margin-bottom: 10px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.sequence-item,
+.sequence-list {
+  display: flex;
+  align-items: center;
+}
+.sequence-list {
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 40px;
+}
+.sequence-item {
+  background: rgba(196, 155, 59, 0.2);
+  padding: 8px 15px;
+  border-radius: 8px;
+  color: #d9d9d9;
+  font-family: "Fira Code", monospace;
+  gap: 8px;
+  transition: all 0.3s;
+}
+.sequence-number {
+  background: #c49b3b;
+  color: #1a1a1d;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.clear-sequence-btn {
+  padding: 8px 20px;
+  background: rgba(255, 107, 107, 0.8);
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  font-family: "Jaro", sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+.clear-sequence-btn:hover {
+  background: #ff6b6b;
+  transform: translateY(-2px);
+}
+.empty-message {
+  text-align: center;
+  color: rgba(196, 155, 59, 0.4);
+  font-style: italic;
+}
+.create-btn {
+  margin-top: 10px;
+  padding: 12px 30px;
+  background: #c49b3b;
+  border: 0;
+  border-radius: 8px;
+  color: #1a1a1d;
+  font-family: "Jaro", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+}
+.create-btn:hover {
+  background: #d4ab4f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
+}
+.create-btn:active {
+  transform: translateY(0);
+}
+.collection-area {
+  flex: 1;
+  background: rgba(196, 155, 59, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 20px;
+  align-content: start;
+}
+.collection-area::-webkit-scrollbar {
+  width: 8px;
+}
+.collection-area::-webkit-scrollbar-track {
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 10px;
+}
+.collection-area::-webkit-scrollbar-thumb {
+  background: rgba(196, 155, 59, 0.5);
+  border-radius: 10px;
+}
+.collection-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 155, 59, 0.7);
+}
+.collection-placeholder {
+  grid-column: 1/-1;
+  text-align: center;
+  color: rgba(196, 155, 59, 0.5);
+  font-size: 1.2rem;
+  margin-top: 50px;
+}
+.game-card {
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 3px solid #c49b3b;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: visible;
+}
+.game-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(196, 155, 59, 0.4);
+  border-color: #d4ab4f;
+  z-index: 10;
+}
+.game-card.in-sequence {
+  border-color: #4caf50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+}
+.game-card .sequence-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #4caf50;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 5;
+}
+.card-image,
+.card-name {
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.card-image,
+.game-card .sequence-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-image {
+  width: 100%;
+  height: 50%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 8px;
+  font-size: 2rem;
+}
+.card-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 1rem;
+  color: #c49b3b;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 2px solid rgba(196, 155, 59, 0.3);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: rgba(196, 155, 59, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.2rem;
+  color: #d9d9d9;
+  font-weight: 700;
+}
+.card-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(196, 155, 59, 0.9);
+  color: #1a1a1d;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.delete-btn,
+.edit-btn,
+.leader-btn {
+  position: absolute;
+  top: 8px;
+  border: 0;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 10;
+}
+.delete-btn {
+  left: 8px;
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.game-card:hover .delete-btn.visible,
+.game-card:hover .edit-btn.visible,
+.game-card:hover .leader-btn.visible {
+  opacity: 1;
+}
+.delete-btn:hover {
+  background: #ff6b6b;
+  transform: scale(1.1);
+}
+.edit-btn,
+.leader-btn {
+  font-size: 0.9rem;
+}
+.edit-btn {
+  left: 36px;
+  background: rgba(196, 155, 59, 0.9);
+  color: #1a1a1d;
+  align-items: center;
+  justify-content: center;
+}
+.edit-btn:hover {
+  background: #c49b3b;
+  transform: scale(1.1);
+}
+.leader-btn {
+  left: 64px;
+  background: rgba(138, 43, 226, 0.9);
+  color: #fff;
+}
+.leader-btn:hover {
+  background: #8a2be2;
+  transform: scale(1.1);
+}
+.leader-badge,
+.leader-btn,
+.modal-overlay {
+  align-items: center;
+  justify-content: center;
+}
+.leader-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #8a2be2 0, #9d4eed 100%);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.6);
+  z-index: 5;
+  border: 2px solid #1a1a1d;
+}
+.game-card.is-leader {
+  border-color: #8a2be2;
+  box-shadow: 0 4px 20px rgba(138, 43, 226, 0.5);
+}
+.game-card.is-leader:hover {
+  box-shadow: 0 8px 30px rgba(138, 43, 226, 0.7);
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  z-index: 1000;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal-content {
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 4px solid #c49b3b;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  font-family: "Jaro", sans-serif;
+  font-size: 2rem;
+  color: #c49b3b;
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: 2px;
+}
+.modal-form,
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.modal-form-group {
+  gap: 10px;
+}
+.modal-label {
+  font-family: "Jaro", sans-serif;
+  color: #c49b3b;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+.modal-input {
+  padding: 10px 15px;
+  background: rgba(196, 155, 59, 0.1);
+  border: 2px solid rgba(196, 155, 59, 0.3);
+  border-radius: 8px;
+  color: #d9d9d9;
+  font-family: "Fira Code", monospace;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+.modal-input:focus {
+  outline: 0;
+  border-color: #c49b3b;
+  background: rgba(196, 155, 59, 0.15);
+}
+.stat-choice {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+.stat-option {
+  flex: 1;
+  padding: 15px;
+  background: rgba(196, 155, 59, 0.1);
+  border: 2px solid rgba(196, 155, 59, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+.stat-option:hover {
+  border-color: #c49b3b;
+  background: rgba(196, 155, 59, 0.2);
+}
+.stat-option.selected {
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.2);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+}
+.stat-option-label {
+  font-family: "Jaro", sans-serif;
+  color: #c49b3b;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+.stat-option-value {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.5rem;
+  color: #d9d9d9;
+  font-weight: 700;
+}
+.modal-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+.modal-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 8px;
+  font-family: "Jaro", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+}
+.modal-btn-create {
+  background: #8a2be2;
+  color: #fff;
+}
+.modal-btn-create:hover {
+  background: #9d4eed;
+  transform: translateY(-2px);
+}
+.modal-btn-cancel {
+  background: rgba(255, 107, 107, 0.8);
+  color: #fff;
+}
+.modal-btn-cancel:hover {
+  background: #ff6b6b;
+  transform: translateY(-2px);
+}
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column;
+    height: auto;
+    max-height: 80vh;
+  }
+  .left-panel {
+    border-right: none;
+    border-bottom: 3px solid #c49b3b;
+  }
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  h1 {
+    font-size: 3rem;
+  }
+  .panel-title {
+    font-size: 1.8rem;
+  }
+}
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
+  .main-container {
+    width: 95%;
+    border-width: 4px;
+  }
+  .cards-grid {
+    gap: 15px;
+  }
+  .panel-title {
+    font-size: 1.5rem;
+  }
+  .pause-btn {
+    width: 45px;
+    height: 45px;
+  }
+}
     </style>
 </head>
 <body>
     <div class="world-actions">
-        <button class="action-btn" onclick="createWorld()">Világ létrehozása</button>
-        <button class="action-btn danger" onclick="deleteWorld()">Világ törlése</button>
+        <button class="action-btn" id="create-world-btn" onclick="createWorld()">Világ létrehozása</button>
+        <button class="action-btn danger" id="delete-world-btn" onclick="deleteWorld()" disabled style="opacity: 0.5; cursor: not-allowed;">Világ törlése</button>
     </div>
 
     <button class="pause-btn" id="pause-btn" title="Szünet">
@@ -1067,14 +969,14 @@
     <div class="main-container">
         <div class="left-panel">
             <div class="tabs-container">
-                <button class="tab-button active" data-tab="card-creation">Kártyakészítés</button>
-                <button class="tab-button" data-tab="dungeon-creation">Kazamata készítés</button>
+                <button class="tab-button active" data-tab="card-creation" id="card-creation-tab" disabled>Kártyakészítés</button>
+                <button class="tab-button" data-tab="dungeon-creation" id="dungeon-creation-tab" disabled>Kazamata készítés</button>
             </div>
 
             <div class="tab-content active" id="card-creation">
                 <form class="card-form" id="card-form">
                     <div class="card-preview">
-                        <select class="card-preview-type type-selector" id="card-type" required>
+                        <select class="card-preview-type type-selector" id="card-type" required disabled>
                             <option value="">Típus</option>
                             <option value="monster">🔥 Tűz</option>
                             <option value="hero">💧 Víz</option>
@@ -1083,7 +985,7 @@
                         </select>
                         
                         <div class="card-preview-image" id="preview-area">
-                            <input type="file" id="card-picture" accept="image/*">
+                            <input type="file" id="card-picture" accept="image/*" disabled>
                             <span id="placeholder-icon">🃏</span>
                             <img id="preview-image" style="display: none;">
                         </div>
@@ -1094,6 +996,7 @@
                             id="card-name" 
                             placeholder="Kártya neve" 
                             required
+                            disabled
                         >
                         
                         <div class="card-preview-stats">
@@ -1106,6 +1009,7 @@
                                     placeholder="100" 
                                     min="1" 
                                     required
+                                    disabled
                                 >
                             </div>
                             <div class="preview-stat">
@@ -1117,11 +1021,12 @@
                                     placeholder="25" 
                                     min="0" 
                                     required
+                                    disabled
                                 >
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="create-btn">Kártya létrehozása</button>
+                    <button type="submit" class="create-btn" disabled>Kártya létrehozása</button>
                 </form>
             </div>
 
@@ -1185,8 +1090,8 @@
     </div>
 
     <script>
-        const API_URL = 'https://damareen.deakteri.fun/api';
-        
+        const API_URL = 'http://127.0.0.1:7620';
+        //const API_URL = 'https://damareen.deakteri.fun/api'; 
         let isPaused = false;
         let cards = [];
         let cardIdCounter = 0;
@@ -1197,8 +1102,77 @@
         let selectedStat = null;
         let currentWorldId = null;
 
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function enableWorldUI(fromUrl = false) {
+            document.getElementById('card-creation-tab').disabled = false;
+            document.getElementById('dungeon-creation-tab').disabled = false;
+            document.getElementById('delete-world-btn').disabled = false;
+            document.getElementById('delete-world-btn').style.opacity = '1';
+            document.getElementById('delete-world-btn').style.cursor = 'pointer';
+            document.getElementById('create-world-btn').disabled = true;
+            document.getElementById('create-world-btn').style.opacity = '0.5';
+            document.getElementById('create-world-btn').style.cursor = 'not-allowed';
+            
+            document.getElementById('card-type').disabled = false;
+            document.getElementById('card-picture').disabled = false;
+            document.getElementById('card-name').disabled = false;
+            document.getElementById('card-health').disabled = false;
+            document.getElementById('card-damage').disabled = false;
+            document.querySelector('.create-btn').disabled = false;
+            
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('locked');
+            });
+
+            if (fromUrl) {
+                const worldNameEl = document.getElementById('world-name');
+                worldNameEl.contentEditable = 'false';
+                worldNameEl.style.cursor = 'default';
+                worldNameEl.style.opacity = '0.8';
+                
+                document.getElementById('create-world-btn').style.display = 'none';
+            }
+        }
+
+        function disableWorldUI() {
+            document.getElementById('card-creation-tab').disabled = true;
+            document.getElementById('dungeon-creation-tab').disabled = true;
+            document.getElementById('delete-world-btn').disabled = true;
+            document.getElementById('delete-world-btn').style.opacity = '0.5';
+            document.getElementById('delete-world-btn').style.cursor = 'not-allowed';
+            document.getElementById('create-world-btn').disabled = false;
+            document.getElementById('create-world-btn').style.opacity = '1';
+            document.getElementById('create-world-btn').style.cursor = 'pointer';
+            document.getElementById('create-world-btn').style.display = 'block';
+            
+            const worldNameEl = document.getElementById('world-name');
+            worldNameEl.contentEditable = 'true';
+            worldNameEl.style.cursor = 'pointer';
+            worldNameEl.style.opacity = '1';
+            
+            document.getElementById('card-type').disabled = true;
+            document.getElementById('card-picture').disabled = true;
+            document.getElementById('card-name').disabled = true;
+            document.getElementById('card-health').disabled = true;
+            document.getElementById('card-damage').disabled = true;
+            document.querySelector('.create-btn').disabled = true;
+            
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('locked');
+            });
+        }
+
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
+                if (button.disabled) {
+                    alert('Először hozz létre egy világot!');
+                    return;
+                }
+                
                 const tabName = button.dataset.tab;
                 
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -1367,6 +1341,7 @@
             e.preventDefault();
             
             if (!leaderBaseCard || !selectedStat) {
+                alert('Kérlek válassz egy statot, amit duplázni szeretnél!');
                 return;
             }
             
@@ -1376,13 +1351,9 @@
             if (!baseCard) return;
             
             const leaderData = {
-                name: leaderName,
-                health: selectedStat === 'health' ? baseCard.health * 2 : baseCard.health,
-                damage: selectedStat === 'damage' ? baseCard.damage * 2 : baseCard.damage,
-                type: baseCard.type,
-                picture: baseCard.picture,
-                base_card_id: baseCard.id,
-                doubled_stat: selectedStat
+                card_id: baseCard.id,
+                damage_doubled: selectedStat === 'damage',
+                world_id: currentWorldId
             };
             
             try {
@@ -1398,40 +1369,31 @@
                 
                 if (response.ok) {
                     const result = await response.json();
+                    const leaderCard = result.data.leader;
+                    
+                    if (leaderName !== baseCard.name) {
+                    }
+                    
                     cards.push({
-                        id: result.leader_id || ++cardIdCounter,
+                        id: leaderCard.id,
                         name: leaderName,
-                        health: leaderData.health,
-                        damage: leaderData.damage,
-                        type: baseCard.type,
-                        picture: baseCard.picture,
-                        isLeader: true,
-                        baseCardId: baseCard.id
+                        health: leaderCard.health,
+                        damage: leaderCard.damage,
+                        type: leaderCard.type,
+                        picture: leaderCard.picture,
+                        world_id: leaderCard.world_id,
+                        owner_id: leaderCard.owner_id,
+                        position: leaderCard.position,
+                        is_leader: leaderCard.is_leader
                     });
+                    
                 } else {
-                    cards.push({
-                        id: ++cardIdCounter,
-                        name: leaderName,
-                        health: leaderData.health,
-                        damage: leaderData.damage,
-                        type: baseCard.type,
-                        picture: baseCard.picture,
-                        isLeader: true,
-                        baseCardId: baseCard.id
-                    });
+                    const errorData = await response.json();
+                    alert('Hiba: ' + (errorData.error || 'Nem sikerült létrehozni a vezérkártyát'));
                 }
             } catch (error) {
                 console.error('Error creating leader:', error);
-                cards.push({
-                    id: ++cardIdCounter,
-                    name: leaderName,
-                    health: leaderData.health,
-                    damage: leaderData.damage,
-                    type: baseCard.type,
-                    picture: baseCard.picture,
-                    isLeader: true,
-                    baseCardId: baseCard.id
-                });
+                alert('Hiba történt a vezérkártya létrehozása során!');
             }
             
             renderCollection();
@@ -1446,10 +1408,59 @@
             selectedStat = null;
         }
 
-        async function loadCards() {
+        async function loadWorldFromUrl() {
+            const worldId = getUrlParameter('world_id');
+            
+            if (!worldId) {
+                return false;
+            }
+
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/world/list/cards`, {
+                
+                const worldsResponse = await fetch(`${API_URL}/user/list/worlds`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!worldsResponse.ok) {
+                    console.error('Failed to load worlds list');
+                    alert('Nem sikerült betölteni a világok listáját!');
+                    return false;
+                }
+
+                const worldsData = await worldsResponse.json();
+                
+                const worldName = worldsData.data?.worlds?.[worldId];
+                
+                if (!worldName) {
+                    alert('Nem található ilyen világ!');
+                    return false;
+                }
+
+                currentWorldId = worldId;
+                document.getElementById('world-name').textContent = worldName;
+                enableWorldUI(true);
+                await loadCards();
+                await loadDungeons();
+                return true;
+            } catch (error) {
+                console.error('Error loading world from URL:', error);
+                alert('Hiba történt a világ betöltése során!');
+                return false;
+            }
+        }
+
+        async function loadCards() {
+            if (!currentWorldId) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/world/list/cards?world_id=${currentWorldId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -1458,7 +1469,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    cards = data.cards || [];
+                    cards = data.data?.cards || [];
                     if (cards.length > 0) {
                         cardIdCounter = Math.max(...cards.map(c => c.id));
                     }
@@ -1466,6 +1477,30 @@
                 }
             } catch (error) {
                 console.error('Error loading cards:', error);
+            }
+        }
+
+        async function loadDungeons() {
+            if (!currentWorldId) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/world/list/dungeons?world_id=${currentWorldId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const worldDungeons = data.data?.dungeons || [];
+                    console.log('Loaded dungeons for world:', worldDungeons);
+                }
+            } catch (error) {
+                console.error('Error loading dungeons:', error);
             }
         }
 
@@ -1508,8 +1543,9 @@
                 
                 if (response.ok) {
                     const result = await response.json();
-                    currentWorldId = result.data.world.world_id;
-                    alert('Világ sikeresen létrehozva!');
+                    const newWorldId = result.data.world.world_id;
+                    
+                    window.location.href = `${window.location.pathname}?world_id=${newWorldId}`;
                 } else {
                     const errorData = await response.json();
                     alert('Hiba: ' + (errorData.error || 'Nem sikerült létrehozni a világot'));
@@ -1587,7 +1623,17 @@
                 if (response.ok) {
                     alert('Világ sikeresen törölve!');
                     currentWorldId = null;
+                    cards = [];
+                    dungeonSequence = [];
                     document.getElementById('world-name').textContent = 'Világ neve';
+                    disableWorldUI();
+                    renderCollection();
+                    renderDungeonSequence();
+                    
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    document.getElementById('card-creation-tab').classList.add('active');
+                    document.getElementById('card-creation').classList.add('active');
                 } else {
                     alert('Hiba történt a világ törlése során!');
                 }
@@ -1637,10 +1683,14 @@
             grid.innerHTML = '';
             
             const typeLabels = {
-                monster: '🔥 Tűz',
-                hero: '💧 Víz',
-                spell: '🌍 Föld',
-                defense: '🌬️ Levegő'
+                't': '🔥 Tűz',
+                'v': '💧 Víz',
+                'f': '🌍 Föld',
+                'l': '🌬️ Levegő',
+                'monster': '🔥 Tűz',
+                'hero': '💧 Víz',
+                'spell': '🌍 Föld',
+                'defense': '🌬️ Levegő'
             };
             
             cards.forEach(card => {
@@ -1708,6 +1758,11 @@
             const collectionArea = document.getElementById('collection-area');
             const currentTab = document.querySelector('.tab-button.active')?.dataset.tab || 'card-creation';
             
+            if (!currentWorldId) {
+                collectionArea.innerHTML = '<div class="collection-placeholder">🌍<br><br>Először hozz létre egy világot a bal felső sarokban!</div>';
+                return;
+            }
+            
             if (cards.length === 0) {
                 collectionArea.innerHTML = '<div class="collection-placeholder">Még nincsenek kártyák...</div>';
                 return;
@@ -1720,23 +1775,31 @@
                 const isInSequence = position !== -1;
                 
                 const cardElement = document.createElement('div');
-                cardElement.className = 'game-card' + (isInSequence ? ' in-sequence' : '');
+                let cardClasses = 'game-card';
+                if (isInSequence) cardClasses += ' in-sequence';
+                if (card.is_leader) cardClasses += ' is-leader';
+                cardElement.className = cardClasses;
                 cardElement.dataset.cardId = card.id;
                 
                 const typeLabels = {
-                    monster: '🔥 Tűz',
-                    hero: '💧 Víz',
-                    spell: '🌍 Föld',
-                    defense: '🌬️ Levegő'
+                    't': '🔥 Tűz',
+                    'v': '💧 Víz',
+                    'f': '🌍 Föld',
+                    'l': '🌬️ Levegő',
+                    'monster': '🔥 Tűz',
+                    'hero': '💧 Víz',
+                    'spell': '🌍 Föld',
+                    'defense': '🌬️ Levegő'
                 };
                 
                 const showActionBtns = currentTab === 'card-creation' ? 'visible' : '';
                 
                 cardElement.innerHTML = `
+                    ${card.is_leader ? '<div class="leader-badge">👑</div>' : ''}
                     ${isInSequence && currentTab === 'dungeon-creation' ? `<div class="sequence-badge">${position + 1}</div>` : ''}
-                    <button class="delete-btn ${showActionBtns}" onclick="deleteCard(${card.id})">×</button>
-                    <button class="edit-btn ${showActionBtns}" onclick="editCard(${card.id})">✏️</button>
-                    ${!card.isLeader ? `<button class="leader-btn ${showActionBtns}" onclick="createLeaderCard(${card.id})">👑</button>` : ''}
+                    <button class="delete-btn ${showActionBtns}" onclick="deleteCard('${card.id}')">×</button>
+                    <button class="edit-btn ${showActionBtns}" onclick="editCard('${card.id}')">✏️</button>
+                    ${!card.is_leader ? `<button class="leader-btn ${showActionBtns}" onclick="createLeaderCard('${card.id}')">👑</button>` : ''}
                     <div class="card-type">${typeLabels[card.type]}</div>
                     <div class="card-image">
                         ${card.picture ? `<img src="${card.picture}" alt="${card.name}">` : '🃏'}
@@ -1846,8 +1909,18 @@
             renderDungeonSequence();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadCards();
+        window.addEventListener('DOMContentLoaded', async () => {
+            const hasWorldParam = await loadWorldFromUrl();
+            
+            if (!hasWorldParam) {
+                disableWorldUI();
+            }
+            
+            renderCollection();
+            
+            if (!hasWorldParam) {
+                loadCards();
+            }
         });
     </script>
 </body>

@@ -49,3 +49,6 @@ instance/
 .DS_Store
 Thumbs.db
 backend/damareen.service
+/node_modules
+package-lock.json
+package.json

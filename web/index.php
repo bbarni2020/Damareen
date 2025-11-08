@@ -12,6 +12,11 @@ if ($request === 'auth') {
     return;
 }
 
+if ($request === 'manage-world') {
+    include __DIR__ . '/manage-world.html';
+    return;
+}
+
 http_response_code(404);
 echo '404 - Page Not Found';
 ?>
