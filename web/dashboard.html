@@ -182,6 +182,7 @@
             padding: 20px 10px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
+            justify-content: center;
         }
 
         .worlds-scroll::-webkit-scrollbar {
@@ -235,6 +236,15 @@
             color: #1A1A1D;
             text-align: center;
             letter-spacing: 1px;
+        }
+
+        .empty-worlds-message {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.5rem;
+            color: #727272;
+            text-align: center;
+            padding: 40px 20px;
+            width: 100%;
         }
 
         .start-button {
@@ -328,30 +338,7 @@
 
         <div class="worlds-container">
             <div class="worlds-scroll" id="worlds-scroll">
-                <div class="world-card" data-world-id="1">
-                    <div class="world-name">Name1</div>
-                </div>
-                <div class="world-card" data-world-id="2">
-                    <div class="world-name">Name1</div>
-                </div>
-                <div class="world-card" data-world-id="3">
-                    <div class="world-name">Name1</div>
-                </div>
-                <div class="world-card" data-world-id="4">
-                    <div class="world-name">Name1</div>
-                </div>
-                <div class="world-card" data-world-id="5">
-                    <div class="world-name">Name2</div>
-                </div>
-                <div class="world-card" data-world-id="6">
-                    <div class="world-name">Name2</div>
-                </div>
-                <div class="world-card" data-world-id="7">
-                    <div class="world-name">Name2</div>
-                </div>
-                <div class="world-card" data-world-id="8">
-                    <div class="world-name">Name2</div>
-                </div>
+                <!-- Worlds will be loaded dynamically -->
             </div>
         </div>
 
@@ -361,7 +348,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://damareen.deakteri.fun/api/user';
+        const API_URL = 'https://damareen.deakteri.fun/api';
         const messageElement = document.getElementById('message');
         const worldsScroll = document.getElementById('worlds-scroll');
         
@@ -396,27 +383,119 @@
             }
         }
 
-        
+        async function loadWorlds() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'auth.html';
+                return;
+            }
 
-        const worldCards = document.querySelectorAll('.world-card');
-        worldCards.forEach(card => {
-            card.addEventListener('click', () => {
-                if (selectedWorldId === card.dataset.worldId) {
-                    card.style.outline = 'none';
-                    selectedWorldId = null;
-                    messageElement.textContent = '';
-                } else {
-                    worldCards.forEach(c => c.style.outline = 'none');
-                    
-                    card.style.outline = '3px solid #C49B3B';
-                    card.style.outlineOffset = '5px';
-                    selectedWorldId = card.dataset.worldId;
-                    
-                    messageElement.textContent = `Kiválasztva: ${card.querySelector('.world-name').textContent}`;
-                    messageElement.style.color = '#C49B3B';
+            try {
+                const response = await fetch(`${API_URL}/user/list/worlds`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch worlds');
                 }
-            });
-        });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const worlds = data.data.worlds;
+                    const whereUserIsMaster = data.data.where_user_is_master || [];
+                    
+                    renderWorlds(worlds, whereUserIsMaster);
+                } else {
+                    messageElement.textContent = 'Hiba a világok betöltésekor';
+                    messageElement.style.color = '#ff6b6b';
+                }
+            } catch (error) {
+                console.error('Error loading worlds:', error);
+                messageElement.textContent = 'Hiba a világok betöltésekor';
+                messageElement.style.color = '#ff6b6b';
+            }
+        }
+
+        function renderWorlds(worlds, whereUserIsMaster) {
+            worldsScroll.innerHTML = '';
+            
+            
+            if (!worlds || Object.keys(worlds).length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-worlds-message';
+                emptyMessage.textContent = 'Még nincs létrehozva világ';
+                worldsScroll.appendChild(emptyMessage);
+                return;
+            }
+
+            
+            for (const [worldId, worldName] of Object.entries(worlds)) {
+                const card = document.createElement('div');
+                card.className = 'world-card';
+                card.dataset.worldId = worldId;
+                
+                const isMaster = whereUserIsMaster.includes(worldId);
+                if (isMaster) {
+                    card.style.background = '#72a6ac';
+                    card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                    card.dataset.isMaster = 'true';
+                }
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'world-name';
+                nameDiv.textContent = worldName;
+                
+                card.appendChild(nameDiv);
+                worldsScroll.appendChild(card);
+                
+                card.addEventListener('mouseenter', () => {
+                    if (isMaster) {
+                        card.style.boxShadow = '0 8px 25px rgba(114, 166, 172, 0.8)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    if (isMaster && selectedWorldId !== worldId) {
+                        card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                    } else if (isMaster && selectedWorldId === worldId) {
+                        card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.6)';
+                    }
+                });
+                
+                card.addEventListener('click', () => {
+                    if (selectedWorldId === worldId) {
+                        card.style.outline = 'none';
+                        card.style.boxShadow = isMaster ? '0 8px 25px rgba(114, 166, 172, 0.8)' : '0 8px 25px rgba(196, 155, 59, 0.5)';
+                        selectedWorldId = null;
+                        messageElement.textContent = '';
+                    } else {
+                        document.querySelectorAll('.world-card').forEach(c => {
+                            c.style.outline = 'none';
+                            if (c.dataset.isMaster === 'true') {
+                                c.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                            } else {
+                                c.style.boxShadow = '';
+                            }
+                        });
+                        
+                        const outlineColor = isMaster ? '#72a6ac' : '#C49B3B';
+                        card.style.outline = `3px solid ${outlineColor}`;
+                        card.style.outlineOffset = '5px';
+                        card.style.boxShadow = isMaster ? '0 4px 15px rgba(114, 166, 172, 0.6)' : '0 4px 15px rgba(196, 155, 59, 0.3)';
+                        selectedWorldId = worldId;
+                        
+                        messageElement.textContent = `Kiválasztva: ${worldName}`;
+                        messageElement.style.color = '#C49B3B';
+                    }
+                });
+            }
+        }
 
         document.getElementById('start-btn').addEventListener('click', () => {
             if (!selectedWorldId) {
@@ -435,8 +514,7 @@
         });
 
         document.getElementById('add-world-btn').addEventListener('click', () => {
-            messageElement.textContent = 'Új világ hozzáadása...';
-            messageElement.style.color = '#C49B3B';
+            window.location.href = 'manage_world.html';
         });
 
         document.getElementById('logout-btn').addEventListener('click', () => {
@@ -451,6 +529,7 @@
         });
 
         checkAuth();
+        loadWorlds();
     </script>
 </body>
 </html>
