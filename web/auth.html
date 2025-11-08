@@ -166,6 +166,7 @@
                 <p id="login-message"></p>
             </form>
             <p>Nincs még fiókod? <a href="#" id="show-register">Regisztrálj itt</a></p>
+            <p><a href="#" id="show-forgot-password">Elfelejtetted a jelszavad?</a></p>
         </div>
 
         <div id="register-form" class="form-container" style="display: none;">
@@ -206,6 +207,37 @@
             </form>
             <p><a href="#" id="back-to-login">Vissza a bejelentkezéshez</a></p>
         </div>
+
+        <div id="forgot-password-form" class="form-container" style="display: none;">
+            <h2>Jelszó visszaállítás</h2>
+            <p>Add meg az e-mail címed, és küldünk egy linket a jelszavad visszaállításához.</p>
+            <form id="forgotPasswordForm">
+                <div>
+                    <label for="forgot-email">E-mail cím:</label>
+                    <input type="email" id="forgot-email" name="email" required>
+                </div>
+                <button type="submit">Visszaállítási link küldése</button>
+                <p id="forgot-message"></p>
+            </form>
+            <p><a href="#" id="back-to-login-from-forgot">Vissza a bejelentkezéshez</a></p>
+        </div>
+
+        <div id="reset-password-form" class="form-container" style="display: none;">
+            <h2>Új jelszó beállítása</h2>
+            <form id="resetPasswordForm">
+                <div>
+                    <label for="reset-password">Új jelszó:</label>
+                    <input type="password" id="reset-password" name="password" required>
+                </div>
+                <div>
+                    <label for="reset-password-confirm">Jelszó megerősítése:</label>
+                    <input type="password" id="reset-password-confirm" name="password-confirm" required>
+                </div>
+                <button type="submit">Jelszó mentése</button>
+                <p id="reset-message"></p>
+            </form>
+            <p><a href="#" id="back-to-login-from-reset">Vissza a bejelentkezéshez</a></p>
+        </div>
     </div>
 
     <script>
@@ -214,20 +246,28 @@
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const resendForm = document.getElementById('resendForm');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
         
         const loginContainer = document.getElementById('login-form');
         const registerContainer = document.getElementById('register-form');
         const verificationContainer = document.getElementById('verification-form');
+        const forgotPasswordContainer = document.getElementById('forgot-password-form');
+        const resetPasswordContainer = document.getElementById('reset-password-form');
         
         const loginMessage = document.getElementById('login-message');
         const registerMessage = document.getElementById('register-message');
         const resendMessage = document.getElementById('resend-message');
+        const forgotMessage = document.getElementById('forgot-message');
+        const resetMessage = document.getElementById('reset-message');
 
         document.getElementById('show-register').addEventListener('click', (e) => {
             e.preventDefault();
             loginContainer.style.display = 'none';
             registerContainer.style.display = 'block';
             verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'none';
         });
 
         document.getElementById('show-login').addEventListener('click', (e) => {
@@ -235,6 +275,8 @@
             loginContainer.style.display = 'block';
             registerContainer.style.display = 'none';
             verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'none';
         });
 
         document.getElementById('back-to-login').addEventListener('click', (e) => {
@@ -242,6 +284,35 @@
             loginContainer.style.display = 'block';
             registerContainer.style.display = 'none';
             verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'none';
+        });
+
+        document.getElementById('show-forgot-password').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'none';
+            verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'block';
+            resetPasswordContainer.style.display = 'none';
+        });
+
+        document.getElementById('back-to-login-from-forgot').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+            verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'none';
+        });
+
+        document.getElementById('back-to-login-from-reset').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+            verificationContainer.style.display = 'none';
+            forgotPasswordContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'none';
         });
 
         loginForm.addEventListener('submit', async (e) => {
@@ -381,11 +452,91 @@
             }
         });
 
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            forgotMessage.textContent = '';
+            
+            const email = document.getElementById('forgot-email').value;
+
+            try {
+                const response = await fetch(`${API_URL}/forgot-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    forgotMessage.textContent = data.data.message;
+                    forgotMessage.style.color = 'green';
+                } else {
+                    forgotMessage.textContent = data.error;
+                    forgotMessage.style.color = 'red';
+                }
+            } catch (error) {
+                forgotMessage.textContent = 'Hiba történt a kérés során: ' + error.message;
+                forgotMessage.style.color = 'red';
+                console.error('Jelszó visszaállítási hiba:', error);
+            }
+        });
+
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resetMessage.textContent = '';
+            
+            const password = document.getElementById('reset-password').value;
+            const passwordConfirm = document.getElementById('reset-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                resetMessage.textContent = 'A jelszavak nem egyeznek';
+                resetMessage.style.color = 'red';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            try {
+                const response = await fetch(`${API_URL}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resetMessage.textContent = data.data.message;
+                    resetMessage.style.color = 'green';
+                    setTimeout(() => {
+                        loginContainer.style.display = 'block';
+                        resetPasswordContainer.style.display = 'none';
+                    }, 2000);
+                } else {
+                    resetMessage.textContent = data.error;
+                    resetMessage.style.color = 'red';
+                }
+            } catch (error) {
+                resetMessage.textContent = 'Hiba történt a jelszó mentése során: ' + error.message;
+                resetMessage.style.color = 'red';
+                console.error('Jelszó visszaállítási hiba:', error);
+            }
+        });
+
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         const isLoginVerification = urlParams.has('login') || window.location.pathname.includes('/verify-login');
+        const isPasswordReset = urlParams.has('reset') || window.location.pathname.includes('/reset-password');
 
-        if (token) {
+        if (token && isPasswordReset) {
+            loginContainer.style.display = 'none';
+            resetPasswordContainer.style.display = 'block';
+        } else if (token) {
             verifyToken(token, isLoginVerification);
         }
 
