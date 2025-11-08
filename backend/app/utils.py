@@ -170,6 +170,8 @@ def require_master(f):
         data = request.get_json()
         
         world_id = data.get('world_id') if data else None
+        if not world_id:
+            world_id = request.args.get('world_id')
         
         if not world_id:
             return error_response('A világ azonosítója kötelező', 400)

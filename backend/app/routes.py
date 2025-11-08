@@ -487,7 +487,14 @@ def create_card():
         world_id = data.get('world_id', '0') if isinstance(data.get('world_id', '0'), str) else str(data.get('world_id', '0'))
         user_id = user.id
         name = data.get('name', '0') if isinstance(data.get('name', '0'), str) else str(data.get('name', '0'))
-        card_type = data.get('type', '0') if isinstance(data.get('type', '0'), str) else str(data.get('type', '0'))
+        raw_type = data.get('type', '')
+        if isinstance(raw_type, str):
+            card_type = raw_type.strip().lower()
+        else:
+            card_type = str(raw_type).strip().lower()
+
+        if card_type not in ('t', 'f', 'v', 'l'):
+            return error_response('Érvénytelen típus. Csak a következők engedélyezettek: t, f, v, l', 400)
         picture_val = data.get('picture', None)
         if isinstance(picture_val, str):
             picture_bytes = picture_val.encode('utf-8')
@@ -510,9 +517,39 @@ def create_card():
             return default
         
         health = to_int(data.get('health', 0), 0)
-        damage = to_int(data.get('damage', 0), 0)
-        position = to_int(data.get('position', 0), 0)
-        is_leader = ""
+        def is_whole_number(v):
+            if isinstance(v, int):
+                return True
+            if isinstance(v, float):
+                return v.is_integer()
+            if isinstance(v, str):
+                s = v.strip()
+                if s == '':
+                    return False
+                if s.lstrip('-').isdigit():
+                    return True
+            try:
+                f = float(s)
+            except Exception:
+                return False
+            return f.is_integer()
+            return False
+
+        raw_health = data.get('health', 0)
+        if not is_whole_number(raw_health):
+            return error_response('Az életerőnek egész számnak kell lennie', 400)
+        health = to_int(raw_health, 0)
+        if not (1 <= health <= 100):
+            return error_response('Az életerőnek 1 és 100 között kell lennie', 400)
+
+        raw_damage = data.get('damage', 0)
+        if not is_whole_number(raw_damage):
+            return error_response('A sebzésnek egész számnak kell lennie', 400)
+        damage = to_int(raw_damage, 0)
+        if not (2 <= damage <= 100):
+            return error_response('A sebzésnek 2 és 100 között kell lennie', 400)
+        position = to_int(0)
+        is_leader = to_bool(data.get('is_leader', 0), False)
 
         for _ in range(5):
             try:
@@ -745,6 +782,39 @@ def create_leader():
         db.session.rollback()
         return error_response('A vezér létrehozása sikertelen', 500)
     
+@api.route('/deck', methods=['POST'])
+@ratelimit
+@require_auth
+def set_deck():
+    user = request.current_user
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    cards_list = data.get('cards') or data.get('card_ids') or []
+    if not isinstance(cards_list, list):
+        return error_response('A kártyák listájának listának kell lennie', 400)
+    cards_list = [str(x).strip() for x in cards_list if str(x).strip()]
+    if len(cards_list) not in (1, 4, 6):
+        return error_response('Pontosan 1, 4 vagy 6 kártyát kell megadni', 400)
+    if len(set(cards_list)) != len(cards_list):
+        return error_response('Ismétlődő kártya azonosítók', 400)
+    cards = Card.query.filter(Card.id.in_(cards_list)).all()
+    if len(cards) != len(cards_list):
+        return error_response('Nem található kártya a megadott azonosítókkal', 404)
+    for c in cards:
+        if c.owner_id != user.id:
+            return error_response('Csak a saját kártyáidat állíthatod be paklinak', 403)
+    pos_map = {cid: i + 1 for i, cid in enumerate(cards_list)}
+    try:
+        for c in cards:
+            c.position = pos_map.get(c.id, c.position)
+        db.session.commit()
+        cards_by_id = {c.id: c for c in cards}
+        ordered = [cards_by_id[cid].to_dict() for cid in cards_list]
+        return success_response({'message': 'Pakli frissítve', 'cards': ordered})
+    except Exception:
+        db.session.rollback()
+        return error_response('A pakli frissítése sikertelen', 500)
 
 @api.route('/game/join', methods=['POST'])
 @ratelimit
@@ -793,6 +863,73 @@ def is_master():
     return check_master_status()
 
 
+@api.route('/user/list/worlds', methods=['GET'])
+@ratelimit
+@require_auth
+def list_user_worlds():
+    user = request.current_user
+    world_map = user.world_ids or {}
+    world_ids = list(world_map.keys()) if isinstance(world_map, dict) else []
+    worlds = World.query.filter(World.world_id.in_(world_ids)).all() if world_ids else []
+    name_by_id = {w.world_id: w.name for w in worlds}
+    result = []
+    for wid, is_master in (world_map.items() if isinstance(world_map, dict) else []):
+        result.append({
+            'world_id': wid,
+            'name': name_by_id.get(wid, wid),
+            'is_master': bool(is_master)
+        })
+    return success_response({'worlds': result})
+
+
+@api.route('/world/list/dungeons', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_dungeons():
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    dungeons = Dungeon.query.filter_by(world_id=world_id).all()
+    return success_response({'dungeons': [d.to_dict() for d in dungeons]})
+
+
+@api.route('/world/list/cards', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_cards():
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    cards = Card.query.filter_by(world_id=world_id).all()
+    return success_response({'cards': [c.to_dict() for c in cards]})
+
+
+@api.route('/world/list/users', methods=['GET'])
+@ratelimit
+@require_auth
+@require_master
+def list_world_users():
+    current_user = request.current_user
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    users = User.query.all()
+    result = []
+    for u in users:
+        if u.id == current_user.id:
+            continue
+        wm = u.world_ids or {}
+        if isinstance(wm, dict) and str(world_id) in wm:
+            result.append({
+                'id': u.id,
+                'username': u.username,
+                'is_master': bool(wm.get(str(world_id)))
+            })
+    return success_response({'users': result})
+
+
 @api.route('/delete/world', methods=['DELETE'])
 @ratelimit
 @require_auth
@@ -832,6 +969,37 @@ def delete_world():
     except Exception as e:
         db.session.rollback()
         return error_response('A világ törlése sikertelen', 500)
+
+
+@api.route('/delete/dungeon', methods=['DELETE'])
+@ratelimit
+@require_auth
+@require_master
+def delete_dungeon():
+    data = request.get_json()
+    
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+    
+    dungeon_id = data.get('dungeon_id', '').strip() if isinstance(data.get('dungeon_id'), str) else ''
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    
+    if not dungeon_id:
+        return error_response('A dungeon azonosítója kötelező', 400)
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    
+    dungeon = Dungeon.query.filter_by(id=dungeon_id, world_id=world_id).first()
+    if not dungeon:
+        return error_response('Dungeon nem található', 404)
+    
+    try:
+        db.session.delete(dungeon)
+        db.session.commit()
+        return success_response({'message': 'Dungeon sikeresen törölve'})
+    except Exception as e:
+        db.session.rollback()
+        return error_response('A dungeon törlése sikertelen', 500)
 
 
 @api.route('/health', methods=['GET'])
