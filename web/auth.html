@@ -149,7 +149,7 @@
 <body>
     <div id="auth-container">
         <div id="login-form" class="form-container">
-            <h2>Damareen Auth</h2>
+            <h2>Damareen Login</h2>
             <form id="loginForm">
                 <div>
                     <label for="login-username">Felhasználónév vagy E-mail:</label>
@@ -166,7 +166,7 @@
         </div>
 
         <div id="register-form" class="form-container" style="display: none;">
-            <h2>Damareen Hitelesítés</h2>
+            <h2>Damareen Register</h2>
             <form id="registerForm">
                 <div>
                     <label for="register-username">Felhasználónév:</label>
@@ -206,7 +206,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:7621/api';
+        const API_URL = 'http://localhost:7621/api/user';
 
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');

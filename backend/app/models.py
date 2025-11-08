@@ -18,6 +18,8 @@ class User(db.Model):
     verification_token_expires = db.Column(db.DateTime, nullable=True)
     login_verification_token = db.Column(db.String(256), nullable=True)
     login_verification_token_expires = db.Column(db.DateTime, nullable=True)
+    password_reset_token = db.Column(db.String(256), nullable=True)
+    password_reset_token_expires = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
     def to_dict(self):
