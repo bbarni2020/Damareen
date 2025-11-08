@@ -398,7 +398,13 @@ def create_world():
                 
                 if not isinstance(user.world_ids, dict):
                     user.world_ids = {}
-                user.world_ids[new_world.world_id] = is_master
+                
+                updated_worlds = dict(user.world_ids)
+                updated_worlds[new_world.world_id] = is_master
+                user.world_ids = updated_worlds
+                
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(user, 'world_ids')
                 
                 db.session.commit()
                 return success_response({
