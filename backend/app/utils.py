@@ -167,7 +167,7 @@ def require_master(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = request.current_user
-        data = request.get_json()
+        data = request.get_json(silent=True)
         
         world_id = data.get('world_id') if data else None
         if not world_id:
