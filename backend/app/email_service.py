@@ -18,7 +18,7 @@ def get_verification_expiry():
 
 
 def get_logo_image():
-    logo_path = os.path.join(os.path.dirname(__file__), '../../web/src/logo.png')
+    logo_path = os.path.join(os.path.dirname(__file__), '../../web/src/icon.png')
     try:
         with open(logo_path, 'rb') as img_file:
             img_data = img_file.read()
@@ -124,7 +124,7 @@ A link 24 órán belül lejár. Ha nem te regisztráltál, hagyd figyelmen kív�
         if logo_data:
             logo_img = MIMEImage(logo_data)
             logo_img.add_header('Content-ID', '<logo>')
-            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            logo_img.add_header('Content-Disposition', 'inline', filename='icon.png')
             msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
@@ -220,7 +220,7 @@ Ha nem ismered fel ezt a bejelentkezést, változtasd meg a jelszavad azonnal.
         if logo_data:
             logo_img = MIMEImage(logo_data)
             logo_img.add_header('Content-ID', '<logo>')
-            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            logo_img.add_header('Content-Disposition', 'inline', filename='icon.png')
             msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
@@ -333,7 +333,7 @@ A link 1 órán belül lejár. Ha nem te kérted, hagyd figyelmen kívül ezt az
         if logo_data:
             logo_img = MIMEImage(logo_data)
             logo_img.add_header('Content-ID', '<logo>')
-            logo_img.add_header('Content-Disposition', 'inline', filename='logo.png')
+            logo_img.add_header('Content-Disposition', 'inline', filename='icon.png')
             msg.attach(logo_img)
         
         with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
