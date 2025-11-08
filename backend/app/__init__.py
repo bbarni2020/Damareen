@@ -14,6 +14,8 @@ def create_app(config_class=Config):
                 "http://127.0.0.1:3000",
                 "http://localhost:7621",
                 "http://127.0.0.1:7621",
+                "http://localhost:5500",
+                "http://127.0.0.1:5500",
             ],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],

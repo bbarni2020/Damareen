@@ -16,7 +16,7 @@ def get_verification_expiry():
 
 def send_verification_email(recipient_email, username, verification_token):
     try:
-        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/verify?token={verification_token}"
+        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/auth.html?token={verification_token}"
         
         html_content = f"""
 <!DOCTYPE html>
@@ -66,7 +66,7 @@ def send_verification_email(recipient_email, username, verification_token):
                     <tr>
                         <td style="background: rgba(196, 155, 59, 0.05); padding: 20px 30px; text-align: center; border-top: 1px solid rgba(196, 155, 59, 0.2);">
                             <p style="color: rgba(217, 217, 217, 0.5); font-size: 12px; margin: 0;">
-                                © 2025 Damareen. Minden jog fenntartva.
+                                © 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
                             </p>
                         </td>
                     </tr>
@@ -87,7 +87,7 @@ Köszönjük, hogy regisztráltál a Damareen platformon. Az e-mail címed meger
 
 Ez a link 24 órán belül lejár. Ha nem te regisztráltál, kérjük, hagyd figyelmen kívül ezt az e-mailt.
 
-© 2025 Damareen. Minden jog fenntartva.
+© 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
 """
         
         msg = MIMEMultipart('alternative')
@@ -115,17 +115,15 @@ Ez a link 24 órán belül lejár. Ha nem te regisztráltál, kérjük, hagyd fi
         return False
 
 
-def send_login_verification_email(recipient_email, username, verification_token):
+def send_login_notification_email(recipient_email, username):
     try:
-        verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/verify-login?token={verification_token}"
-        
         html_content = f"""
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bejelentkezés megerősítése</title>
+    <title>Bejelentkezés észlelve</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
@@ -142,35 +140,22 @@ def send_login_verification_email(recipient_email, username, verification_token)
                     </tr>
                     <tr>
                         <td style="padding: 0 35px 40px 35px;">
-                            <h2 style="color: #C49B3B; margin: 0 0 25px 0; font-size: 1.8rem; font-weight: bold;">Bejelentkezés megerősítése</h2>
+                            <h2 style="color: #C49B3B; margin: 0 0 25px 0; font-size: 1.8rem; font-weight: bold;">Bejelentkezés a fiókodba</h2>
                             <p style="color: #D9D9D9; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
                                 Szia {username}!
                             </p>
                             <p style="color: #D9D9D9; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0;">
-                                Bejelentkezési kísérletet észleltünk a fiókodba. A bejelentkezés megerősítéséhez kattints az alábbi gombra:
-                            </p>
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
-                                <tr>
-                                    <td align="center">
-                                        <a href="{verification_url}" style="display: inline-block; padding: 13px 55px; background: rgba(196, 155, 59, 0.08); border: 2.8px solid #C49B3B; border-radius: 27px; color: #C49B3B; text-decoration: none; font-size: 1.25rem; font-weight: bold; box-shadow: 0 3px 12px rgba(196, 155, 59, 0.25);">Bejelentkezés megerősítése</a>
-                                    </td>
-                                </tr>
-                            </table>
-                            <p style="color: #D9D9D9; font-size: 14px; line-height: 1.6; margin: 25px 0 10px 0;">
-                                Ha nem tudod megnyitni a gombot, másold be az alábbi linket a böngésződbe:
-                            </p>
-                            <p style="color: #C49B3B; font-size: 14px; word-break: break-all; margin: 10px 0 0 0;">
-                                {verification_url}
+                                Most bejelentkeztél a Damareen fiókodba. Ha ez te voltál, akkor minden rendben – jó játékot kívánunk!
                             </p>
                             <p style="color: rgba(217, 217, 217, 0.6); font-size: 13px; line-height: 1.6; margin: 30px 0 0 0;">
-                                Ez a link 24 órán belül lejár. Ha nem te próbáltál meg bejelentkezni, kérjük, változtasd meg a jelszavad azonnal.
+                                Ha nem te voltál, változtasd meg azonnal a jelszavad a fiókod védelme érdekében.
                             </p>
                         </td>
                     </tr>
                     <tr>
                         <td style="background: rgba(196, 155, 59, 0.05); padding: 20px 30px; text-align: center; border-top: 1px solid rgba(196, 155, 59, 0.2);">
                             <p style="color: rgba(217, 217, 217, 0.5); font-size: 12px; margin: 0;">
-                                © 2025 Damareen. Minden jog fenntartva.
+                                © 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
                             </p>
                         </td>
                     </tr>
@@ -183,21 +168,19 @@ def send_login_verification_email(recipient_email, username, verification_token)
 """
         
         text_content = f"""
-Bejelentkezés megerősítése
+Bejelentkezés a fiókodba
 
 Szia {username}!
 
-Bejelentkezési kísérletet észleltünk a fiókodba. A bejelentkezés megerősítéséhez látogass el az alábbi linkre:
+Most bejelentkeztél a Damareen fiókodba. Ha ez te voltál, akkor minden rendben – jó játékot kívánunk!
 
-{verification_url}
+Ha nem te voltál, változtasd meg azonnal a jelszavad a fiókod védelme érdekében.
 
-Ez a link 24 órán belül lejár. Ha nem te próbáltál meg bejelentkezni, kérjük, változtasd meg a jelszavad azonnal.
-
-© 2025 Damareen. Minden jog fenntartva.
+© 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
 """
         
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'Bejelentkezés megerősítése - Damareen'
+        msg['Subject'] = 'Bejelentkezés a fiókodba - Damareen'
         msg['From'] = f'{EmailConfig.SENDER_NAME} <{EmailConfig.SENDER_EMAIL}>'
         msg['To'] = recipient_email
         
@@ -276,7 +259,7 @@ def send_password_reset_email(recipient_email, username, reset_token):
                     <tr>
                         <td style="background: rgba(196, 155, 59, 0.05); padding: 20px 30px; text-align: center; border-top: 1px solid rgba(196, 155, 59, 0.2);">
                             <p style="color: rgba(217, 217, 217, 0.5); font-size: 12px; margin: 0;">
-                                © 2025 Damareen. Minden jog fenntartva.
+                                © 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
                             </p>
                         </td>
                     </tr>
@@ -299,7 +282,7 @@ Jelszó visszaállítási kérelmet kaptunk a fiókodhoz. A jelszavad megváltoz
 
 Ez a link 1 órán belül lejár. Ha nem te kérted a jelszó visszaállítását, hagyd figyelmen kívül ezt az e-mailt.
 
-© 2025 Damareen. Minden jog fenntartva.
+© 2025 Horváth András és Balogh Barnabás. Minden jog fenntartva.
 """
         
         msg = MIMEMultipart('alternative')

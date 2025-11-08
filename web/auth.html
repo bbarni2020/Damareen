@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="src/favicon.ico">
+    <link rel="shortcut icon" href="src/favicon.ico">
     <style>
         * {
             margin: 0;
@@ -16,7 +18,7 @@
 
         body {
             font-family: 'Jaro', sans-serif;
-            background-color: #0F0D13;
+            background: #0F0D13 url('src/background.png') center/cover no-repeat fixed;
             color: #D9D9D9;
             display: flex;
             justify-content: center;
@@ -380,14 +382,16 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        
+        const isLoginVerification = urlParams.has('login') || window.location.pathname.includes('/verify-login');
+
         if (token) {
-            verifyToken(token);
+            verifyToken(token, isLoginVerification);
         }
 
-        async function verifyToken(token) {
+        async function verifyToken(token, isLogin) {
             try {
-                const response = await fetch(`${API_URL}/verify-email`, {
+                const endpoint = isLogin ? 'verify-login' : 'verify-email';
+                const response = await fetch(`${API_URL}/${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
