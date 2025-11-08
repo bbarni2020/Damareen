@@ -130,6 +130,7 @@ def require_auth(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         from flask import current_app
+        from app.models import User
         
         auth_header = request.headers.get('Authorization')
         if not auth_header:
@@ -144,6 +145,13 @@ def require_auth(f):
         if not payload:
             return error_response('Érvénytelen vagy lejárt token', 401)
         
-        request.user_id = payload['user_id']
+        user_id = payload['user_id']
+        user = User.query.get(user_id)
+        
+        if not user:
+            return error_response('Felhasználó nem található', 401)
+        
+        request.user_id = user_id
+        request.current_user = user
         return f(*args, **kwargs)
     return decorated_function
