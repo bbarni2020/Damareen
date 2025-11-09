@@ -21,7 +21,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
 
         body {
             font-family: 'Jaro', sans-serif;
@@ -367,42 +366,42 @@
             padding: 40px;
             width: 90%;
             max-width: 450px;
-            box-shadow: 0 10px 40px rgba(196, 155, 59, 0.5);
-            position: relative;
-        }
-
-        .settings-header {
-            font-family: 'Jaro', sans-serif;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #C49B3B;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-align: center;
-            text-shadow: 0 0 20px rgba(196, 155, 59, 0.4);
-        }
-
-        .settings-username {
-            font-family: 'Jaro', sans-serif;
-            font-size: 1.8rem;
-            color: #D9D9D9;
-            margin-bottom: 30px;
-            text-align: center;
-            padding: 15px;
-            background: rgba(196, 155, 59, 0.1);
-            border-radius: 10px;
-            border: 2px solid rgba(196, 155, 59, 0.3);
-        }
-
-        .settings-username span {
-            color: #C49B3B;
-            font-weight: bold;
-        }
-
-        .settings-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+                    .top-controls {
+                        position: absolute;
+                        top: 32px;
+                        left: 10px;
+                        gap: 0;
+                        z-index: 100;
+                    }
+                    .control-btn {
+                        width: 38px;
+                        height: 38px;
+                        font-size: 1.1rem;
+                    }
+                    .pause-btn {
+                        position: absolute;
+                        top: 32px;
+                        right: 10px;
+                        width: 38px;
+                        height: 38px;
+                        font-size: 1.1rem;
+                    }
+                    #user-display {
+                        position: absolute;
+                        top: 32px;
+                        left: 0;
+                        right: 0;
+                        margin: 0 auto;
+                        width: fit-content;
+                        font-size: 1.1rem;
+                        height: 38px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 101;
+                        background: none;
+                        box-shadow: none;
+                    }
         }
 
         .settings-btn {
@@ -765,6 +764,172 @@
                 padding: 10px 20px;
                 min-width: 100px;
             }
+            }
+
+            @media (max-width: 480px) {
+                    body {
+                        padding: 8px;
+                    }
+                    .top-controls {
+                        position: absolute;
+                        top: 10px;
+                        left: 10px;
+                        gap: 0;
+                        z-index: 100;
+                    }
+                    .control-btn {
+                        width: 38px;
+                        height: 38px;
+                        font-size: 1.1rem;
+                    }
+                    .pause-btn {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        width: 38px;
+                        height: 38px;
+                        font-size: 1.1rem;
+                    }
+                    #user-display {
+                        position: absolute;
+                        top: 10px;
+                        left: 0;
+                        right: 0;
+                        margin: 0 auto;
+                        width: fit-content;
+                        font-size: 1.1rem;
+                        height: 38px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 101;
+                        background: none;
+                        box-shadow: none;
+                    }
+        @media (max-width: 768px) {
+                .top-controls {
+                    position: absolute;
+                    top: 32px;
+                    left: 10px;
+                    gap: 0;
+                }
+                .pause-btn {
+                    position: absolute;
+                    top: 32px;
+                    right: 10px;
+                }
+                #user-display {
+                    position: absolute;
+                    top: 32px;
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto;
+                    width: fit-content;
+                    font-size: 1.2rem;
+                    height: 38px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 101;
+                }
+        }
+                #dashboard-container {
+                    padding: 60px 4px 80px;
+                }
+                h1 {
+                    font-size: 2.1rem;
+                    margin-bottom: 25px;
+                }
+                .section-label {
+                    font-size: 1.1rem;
+                    margin-bottom: 10px;
+                }
+                .worlds-container {
+                    max-width: 100vw;
+                    margin-bottom: 25px;
+                }
+                .worlds-scroll {
+                    gap: 10px;
+                    padding: 10px 2px;
+                }
+                .world-card {
+                    min-width: 80px;
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 10px;
+                }
+                .world-name {
+                    font-size: 0.85rem;
+                }
+                .start-button,
+                .refresh-button {
+                    width: 110px;
+                    padding: 8px 0;
+                    font-size: 1rem;
+                    border-width: 2px;
+                }
+                .action-buttons {
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .settings-popup,
+                .logout-modal,
+                .delete-modal {
+                    padding: 12px;
+                    max-width: 98vw;
+                }
+                .settings-header,
+                .logout-modal-header,
+                .delete-modal-header {
+                    font-size: 1.1rem;
+                    margin-bottom: 10px;
+                        text-align: center;
+                }
+                .settings-username {
+                    font-size: 1rem;
+                    padding: 8px;
+                        text-align: center;
+                        margin-bottom: 10px;
+                }
+                    .settings-buttons {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                        align-items: center;
+                        width: 100%;
+                    }
+                    .settings-btn {
+                        font-size: 0.9rem;
+                        padding: 8px 10px;
+                        min-width: 70px;
+                        width: 90%;
+                        box-sizing: border-box;
+                        text-align: center;
+                    }
+                    .logout-modal-btn,
+                    .delete-modal-btn {
+                        font-size: 0.9rem;
+                        padding: 8px 10px;
+                        min-width: 70px;
+                    }
+                .delete-modal-message,
+                .logout-modal-message {
+                    font-size: 0.9rem;
+                    margin-bottom: 10px;
+                }
+                .delete-modal-input-group label {
+                    font-size: 0.9rem;
+                    margin-bottom: 5px;
+                }
+                .delete-modal-input-group input {
+                    padding: 8px 10px;
+                    font-size: 0.9rem;
+                }
+                .delete-modal-error {
+                    font-size: 0.8rem;
+                    min-height: 14px;
+                }
+            }
         }
     </style>
 </head>
@@ -899,7 +1064,7 @@
             const user = localStorage.getItem('user');
             
             if (!token || !user) {
-                window.location.href = 'auth.html';
+                window.location.href = 'auth';
                 return;
             }
             
@@ -923,7 +1088,7 @@
             const token = localStorage.getItem('token');
             
             if (!token) {
-                window.location.href = 'auth.html';
+                window.location.href = 'auth';
                 return;
             }
 
@@ -940,7 +1105,7 @@
                     if (response.status === 401 || response.status === 403) {
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
-                        window.location.href = 'auth.html';
+                        window.location.href = 'auth';
                         return;
                     }
                     throw new Error('Failed to fetch worlds');
@@ -1121,10 +1286,10 @@
             const isMaster = selectedCard && selectedCard.dataset.isMaster === 'true';
             
             if (isMaster) {
-                window.location.href = `manage_world.html?world_id=${selectedWorldId}`;
+                window.location.href = `manage-world?world_id=${selectedWorldId}`;
                 return;
             }
-            window.location.href = `game.html?world_id=${selectedWorldId}`;
+            window.location.href = `game?world_id=${selectedWorldId}`;
         });
 
         document.getElementById('refresh-btn').addEventListener('click', async () => {
@@ -1152,7 +1317,7 @@
         });
 
         document.getElementById('add-world-btn').addEventListener('click', () => {
-            window.location.href = 'manage_world.html';
+            window.location.href = 'manage-world';
         });
 
         
@@ -1168,7 +1333,7 @@
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             if (!token || !user) {
-                window.location.href = 'auth.html';
+                window.location.href = 'auth';
                 return;
             }
             let email = '';
@@ -1241,7 +1406,7 @@
             const handleConfirm = () => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = 'auth.html';
+                window.location.href = 'auth';
             };
             
             const handleCancel = () => {
@@ -1303,7 +1468,7 @@
                     const token = localStorage.getItem('token');
                     
                     if (!token) {
-                        window.location.href = 'auth.html';
+                        window.location.href = 'auth';
                         return;
                     }
 
@@ -1328,13 +1493,13 @@
                             setTimeout(() => {
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('user');
-                                window.location.href = 'auth.html';
+                                window.location.href = 'auth';
                             }, 2000);
                         } else {
                             if (response.status === 401 || response.status === 403) {
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('user');
-                                window.location.href = 'auth.html';
+                                window.location.href = 'auth';
                                 return;
                             }
                             deleteModalError.textContent = data.error || data.message || 'Ismeretlen hiba történt';
