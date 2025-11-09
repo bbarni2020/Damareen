@@ -1057,11 +1057,75 @@ def list_world_dungeons():
 @require_auth
 @require_master
 def list_world_cards():
+    current_user = request.current_user
     world_id = request.args.get('world_id')
     if not world_id:
         return error_response('A világ azonosítója kötelező', 400)
-    cards = Card.query.filter_by(world_id=world_id).all()
+    cards = Card.query.filter_by(world_id=str(world_id), owner_id=current_user.id).all()
     return success_response({'cards': [c.to_dict() for c in cards]})
+
+
+@api.route('/world/user/removecard', methods=['DELETE'])
+@ratelimit
+@require_auth
+@require_master
+def remove_card_from_user():
+    data = request.get_json()
+    if not data:
+        return error_response('A kérés törzse kötelező', 400)
+
+    world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
+    card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
+    user_id = data.get('user_id', '').strip() if isinstance(data.get('user_id'), str) else ''
+    user_ids = data.get('user_ids', []) if isinstance(data.get('user_ids', []), list) else []
+
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    if not card_id:
+        return error_response('A kártya azonosítója kötelező', 400)
+
+    targets = []
+    if user_id:
+        targets = [user_id]
+    elif user_ids:
+        targets = [str(x).strip() for x in user_ids if str(x).strip()]
+    else:
+        return error_response('A felhasználó azonosítója kötelező', 400)
+
+    users = User.query.filter(User.id.in_(targets)).all()
+    found_ids = {u.id for u in users}
+    if len(found_ids) != len(targets):
+        return error_response('Felhasználó nem található', 404)
+
+    for u in users:
+        wm = u.world_ids or {}
+        if not (isinstance(wm, dict) and str(world_id) in wm):
+            return error_response('A felhasználó nincs ebben a világban', 403)
+
+    original_card = Card.query.get(card_id)
+    if not original_card or str(original_card.world_id) != str(world_id):
+        return error_response('Nem található kártya a megadott azonosítóval', 404)
+
+    try:
+        total_removed = 0
+        for uid in targets:
+            user_copies = Card.query.filter_by(world_id=str(world_id), owner_id=uid, name=original_card.name).all()
+            if not user_copies:
+                continue
+            copy_ids = [c.id for c in user_copies]
+            leader_copies = []
+            if copy_ids:
+                leader_copies = Card.query.filter(Card.world_id == str(world_id), Card.owner_id == uid, Card.is_leader.in_(copy_ids)).all()
+            for c in leader_copies:
+                db.session.delete(c)
+            for c in user_copies:
+                db.session.delete(c)
+            total_removed += len(user_copies) + len(leader_copies)
+        db.session.commit()
+        return success_response({'message': 'Kártya(k) eltávolítva a felhasználóktól', 'removed': total_removed})
+    except Exception:
+        db.session.rollback()
+        return error_response('A kártya eltávolítása sikertelen', 500)
 
 
 @api.route('/world/list/users', methods=['GET'])
