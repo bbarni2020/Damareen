@@ -641,6 +641,29 @@ def add_card_to_user():
     original_card = Card.query.get(card_id)
     if not original_card or original_card.world_id != world_id:
         return error_response('Nem található kártya a megadott azonosítóval', 404)
+    
+    users_with_card = []
+    for uid in targets:
+        existing = Card.query.filter_by(
+            world_id=world_id,
+            owner_id=uid,
+            name=original_card.name
+        ).first()
+        if existing:
+            users_with_card.append(uid)
+    
+    if users_with_card:
+        user_names = []
+        for uid in users_with_card:
+            u = User.query.get(uid)
+            if u:
+                user_names.append(u.username)
+        if len(users_with_card) == 1:
+            msg = f'A felhasználó ({user_names[0]}) már rendelkezik ezzel a kártyával'
+        else:
+            msg = f'Egyes felhasználók már rendelkeznek ezzel a kártyával: {", ".join(user_names)}'
+        return error_response(msg, 409)
+    
     try:
         created_cards = []
         for uid in targets:
