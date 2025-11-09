@@ -836,9 +836,13 @@ def create_leader():
     
     card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
     damage_doubled = data.get('damage_doubled')
+    leader_name = data.get('name', '').strip() if isinstance(data.get('name'), str) else ''
     
     if not card_id:
         return error_response('A kártya azonosítója kötelező', 400)
+    
+    if not leader_name:
+        return error_response('A vezér neve kötelező', 400)
     
     if not isinstance(damage_doubled, bool):
         return error_response('A damage_doubled értéknek boolean-nak kell lennie', 400)
@@ -849,12 +853,12 @@ def create_leader():
         if not original_card:
             return error_response('Nem található kártya a megadott azonosítóval', 404)
         
-        existing_card_with_name = Card.query.filter_by(
-            world_id=original_card.world_id,
-            name=original_card.name
-        ).filter(Card.id != original_card.id).first()
+        if not original_card.is_leader == "":
+            return error_response('A vezér csak sima kártyából hozható létre', 400)
         
-        if existing_card_with_name:
+        # Check if the new leader name is unique in the world
+        existing_card = Card.query.filter_by(world_id=original_card.world_id, name=leader_name).first()
+        if existing_card:
             return error_response('Már létezik kártya ezzel a névvel ebben a világban', 409)
         
         new_damage = original_card.damage
@@ -871,7 +875,7 @@ def create_leader():
                     id=generate_unique_id(),
                     world_id=original_card.world_id,
                     owner_id=original_card.owner_id,
-                    name=original_card.name,
+                    name=leader_name,
                     picture=original_card.picture,
                     health=new_health,
                     damage=new_damage,
