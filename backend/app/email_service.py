@@ -251,7 +251,7 @@ Ha nem ismered fel ezt a bejelentkezést, változtasd meg a jelszavad azonnal.
 
 def send_password_reset_email(recipient_email, username, reset_token):
     try:
-        reset_url = f"{EmailConfig.VERIFICATION_URL_BASE}/auth.html?token={reset_token}&reset=true"
+        reset_url = f"{EmailConfig.VERIFICATION_URL_BASE}auth.html?token={reset_token}&reset=true"
         
         html_content = f"""
 <!DOCTYPE html>

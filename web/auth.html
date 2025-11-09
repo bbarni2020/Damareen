@@ -334,9 +334,17 @@
     </div>
 
     <script>
-        if (localStorage.getItem('token') || localStorage.getItem('user')) {
-            window.location.href = '/';
-        }
+        (function() {
+            const qp = new URLSearchParams(window.location.search);
+            const isResetFlow = qp.has('reset');
+            const hasTokenParam = qp.has('token');
+            const isLoginVerification = qp.has('login') || window.location.pathname.includes('/verify-login');
+            const isPasswordResetPath = window.location.pathname.includes('/reset-password');
+            const shouldBypass = isResetFlow || (hasTokenParam && (isResetFlow || isLoginVerification || isPasswordResetPath));
+            if (!shouldBypass && (localStorage.getItem('token') || localStorage.getItem('user'))) {
+                window.location.href = '/';
+            }
+        })();
         const API_URL = 'https://damareen.deakteri.fun/api/user';
 
         const loginForm = document.getElementById('loginForm');
