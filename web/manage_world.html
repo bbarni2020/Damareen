@@ -627,18 +627,22 @@ h1:focus {
   gap: 20px;
   align-content: start;
 }
-.collection-area::-webkit-scrollbar {
+.collection-area::-webkit-scrollbar,
+.tab-content::-webkit-scrollbar {
   width: 8px;
 }
-.collection-area::-webkit-scrollbar-track {
+.collection-area::-webkit-scrollbar-track,
+.tab-content::-webkit-scrollbar-track {
   background: rgba(196, 155, 59, 0.1);
   border-radius: 10px;
 }
-.collection-area::-webkit-scrollbar-thumb {
+.collection-area::-webkit-scrollbar-thumb,
+.tab-content::-webkit-scrollbar-thumb {
   background: rgba(196, 155, 59, 0.5);
   border-radius: 10px;
 }
-.collection-area::-webkit-scrollbar-thumb:hover {
+.collection-area::-webkit-scrollbar-thumb:hover,
+.tab-content::-webkit-scrollbar-thumb:hover {
   background: rgba(196, 155, 59, 0.7);
 }
 .collection-placeholder {
@@ -777,8 +781,18 @@ h1:focus {
 }
 .game-card:hover .delete-btn.visible,
 .game-card:hover .edit-btn.visible,
-.game-card:hover .leader-btn.visible {
+.game-card:hover .leader-btn.visible,
+.game-card:hover .give-btn.visible,
+.game-card:hover .remove-btn.visible {
   opacity: 1;
+}
+.delete-btn:not(.visible),
+.edit-btn:not(.visible),
+.leader-btn:not(.visible),
+.give-btn:not(.visible),
+.remove-btn:not(.visible) {
+  display: none;
+  pointer-events: none;
 }
 .delete-btn:hover {
   background: #ff6b6b;
@@ -1549,7 +1563,7 @@ h1:focus {
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
                             <button class="clear-sequence-btn" id="clear-sequence-btn" style="display: none; flex: 1;">Törlés</button>
-                            <button class="action-btn" id="create-dungeon-btn" onclick="createDungeon()" style="flex: 1; margin: 0;" disabled>Kazamata létrehozása</button>
+                            <button class="action-btn" id="create-dungeon-btn" onclick="createDungeon()" style="flex: 1; margin: 0;">Kazamata létrehozása</button>
                         </div>
                     </div>
                     <div class="available-cards">
@@ -1808,8 +1822,11 @@ h1:focus {
                     renderDungeonsList();
                     renderCollection();
                     updateCreateDungeonButton();
-                } else if (tabName === 'card-creation' && editingCardId) {
-                    cancelEdit();
+                } else if (tabName === 'card-creation') {
+                    renderCollection();
+                    if (editingCardId) {
+                        cancelEdit();
+                    }
                 }
             });
         });
@@ -2019,7 +2036,7 @@ h1:focus {
             dungeonSequence = [];
             dungeonLeaderCard = null;
             renderDungeonSequence();
-            renderAvailableCards();
+            renderCollection();
             updateCreateDungeonButton();
         });
 
@@ -2136,29 +2153,7 @@ h1:focus {
         });
 
         function updateCreateDungeonButton() {
-            const btn = document.getElementById('create-dungeon-btn');
-            const normalCards = dungeonSequence.length;
-            const hasLeader = dungeonLeaderCard !== null;
-            
-            const validCombinations = [
-                { normal: 1, leader: false },
-                { normal: 3, leader: true },
-                { normal: 5, leader: true }
-            ];
-            
-            const isValid = validCombinations.some(combo => 
-                combo.normal === normalCards && combo.leader === hasLeader
-            );
-            
-            if (isValid) {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
-            } else {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
-            }
+            // Button is always enabled, validation happens on click
         }
 
         function shakeCard(cardElement) {
@@ -2507,23 +2502,21 @@ h1:focus {
             const hasLeader = dungeonLeaderCard !== null;
             const totalCards = normalCards + (hasLeader ? 1 : 0);
             
+            
             if (totalCards === 0) {
-                showAlert('Kérlek válassz ki legalább egy kártyát a kazamatához!', 'warning');
+                showAlert('A kazamata 1, 4 vagy 6 kártyát kell tartalmazzon', 'warning');
                 return;
             }
             
-            const validCombinations = [
-                { normal: 1, leader: false },
-                { normal: 3, leader: true },
-                { normal: 5, leader: true }
-            ];
             
-            const isValid = validCombinations.some(combo => 
-                combo.normal === normalCards && combo.leader === hasLeader
-            );
+            if (totalCards !== 1 && totalCards !== 4 && totalCards !== 6) {
+                showAlert('A kazamata 1, 4 vagy 6 kártyát kell tartalmazzon', 'warning');
+                return;
+            }
             
-            if (!isValid) {
-                showAlert('Érvénytelen kártya kombináció! Csak ezek engedélyezettek:\n- 1 sima kártya\n- 3 sima + 1 vezér kártya\n- 5 sima + 1 vezér kártya', 'error');
+            
+            if ((totalCards === 4 || totalCards === 6) && !hasLeader) {
+                showAlert('Az utolsó kártya csak vezér lehet', 'warning');
                 return;
             }
             
@@ -2536,6 +2529,12 @@ h1:focus {
         }
 
         async function submitDungeonCreation(dungeonName) {
+            const isDuplicate = worldDungeons.some(dungeon => dungeon.name === dungeonName);
+            if (isDuplicate) {
+                showAlert('Ezzel a névvel már létezik kazamata', 'warning');
+                return;
+            }
+            
             const normalCards = dungeonSequence.length;
             const hasLeader = dungeonLeaderCard !== null;
             const finalSequence = hasLeader ? [...dungeonSequence, dungeonLeaderCard] : dungeonSequence;
@@ -2773,7 +2772,9 @@ h1:focus {
         `;
         cardElement.addEventListener('click', (e) => {
           if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn') ||
-            e.target.classList.contains('leader-btn') || e.target.closest('.leader-btn')) {
+            e.target.classList.contains('leader-btn') || e.target.closest('.leader-btn') ||
+            e.target.classList.contains('give-btn') || e.target.closest('.give-btn') ||
+            e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) {
             return;
           }
           if (currentTab === 'dungeon-creation') {
@@ -2782,12 +2783,28 @@ h1:focus {
               if (isSelectedLeader) {
                 dungeonLeaderCard = null;
               } else {
-                const normalCardsCount = dungeonSequence.length;
-                const validWithLeader = (normalCardsCount === 3 || normalCardsCount === 5);
-                if (!validWithLeader) {
+                // Check if trying to add a leader when there's already one
+                if (dungeonLeaderCard !== null) {
+                  showAlert('Egy kazamata csak egy vezért tartalmazhat', 'warning');
                   shakeCard(cardElement);
                   return;
                 }
+                
+                // Check if trying to add leader to empty dungeon (would be first card)
+                if (dungeonSequence.length === 0) {
+                  showAlert('Vezér nem lehet az első kártya', 'warning');
+                  shakeCard(cardElement);
+                  return;
+                }
+                
+                // Check if leader is being added anywhere not last
+                const normalCardsCount = dungeonSequence.length;
+                if (normalCardsCount !== 3 && normalCardsCount !== 5) {
+                  showAlert('A vezért csak utolsóként szabad választani', 'warning');
+                  shakeCard(cardElement);
+                  return;
+                }
+                
                 dungeonLeaderCard = card.id;
               }
             } else {
@@ -2798,11 +2815,22 @@ h1:focus {
                   dungeonLeaderCard = null;
                 }
               } else {
-                const normalCardsCount = dungeonSequence.length;
-                if (normalCardsCount >= 5) {
+                // Check if trying to add a 7th card
+                const totalCards = dungeonSequence.length + (dungeonLeaderCard !== null ? 1 : 0);
+                if (totalCards >= 6) {
+                  showAlert('A kazamata maximum 6 kártyából állhat', 'warning');
                   shakeCard(cardElement);
                   return;
                 }
+                
+                // Check if trying to add a normal card as the 6th one (when there are already 5 cards)
+                const normalCardsCount = dungeonSequence.length;
+                if (normalCardsCount === 5 && dungeonLeaderCard !== null) {
+                  showAlert('Az utolsó kártya csak vezér lehet', 'warning');
+                  shakeCard(cardElement);
+                  return;
+                }
+                
                 dungeonSequence.push(card.id);
               }
             }
@@ -2918,7 +2946,7 @@ h1:focus {
                 loadCards();
             }
 
-            // Setup mobile view
+            
             if (window.innerWidth <= 600 && !hasWorldParam) {
               document.querySelector('.main-container').classList.add('hidden-mobile');
             }
