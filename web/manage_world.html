@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Damareen - World Creation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="shortcut icon" href="src/favicon.ico">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
     <style>
@@ -23,33 +24,41 @@ body {
   flex-direction: column;
 }
 .pause-btn,
-.world-actions {
+.world-actions,
+.home-btn {
   position: fixed;
   top: 25px;
   display: flex;
   z-index: 100;
 }
 .pause-btn,
+.home-btn,
 body {
   align-items: center;
   justify-content: center;
 }
-.pause-btn {
+.home-btn {
   right: 25px;
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
   background: #c49b3b;
-  border: 0;
+  border: none;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.28s;
-  box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
 }
 .action-btn:hover,
-.pause-btn:hover {
+.pause-btn:hover,
+.home-btn:hover {
   background: #d4ab4f;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+}
+.home-icon {
+  width: 24px;
+  height: 24px;
+  fill: #1a1a1d;
 }
 .world-actions {
   left: 25px;
@@ -755,6 +764,32 @@ h1:focus {
   background: #8a2be2;
   transform: scale(1.1);
 }
+.give-btn {
+  position: absolute;
+  top: 8px;
+  left: 92px;
+  border: 0;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 10;
+  background: rgba(76, 175, 80, 0.9);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.game-card:hover .give-btn.visible {
+  opacity: 1;
+}
+.give-btn:hover {
+  background: #4caf50;
+  transform: scale(1.1);
+}
 .leader-badge,
 .leader-btn,
 .modal-overlay {
@@ -1054,22 +1089,20 @@ h1:focus {
   .panel-title {
     font-size: 1.5rem;
   }
-  .pause-btn {
-    width: 45px;
-    height: 45px;
-  }
 }
     </style>
 </head>
 <body>
+    <button class="home-btn" onclick="window.location.href='/'">
+        <svg class="home-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+    </button>
+
     <div class="world-actions">
         <button class="action-btn" id="create-world-btn" onclick="createWorld()">Világ létrehozása</button>
         <button class="action-btn danger" id="delete-world-btn" onclick="deleteWorld()" disabled style="opacity: 0.5; cursor: not-allowed;">Világ törlése</button>
     </div>
-
-    <button class="pause-btn" id="pause-btn" title="Szünet">
-        <div class="pause-icon"></div>
-    </button>
 
     <h1 id="world-name" contenteditable="true" spellcheck="false">Világ neve</h1>
 
@@ -1132,6 +1165,18 @@ h1:focus {
                                 >
                             </div>
                         </div>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; width:100%;">
+              <select id="assign-mode" class="card-preview-name" disabled>
+                <option value="">Kiosztás nélkül</option>
+                <option value="single">Egy felhasználónak</option>
+                <option value="multiple">Több felhasználónak</option>
+                <option value="all">Mindenkinek</option>
+              </select>
+              <select id="give-select" class="card-preview-name" style="display:none;" disabled>
+                <option value="">Válassz felhasználót</option>
+              </select>
+              <div id="multi-select-container" style="display:none; max-height:120px; overflow-y:auto; background:rgba(196,155,59,0.05); border:2px solid rgba(196,155,59,0.3); border-radius:8px; padding:8px;"></div>
+            </div>
                     </div>
                     <button type="submit" class="create-btn" disabled>Kártya létrehozása</button>
                 </form>
@@ -1212,6 +1257,22 @@ h1:focus {
         </div>
     </div>
 
+  <div class="modal-overlay" id="give-modal">
+    <div class="modal-content">
+      <div class="modal-title">Kártya kiosztása</div>
+      <form class="modal-form" id="give-form">
+        <div class="modal-form-group">
+          <label class="modal-label" for="give-user">Válassz felhasználót</label>
+          <select id="give-user" class="modal-input" required></select>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit" class="modal-btn modal-btn-create">Kiosztás</button>
+          <button type="button" class="modal-btn modal-btn-cancel" id="cancel-give">Mégse</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
     <div class="alert-overlay" id="alert-overlay"></div>
     <div class="custom-alert" id="custom-alert">
         <div class="alert-icon" id="alert-icon">⚠️</div>
@@ -1233,6 +1294,8 @@ h1:focus {
         let currentWorldId = null;
         let dungeonLeaderCard = null;
         let worldDungeons = [];
+        let worldUsers = [];
+        let giveBaseCardId = null;
 
         function showAlert(message, type = 'info') {
             const alertBox = document.getElementById('custom-alert');
@@ -1455,16 +1518,22 @@ h1:focus {
             }
         });
 
-        document.getElementById('pause-btn').addEventListener('click', () => {
-            isPaused = !isPaused;
-            const pauseBtn = document.getElementById('pause-btn');
+        document.getElementById('assign-mode').addEventListener('change', function() {
+            const mode = this.value;
+            const giveSelect = document.getElementById('give-select');
+            const multiContainer = document.getElementById('multi-select-container');
             
-            if (isPaused) {
-                pauseBtn.style.background = '#ff6b6b';
-            } else {
-                pauseBtn.style.background = '#C49B3B';
+            giveSelect.style.display = 'none';
+            multiContainer.style.display = 'none';
+            
+            if (mode === 'single') {
+                giveSelect.style.display = 'block';
+                giveSelect.disabled = false;
+            } else if (mode === 'multiple') {
+                multiContainer.style.display = 'block';
             }
         });
+
 
     document.getElementById('card-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1489,6 +1558,8 @@ h1:focus {
         showAlert('A sebzésnek 2 és 100 között kell lennie!', 'error');
         return;
       }
+      
+      const assignMode = document.getElementById('assign-mode').value;
       const cardData = {
         name: document.getElementById('card-name').value,
         health: health,
@@ -1497,6 +1568,22 @@ h1:focus {
         picture: currentImageData,
         world_id: currentWorldId
       };
+      
+      if (assignMode === 'single') {
+        const giveSelect = document.getElementById('give-select');
+        if (giveSelect && giveSelect.value) {
+          cardData.give_to_user_id = giveSelect.value;
+        }
+      } else if (assignMode === 'multiple') {
+        const checkedBoxes = document.querySelectorAll('.multi-user-checkbox:checked');
+        const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+        if (selectedIds.length > 0) {
+          cardData.give_to_user_ids = selectedIds;
+        }
+      } else if (assignMode === 'all') {
+        cardData.give_to_user_ids = worldUsers.map(u => u.id);
+      }
+      
       try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/create/card`, {
@@ -1509,21 +1596,19 @@ h1:focus {
         });
         if (response.ok) {
           const result = await response.json();
-          cards.push({
-            id: result.data.card.id || ++cardIdCounter,
-            name: cardData.name,
-            health: cardData.health,
-            damage: cardData.damage,
-            type: selectedType,
-            picture: cardData.picture
-          });
+          if (result.data && result.data.card) cards.push(result.data.card);
+          if (result.data && result.data.assigned_cards && Array.isArray(result.data.assigned_cards)) {
+            result.data.assigned_cards.forEach(c => cards.push(c));
+            showAlert('Kártya létrehozva és kiosztva ' + result.data.assigned_cards.length + ' felhasználónak', 'success');
+          } else {
+            showAlert('Kártya létrehozva', 'success');
+          }
         } else {
           const errorData = await response.json();
           showAlert('Hiba: ' + (errorData.error || 'Nem sikerült létrehozni a kártyát'), 'error');
           return;
         }
       } catch (error) {
-        console.error('Error creating card:', error);
         showAlert('Hiba történt a kártya létrehozása során!', 'error');
         return;
       }
@@ -1532,6 +1617,9 @@ h1:focus {
       document.getElementById('preview-image').style.display = 'none';
       document.getElementById('placeholder-icon').style.display = 'block';
       currentImageData = null;
+      document.getElementById('assign-mode').value = '';
+      document.getElementById('give-select').style.display = 'none';
+      document.getElementById('multi-select-container').style.display = 'none';
       document.getElementById('card-name').focus();
     });
 
@@ -1734,6 +1822,7 @@ h1:focus {
                 currentWorldId = worldId;
                 document.getElementById('world-name').textContent = worldName;
                 enableWorldUI(true);
+                await loadWorldUsers();
                 await loadCards();
                 await loadDungeons();
                 return true;
@@ -1766,10 +1855,108 @@ h1:focus {
                     }
                     renderCollection();
                 }
-            } catch (error) {
-                console.error('Error loading cards:', error);
-            }
+      } catch (error) {
+        console.error('Error loading cards:', error);
+      }
+    }
+
+  async function loadWorldUsers() {
+      if (!currentWorldId) return;
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/world/list/users?world_id=${currentWorldId}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          worldUsers = data.data.users || [];
+          updateAssignModeUI();
         }
+      } catch (e) {}
+    }
+
+    function updateAssignModeUI() {
+      const assignMode = document.getElementById('assign-mode');
+      const giveSelect = document.getElementById('give-select');
+      const multiContainer = document.getElementById('multi-select-container');
+      
+      if (assignMode) assignMode.disabled = false;
+      
+      if (giveSelect) {
+        giveSelect.innerHTML = '<option value="">Válassz felhasználót</option>';
+        worldUsers.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.id;
+          opt.textContent = u.username + (u.is_master ? ' (mester)' : '');
+          giveSelect.appendChild(opt);
+        });
+      }
+      
+      if (multiContainer) {
+        multiContainer.innerHTML = '';
+        worldUsers.forEach(u => {
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex; align-items:center; gap:8px; padding:4px; cursor:pointer; color:#c49b3b; font-family:Jaro,sans-serif; font-size:0.9rem;';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = u.id;
+          checkbox.className = 'multi-user-checkbox';
+          checkbox.style.cursor = 'pointer';
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(u.username + (u.is_master ? ' (mester)' : '')));
+          multiContainer.appendChild(label);
+        });
+      }
+    }
+
+    function openGiveModal(cardId) {
+      giveBaseCardId = cardId;
+      const select = document.getElementById('give-user');
+      select.innerHTML = '';
+      worldUsers.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.username + (u.is_master ? ' (mester)' : '');
+        select.appendChild(opt);
+      });
+      document.getElementById('give-modal').classList.add('active');
+    }
+
+    function closeGiveModal() {
+      document.getElementById('give-modal').classList.remove('active');
+      giveBaseCardId = null;
+      document.getElementById('give-form').reset();
+    }
+
+    document.getElementById('cancel-give').addEventListener('click', () => closeGiveModal());
+    document.getElementById('give-modal').addEventListener('click', (e) => { if (e.target.id === 'give-modal') closeGiveModal(); });
+    document.getElementById('give-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!giveBaseCardId) return;
+      const userId = document.getElementById('give-user').value;
+      if (!userId) return;
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/world/user/addcard`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ world_id: currentWorldId, card_id: giveBaseCardId, user_id: userId })
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data && result.data.card) cards.push(result.data.card);
+          renderCollection();
+          showAlert('Kártya kiosztva', 'success');
+        } else {
+          const err = await response.json();
+          showAlert(err.error || 'Hiba történt', 'error');
+        }
+      } catch (e) {
+        showAlert('Hiba történt', 'error');
+      }
+      closeGiveModal();
+    });
 
         async function loadDungeons() {
             if (!currentWorldId) {
@@ -1845,6 +2032,7 @@ h1:focus {
                     enableWorldUI(false);
                     showAlert('Világ sikeresen létrehozva!', 'success');
                     
+                    await loadWorldUsers();
                     await loadCards();
                     await loadDungeons();
                     renderCollection();
@@ -2109,6 +2297,7 @@ h1:focus {
           ${sequenceBadgeHTML}
           <button class="delete-btn ${showActionBtns}" onclick="deleteCard('${card.id}')">×</button>
           ${!card.is_leader ? `<button class="leader-btn ${showActionBtns}" onclick="createLeaderCard('${card.id}')">👑</button>` : ''}
+          <button class="give-btn ${showActionBtns}" onclick="openGiveModal('${card.id}')">➕</button>
           <div class="card-type">${typeLabels[card.type]}</div>
           <div class="card-image">
             ${card.picture ? `<img src="${card.picture}" alt="${card.name}">` : '🃏'}
