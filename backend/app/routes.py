@@ -27,6 +27,8 @@ _rate_limit_store = {}
 _RATE_LIMIT_WINDOW = 10 
 _RATE_LIMIT_MAX = 5
 
+_dungeon_selection_cache = {}
+
 def ratelimit(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
@@ -855,8 +857,7 @@ def create_leader():
         
         if not original_card.is_leader == "":
             return error_response('A vezér csak sima kártyából hozható létre', 400)
-        
-        # Check if the new leader name is unique in the world
+
         existing_card = Card.query.filter_by(world_id=original_card.world_id, name=leader_name).first()
         if existing_card:
             return error_response('Már létezik kártya ezzel a névvel ebben a világban', 409)
@@ -986,29 +987,44 @@ def join_game():
 @ratelimit
 @require_auth
 def get_game_dungeon():
+    user = request.current_user
     world_id = request.args.get('world_id')
-    
+
     if not world_id:
         return error_response('A világ azonosítója kötelező', 400)
-    
-    dungeons = Dungeon.query.filter_by(world_id=str(world_id)).all()
-    
-    if len(dungeons) == 0:
+
+    world_id_str = str(world_id)
+    cache_key = f"{user.id}:{world_id_str}"
+
+    dungeons = Dungeon.query.filter_by(world_id=world_id_str).all()
+    if not dungeons:
         return error_response('A játékmester még nem hozott létre kazamatát ebben a világban', 404)
-    
-    if len(dungeons) == 1:
-        selected_dungeons = dungeons
-    else:
-        selected_dungeons = random.sample(dungeons, min(2, len(dungeons)))
-    
-    result = [
-        {
+
+    cached_ids = _dungeon_selection_cache.get(cache_key)
+    selected_dungeons = None
+
+    if cached_ids:
+        existing_map = {d.id: d for d in dungeons}
+        if all(did in existing_map for did in cached_ids):
+            selected_dungeons = [existing_map[did] for did in cached_ids]
+        else:
+            _dungeon_selection_cache.pop(cache_key, None)
+
+    if selected_dungeons is None:
+        if len(dungeons) == 1:
+            selected_dungeons = dungeons
+        else:
+            count = min(2, len(dungeons))
+            selected_dungeons = random.sample(dungeons, count)
+        _dungeon_selection_cache[cache_key] = [d.id for d in selected_dungeons]
+
+    result = []
+    for dungeon in selected_dungeons:
+        result.append({
             'id': dungeon.id,
             'number_of_cards': len(dungeon.list_of_card_ids)
-        }
-        for dungeon in selected_dungeons
-    ]
-    
+        })
+
     return success_response({'dungeons': result})
 
 
@@ -1439,6 +1455,13 @@ def fight():
                 }
         except Exception:
             db.session.rollback()
+
+    try:
+        world_id_for_key = str(dungeon.world_id)
+        cache_key = f"{user.id}:{world_id_for_key}"
+        _dungeon_selection_cache.pop(cache_key, None)
+    except Exception:
+        pass
 
     return success_response({
         'winner': winner,

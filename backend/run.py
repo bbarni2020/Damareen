@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from app import create_app
 from app.models import db
+from werkzeug.serving import ThreadedWSGIServer
 
 load_dotenv()
 
@@ -15,10 +16,9 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 7621))
     env = os.environ.get('FLASK_ENV', 'development')
     if env == 'production':
-        try:
-            from waitress import serve
-        except ImportError:
-            raise RuntimeError("waitress not installed; add it to requirements and pip install for production")
-        serve(app, host='0.0.0.0', port=port)
+        from werkzeug.serving import ThreadedWSGIServer
+        print(f"Starting Damareen server on port {port}")
+        server = ThreadedWSGIServer('0.0.0.0', port, app)
+        server.serve_forever()
     else:
         app.run(host='0.0.0.0', port=port, debug=True)
