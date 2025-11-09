@@ -17,6 +17,7 @@ from app.email_service import (
 )
 from app.email_config import EmailConfig
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.attributes import flag_modified
 
 
 
@@ -431,7 +432,6 @@ def create_world():
                 updated_worlds[new_world.world_id] = is_master
                 user.world_ids = updated_worlds
                 
-                from sqlalchemy.orm.attributes import flag_modified
                 flag_modified(user, 'world_ids')
                 
                 db.session.commit()
@@ -464,6 +464,8 @@ def create_card():
         world_id = data.get('world_id', '0') if isinstance(data.get('world_id', '0'), str) else str(data.get('world_id', '0'))
         user_id = user.id
         name = data.get('name', '0') if isinstance(data.get('name', '0'), str) else str(data.get('name', '0'))
+        give_to_user_id = data.get('give_to_user_id', '').strip() if isinstance(data.get('give_to_user_id'), str) else ''
+        give_to_user_ids = data.get('give_to_user_ids', []) if isinstance(data.get('give_to_user_ids', []), list) else []
         raw_type = data.get('type', '')
         if isinstance(raw_type, str):
             card_type = raw_type.strip().lower()
@@ -548,9 +550,52 @@ def create_card():
                 )
                 db.session.add(new_card)
                 db.session.commit()
+                assigned_cards = []
+                targets = []
+                if give_to_user_id:
+                    targets = [give_to_user_id]
+                elif give_to_user_ids:
+                    targets = [str(x).strip() for x in give_to_user_ids if str(x).strip()]
+                if targets:
+                    users = User.query.filter(User.id.in_(targets)).all()
+                    found_ids = {u.id for u in users}
+                    if len(found_ids) != len(targets):
+                        return error_response('Felhasználó nem található', 404)
+                    wm_map = {u.id: (u.world_ids or {}) for u in users}
+                    for uid in targets:
+                        wm = wm_map.get(uid, {})
+                        if not (isinstance(wm, dict) and str(world_id) in wm):
+                            return error_response('Felhasználó nincs ebben a világban', 400)
+                    for uid in targets:
+                        created = False
+                        for _dup in range(5):
+                            try:
+                                dup_card = Card(
+                                    id=generate_unique_id(),
+                                    world_id=world_id,
+                                    owner_id=uid,
+                                    name=name,
+                                    picture=picture_bytes,
+                                    health=health,
+                                    damage=damage,
+                                    type=card_type,
+                                    position=position,
+                                    is_leader=is_leader,
+                                )
+                                db.session.add(dup_card)
+                                db.session.commit()
+                                assigned_cards.append(dup_card.to_dict())
+                                created = True
+                                break
+                            except IntegrityError:
+                                db.session.rollback()
+                                continue
+                        if not created:
+                            return error_response('Nem sikerült egyedi azonosítót generálni a kártyához', 500)
                 return success_response({
                     'message': 'Kártya sikeresen létrehozva',
-                    'card': new_card.to_dict()
+                    'card': new_card.to_dict(),
+                    'assigned_cards': assigned_cards if assigned_cards else None
                 }, 201)
             except IntegrityError:
                 db.session.rollback()
@@ -571,43 +616,60 @@ def add_card_to_user():
     world_id = data.get('world_id', '').strip() if isinstance(data.get('world_id'), str) else ''
     card_id = data.get('card_id', '').strip() if isinstance(data.get('card_id'), str) else ''
     user_id = data.get('user_id', '').strip() if isinstance(data.get('user_id'), str) else ''
+    user_ids = data.get('user_ids', []) if isinstance(data.get('user_ids', []), list) else []
     if not world_id:
         return error_response('A világ azonosítója kötelező', 400)
     if not card_id:
         return error_response('A kártya azonosítója kötelező', 400)
-    if not user_id:
+    targets = []
+    if user_id:
+        targets = [user_id]
+    elif user_ids:
+        targets = [str(x).strip() for x in user_ids if str(x).strip()]
+    else:
         return error_response('A felhasználó azonosítója kötelező', 400)
-    target_user = User.query.get(user_id)
-    if not target_user:
+    users = User.query.filter(User.id.in_(targets)).all()
+    found_ids = {u.id for u in users}
+    if len(found_ids) != len(targets):
         return error_response('Felhasználó nem található', 404)
-    wm = target_user.world_ids or {}
-    if not (isinstance(wm, dict) and str(world_id) in wm):
-        return error_response('Felhasználó nincs ebben a világban', 400)
+    for u in users:
+        wm = u.world_ids or {}
+        if not (isinstance(wm, dict) and str(world_id) in wm):
+            return error_response('Felhasználó nincs ebben a világban', 400)
     original_card = Card.query.get(card_id)
     if not original_card or original_card.world_id != world_id:
         return error_response('Nem található kártya a megadott azonosítóval', 404)
     try:
-        for _ in range(5):
-            try:
-                new_card = Card(
-                    id=generate_unique_id(),
-                    world_id=original_card.world_id,
-                    owner_id=user_id,
-                    name=original_card.name,
-                    picture=original_card.picture,
-                    health=original_card.health,
-                    damage=original_card.damage,
-                    type=original_card.type,
-                    position=original_card.position,
-                    is_leader=original_card.is_leader
-                )
-                db.session.add(new_card)
-                db.session.commit()
-                return success_response({'message': 'Kártya hozzáadva a felhasználóhoz', 'card': new_card.to_dict()}, 201)
-            except IntegrityError:
-                db.session.rollback()
-                continue
-        return error_response('Nem sikerült egyedi azonosítót generálni', 500)
+        created_cards = []
+        for uid in targets:
+            success = False
+            for _ in range(5):
+                try:
+                    new_card = Card(
+                        id=generate_unique_id(),
+                        world_id=original_card.world_id,
+                        owner_id=uid,
+                        name=original_card.name,
+                        picture=original_card.picture,
+                        health=original_card.health,
+                        damage=original_card.damage,
+                        type=original_card.type,
+                        position=original_card.position,
+                        is_leader=original_card.is_leader
+                    )
+                    db.session.add(new_card)
+                    db.session.commit()
+                    created_cards.append(new_card.to_dict())
+                    success = True
+                    break
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+            if not success:
+                return error_response('Nem sikerült egyedi azonosítót generálni', 500)
+        if len(created_cards) == 1:
+            return success_response({'message': 'Kártya hozzáadva a felhasználóhoz', 'card': created_cards[0], 'cards': created_cards}, 201)
+        return success_response({'message': 'Kártyák hozzáadva a felhasználókhoz', 'cards': created_cards}, 201)
     except Exception:
         db.session.rollback()
         return error_response('A kártya hozzáadása sikertelen', 500)
@@ -895,9 +957,17 @@ def join_game():
         return error_response('Már csatlakoztál ehhez a világhoz', 409)
     
     try:
-        user.world_ids[invite_code] = False
+        wm = user.world_ids or {}
+        if not isinstance(wm, dict):
+            wm = {}
+        updated = dict(wm)
+        updated[str(invite_code)] = False
+        user.world_ids = updated
+
+        flag_modified(user, 'world_ids')
+
         db.session.commit()
-        
+
         return success_response({
             'message': 'Sikeresen csatlakoztál a világhoz',
             'world': world.to_dict()
@@ -1016,6 +1086,18 @@ def list_world_users():
                 'is_master': bool(wm.get(str(world_id)))
             })
     return success_response({'users': result})
+
+
+@api.route('/user/list/cards', methods=['GET'])
+@ratelimit
+@require_auth
+def list_user_cards():
+    user = request.current_user
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    cards = Card.query.filter_by(owner_id=user.id, world_id=str(world_id)).all()
+    return success_response({'cards': [c.to_dict() for c in cards]})
 
 
 
@@ -1154,12 +1236,15 @@ def delete_dungeon():
 @require_auth
 def fight():
     user = request.current_user
+    world_id = request.args.get('world_id')
     dungeon_id = request.args.get('dungeon_id')
     if not dungeon_id:
         return error_response('A dungeon azonosítója kötelező', 400)
     dungeon = Dungeon.query.filter_by(id=str(dungeon_id)).first()
     if not dungeon:
         return error_response('Dungeon nem található', 404)
+    if world_id and str(dungeon.world_id) != str(world_id):
+        return error_response('A dungeon nem ebben a világban található', 400)
     dungeon_card_ids = dungeon.list_of_card_ids or []
     dungeon_cards = []
     if dungeon_card_ids:
@@ -1168,12 +1253,19 @@ def fight():
         for cid in dungeon_card_ids:
             if cid in card_map:
                 dungeon_cards.append(card_map[cid].to_dict())
-    player_cards = Card.query.filter(Card.owner_id == user.id, Card.position != 0).order_by(Card.position).all()
+    player_cards = Card.query.filter(
+        Card.owner_id == user.id,
+        Card.world_id == dungeon.world_id,
+        Card.position != 0
+    ).order_by(Card.position).all()
     player_deck = []
     for idx, c in enumerate(player_cards):
         d = c.to_dict()
         d['position'] = idx + 1
         player_deck.append(d)
+
+    if len(player_deck) != len(dungeon_cards):
+        return error_response('A pakli kártyáinak száma nem egyezik a kazamata kártyáinak számával', 400)
 
     battles = []
     beats = {'t': 'f', 'f': 'v', 'v': 'l', 'l': 't'}

@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>404 - Nem található</title>
+	<link rel="icon" type="image/x-icon" href="src/favicon.ico">
+	<link rel="shortcut icon" href="src/favicon.ico">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			font-family: 'Jaro', sans-serif;
+			background-color: #1A1A1D;
+			color: #D9D9D9;
+			min-height: 100vh;
+			padding: 20px;
+			position: relative;
+			overflow-x: hidden;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+		}
+		.error-container {
+			width: 100%;
+			max-width: 500px;
+			background: #232326;
+			border: 3px solid #C49B3B;
+			border-radius: 18px;
+			box-shadow: 0 8px 32px 0 rgba(196, 155, 59, 0.25);
+			padding: 50px 30px 40px;
+			text-align: center;
+			margin: 0 auto;
+		}
+		.error-icon {
+			font-size: 5rem;
+			color: #C49B3B;
+			margin-bottom: 18px;
+		}
+		.error-title {
+			font-family: 'Jaro', sans-serif;
+			font-size: 4rem;
+			font-weight: bold;
+			color: #C49B3B;
+			margin-bottom: 18px;
+			letter-spacing: 4px;
+			text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+		}
+		.error-subtitle {
+			font-size: 2rem;
+			color: #D9D9D9;
+			margin-bottom: 18px;
+		}
+		.error-message {
+			font-size: 1.3rem;
+			color: #C49B3B;
+			margin-bottom: 32px;
+		}
+		.error-btn {
+			padding: 14px 40px;
+			background: transparent;
+			border: 3px solid #C49B3B;
+			border-radius: 8px;
+			color: #C49B3B;
+			font-family: 'Jaro', sans-serif;
+			font-size: 1.5rem;
+			font-weight: bold;
+			cursor: pointer;
+			transition: all 0.3s;
+			letter-spacing: 2px;
+			margin-top: 10px;
+			text-decoration: none;
+			display: inline-block;
+		}
+		.error-btn:hover {
+			background: #C49B3B;
+			color: #1A1A1D;
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(196, 155, 59, 0.4);
+		}
+		@media (max-width: 600px) {
+			.error-container {
+				padding: 30px 10px 25px;
+			}
+			.error-title {
+				font-size: 2.5rem;
+			}
+			.error-subtitle {
+				font-size: 1.2rem;
+			}
+			.error-message {
+				font-size: 1rem;
+			}
+			.error-btn {
+				font-size: 1.1rem;
+				padding: 10px 20px;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="error-container">
+		<div class="error-icon">🚫</div>
+		<div class="error-title">404</div>
+		<div class="error-subtitle">Az oldal nem található</div>
+		<div class="error-message">Ez az oldal nem létezik, vagy már eltávolították.<br>Visszaléphetsz a főoldalra, vagy ellenőrizd a címet.</div>
+		<a href="/" class="error-btn">Vissza a főoldalra</a>
+	</div>
+</body>
+</html>
