@@ -1744,13 +1744,20 @@ h1:focus {
                 return;
             }
             
-            const leaderName = document.getElementById('leader-name').value;
+            const leaderName = document.getElementById('leader-name').value.trim();
+            
+            if (!leaderName) {
+                showAlert('A vezér neve kötelező!', 'warning');
+                return;
+            }
+            
             const baseCard = cards.find(c => c.id === leaderBaseCard);
             
             if (!baseCard) return;
             
             const leaderData = {
                 card_id: baseCard.id,
+                name: leaderName,
                 damage_doubled: selectedStat === 'damage',
                 world_id: currentWorldId
             };
@@ -2431,8 +2438,8 @@ h1:focus {
           ${sequenceBadgeHTML}
           <button class="delete-btn ${showActionBtns}" onclick="deleteCard('${card.id}')">×</button>
           ${!card.is_leader ? `<button class="leader-btn ${showActionBtns}" onclick="createLeaderCard('${card.id}')">👑</button>` : ''}
-          <button class="give-btn ${showActionBtns}" onclick="openGiveModal('${card.id}')">➕</button>
-          <button class="remove-btn ${showActionBtns}" onclick="openRemoveModal('${card.id}')">➖</button>
+          ${!card.is_leader ? `<button class="give-btn ${showActionBtns}" onclick="openGiveModal('${card.id}')">➕</button>` : ''}
+          ${!card.is_leader ? `<button class="remove-btn ${showActionBtns}" onclick="openRemoveModal('${card.id}')">➖</button>` : ''}
           <div class="card-type">${typeLabels[card.type]}</div>
           <div class="card-image">
             ${card.picture ? `<img src="${card.picture}" alt="${card.name}">` : '🃏'}
