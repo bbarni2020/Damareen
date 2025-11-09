@@ -1,11 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Damareen - Game</title>
 </head>
 <body>
-    
+<h1>Harc</h1>
+<div id="status"></div>
+<div id="dungeonInfo"></div>
+<div>
+    <label>Dungeon ID: <input id="dungeonId" type="text"></label>
+    <button id="loadDungeonsBtn">Kazamaták lekérése</button>
+    <div id="dungeons"></div>
+</div>
+<div>
+    <button id="fightBtn">Harc indítása</button>
+</div>
+<hr>
+<div>
+    <h2>Kártyáim</h2>
+    <div id="cards"></div>
+    <div>Választott: <span id="selectedCount">0</span></div>
+    <button id="saveDeckBtn">Pakli mentése</button>
+</div>
+<div id="result"></div>
+<script>
+const API_URL = 'https://damareen.deakteri.fun/api';
+function getParam(n){const u=new URL(window.location.href);return u.searchParams.get(n);} 
+const worldId = getParam('world_id');
+const statusEl = document.getElementById('status');
+const fightBtn = document.getElementById('fightBtn');
+const dungeonInput = document.getElementById('dungeonId');
+const resultEl = document.getElementById('result');
+const dungeonsEl = document.getElementById('dungeons');
+const loadBtn = document.getElementById('loadDungeonsBtn');
+const cardsEl = document.getElementById('cards');
+const saveDeckBtn = document.getElementById('saveDeckBtn');
+const selectedCountEl = document.getElementById('selectedCount');
+const dungeonInfoEl = document.getElementById('dungeonInfo');
+let currentDungeonSize = null;
+function auth(){const t=localStorage.getItem('token');if(!t){statusEl.textContent='Nincs token';}return t;}
+async function loadDungeons(){
+    dungeonsEl.textContent='Betöltés...';
+    const token = auth();
+    if(!worldId){statusEl.textContent='Hiányzó world_id';return;}
+    try{
+        const r = await fetch(`${API_URL}/game/dungeon?world_id=${encodeURIComponent(worldId)}`,{headers:{'Authorization':`Bearer ${token}`}});
+        const data = await r.json();
+        if(!r.ok){dungeonsEl.textContent=data.error||'Hiba';return;}
+        dungeonsEl.innerHTML='';
+        (data.data.dungeons||[]).forEach(d=>{
+            const div=document.createElement('div');
+            div.textContent=`${d.id} (${d.number_of_cards} lap)`;
+            div.dataset.id=d.id;
+            div.style.cursor='pointer';
+            div.onclick=()=>{dungeonInput.value=d.id;currentDungeonSize=d.number_of_cards;dungeonInfoEl.textContent=`Kazamata kártyák száma: ${currentDungeonSize}`;};
+            dungeonsEl.appendChild(div);
+        });
+    }catch(e){dungeonsEl.textContent='Hálózati hiba';}
+}
+loadBtn.onclick = loadDungeons;
+fightBtn.onclick = async () => {
+    resultEl.textContent='';
+    statusEl.textContent='Indítás...';
+    const token = auth();
+    const dungeonId = dungeonInput.value.trim();
+    if(!dungeonId){statusEl.textContent='Dungeon ID hiányzik';return;}
+    if(!worldId){statusEl.textContent='world_id hiányzik az URL-ben';return;}
+    if(currentDungeonSize!==null){
+        const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
+        if(selected.length!==currentDungeonSize){statusEl.textContent=`A választott pakli (${selected.length}) nem egyezik a kazamata (${currentDungeonSize}) méretével`;return;}
+    }
+    try{
+        const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
+        const r = await fetch(url,{headers:{'Authorization':`Bearer ${token}`}});
+        const data = await r.json();
+        if(!r.ok){statusEl.textContent=data.error||'Hiba';return;}
+        statusEl.textContent = `Győztes: ${data.data.winner}`;
+        const battles = data.data.battles||[];
+        const table = document.createElement('table');
+        const head = document.createElement('tr');
+        ['Pozíció','Játékos lap','Kazamata lap','Győztes','Ok'].forEach(h=>{const th=document.createElement('th');th.textContent=h;head.appendChild(th);});
+        table.appendChild(head);
+        battles.forEach(b=>{
+            const tr=document.createElement('tr');
+            const pc=b.player_card||{};const dc=b.dungeon_card||{};
+            const cols=[b.position,pc.name,dc.name,b.winner,b.reason];
+            cols.forEach(c=>{const td=document.createElement('td');td.textContent=c;tr.appendChild(td);});
+            table.appendChild(tr);
+        });
+        resultEl.innerHTML='';
+        resultEl.appendChild(table);
+    }catch(e){statusEl.textContent='Hálózati hiba';}
+};
+async function loadCards(){
+    cardsEl.textContent='Betöltés...';
+    const token = auth();
+    if(!worldId){cardsEl.textContent='Hiányzó world_id';return;}
+    try{
+        const r = await fetch(`${API_URL}/user/list/cards?world_id=${encodeURIComponent(worldId)}`,{headers:{'Authorization':`Bearer ${token}`}});
+        const data = await r.json();
+        if(!r.ok){cardsEl.textContent=data.error||'Hiba';return;}
+        cardsEl.innerHTML='';
+        (data.data.cards||[]).forEach(c=>{
+            const row=document.createElement('div');
+            const cb=document.createElement('input');
+            cb.type='checkbox';
+            cb.value=c.id;
+            cb.onchange=updateSelectedCount;
+            const span=document.createElement('span');
+            span.textContent=` ${c.name} [${c.type}] HP:${c.health} DMG:${c.damage}`;
+            row.appendChild(cb);row.appendChild(span);cardsEl.appendChild(row);
+        });
+        updateSelectedCount();
+    }catch(e){cardsEl.textContent='Hálózati hiba';}
+}
+function updateSelectedCount(){
+    const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
+    selectedCountEl.textContent=selected.length;
+}
+saveDeckBtn.onclick = async () => {
+    const token = auth();
+    const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
+    if(selected.length===0){statusEl.textContent='Nincs kiválasztott kártya';return;}
+    if(![1,4,6].includes(selected.length)){statusEl.textContent='Pakli méret csak 1,4 vagy 6 lehet';return;}
+    if(currentDungeonSize!==null && selected.length!==currentDungeonSize){statusEl.textContent=`A pakli mérete (${selected.length}) térjen el a kazamata méretétől (${currentDungeonSize})`;}
+    try{
+        const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:selected})});
+        const data = await r.json();
+        if(!r.ok){statusEl.textContent=data.error||'Hiba';return;}
+        statusEl.textContent='Pakli mentve';
+    }catch(e){statusEl.textContent='Hálózati hiba';}
+};
+if(worldId){statusEl.textContent=`world_id: ${worldId}`;} else {statusEl.textContent='Adj meg world_id-t az URL-ben';}
+if(worldId){loadDungeons();}
+if(worldId){loadCards();}
+</script>
 </body>
 </html>

@@ -1088,6 +1088,18 @@ def list_world_users():
     return success_response({'users': result})
 
 
+@api.route('/user/list/cards', methods=['GET'])
+@ratelimit
+@require_auth
+def list_user_cards():
+    user = request.current_user
+    world_id = request.args.get('world_id')
+    if not world_id:
+        return error_response('A világ azonosítója kötelező', 400)
+    cards = Card.query.filter_by(owner_id=user.id, world_id=str(world_id)).all()
+    return success_response({'cards': [c.to_dict() for c in cards]})
+
+
 
 @api.route('/delete/card', methods=['DELETE'])
 @ratelimit
@@ -1224,12 +1236,15 @@ def delete_dungeon():
 @require_auth
 def fight():
     user = request.current_user
+    world_id = request.args.get('world_id')
     dungeon_id = request.args.get('dungeon_id')
     if not dungeon_id:
         return error_response('A dungeon azonosítója kötelező', 400)
     dungeon = Dungeon.query.filter_by(id=str(dungeon_id)).first()
     if not dungeon:
         return error_response('Dungeon nem található', 404)
+    if world_id and str(dungeon.world_id) != str(world_id):
+        return error_response('A dungeon nem ebben a világban található', 400)
     dungeon_card_ids = dungeon.list_of_card_ids or []
     dungeon_cards = []
     if dungeon_card_ids:
@@ -1238,12 +1253,19 @@ def fight():
         for cid in dungeon_card_ids:
             if cid in card_map:
                 dungeon_cards.append(card_map[cid].to_dict())
-    player_cards = Card.query.filter(Card.owner_id == user.id, Card.position != 0).order_by(Card.position).all()
+    player_cards = Card.query.filter(
+        Card.owner_id == user.id,
+        Card.world_id == dungeon.world_id,
+        Card.position != 0
+    ).order_by(Card.position).all()
     player_deck = []
     for idx, c in enumerate(player_cards):
         d = c.to_dict()
         d['position'] = idx + 1
         player_deck.append(d)
+
+    if len(player_deck) != len(dungeon_cards):
+        return error_response('A pakli kártyáinak száma nem egyezik a kazamata kártyáinak számával', 400)
 
     battles = []
     beats = {'t': 'f', 'f': 'v', 'v': 'l', 'l': 't'}
