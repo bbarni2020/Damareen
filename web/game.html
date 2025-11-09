@@ -1575,6 +1575,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+/**
+ * Pakli üzenet megjelenítése a felhasználónak
+ * @param {string} message - A megjelenítendő üzenet szövege
+ * @param {boolean} isSuccess - Sikeres művelet (zöld) vagy hiba (piros)
+ */
 function showDeckMessage(message, isSuccess) {
     deckMessageEl.textContent = message;
     deckMessageEl.className = 'deck-message ' + (isSuccess ? 'success' : 'error');
@@ -1598,6 +1603,10 @@ function closeCardDetail() {
     cardDetailModal.style.display = 'none';
 }
 
+/**
+ * Kártya részletes nézetének megjelenítése modal ablakban
+ * @param {Object} card - A megjelenítendő kártya objektum
+ */
 function showCardDetail(card) {
     const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
     const typeNames = {t:'Tűz',v:'Víz',f:'Föld',l:'Levegő'};
@@ -1622,6 +1631,10 @@ function showCardDetail(card) {
 }
 
 function auth(){const t=localStorage.getItem('token');if(!t){statusEl.textContent='Nincs token';}return t;}
+/**
+ * Kazamaták betöltése a szerverről és megjelenítése
+ * A játékos ezek közül választhat ellenfelet
+ */
 async function loadDungeons(){
     dungeonsEl.innerHTML='<div class="empty-message">Betöltés...</div>';
     const token = auth();
@@ -1755,6 +1768,10 @@ fightBtn.onclick = async () => {
         fightBtn.textContent = 'HARC!';
     }
 };
+/**
+ * Játékos kártyáinak betöltése a szerverről
+ * Frissíti a pakli és gyűjtemény panelt
+ */
 async function loadCards(){
     const token = auth();
     if(!worldId){statusEl.textContent='Hiányzó world_id';return;}
@@ -1768,6 +1785,11 @@ async function loadCards(){
     }catch(e){statusEl.textContent='Hálózati hiba';}
 }
 
+/**
+ * Pakli panel renderelése a képernyőn
+ * Megjeleníti az összes pakliban lévő kártyát pozíció szerint rendezve
+ * Támogatja a drag & drop műveletet és az átrendezést
+ */
 function renderDeckPanel(){
     const deckPanel = document.getElementById('deckPanel');
     const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
@@ -1909,6 +1931,10 @@ function renderDeckPanel(){
     });
 }
 
+/**
+ * Pakli kártyáinak újrarendezése drag & drop után
+ * Frissíti a pozíció értékeket az aktuális sorrend szerint
+ */
 function reorderDeckCards() {
     const deckPanel = document.getElementById('deckPanel');
     const cardElements = [...deckPanel.querySelectorAll('.side-panel-card')];
@@ -1925,6 +1951,11 @@ function reorderDeckCards() {
     showDeckMessage('Pakli sorrend megváltoztatva', true);
 }
 
+/**
+ * Kártya hozzáadása a paklihoz
+ * @param {string} cardId - A hozzáadandó kártya azonosítója
+ * Ellenőrzi a pakli méret limiteket (max 6 kártya)
+ */
 function addCardToDeck(cardId) {
     const card = allCardsData.find(c => c.id === cardId);
     if (!card) return;
@@ -1948,6 +1979,11 @@ function addCardToDeck(cardId) {
     showDeckMessage(`Kártya hozzáadva a paklihoz (${newPosition}. pozíció)`, true);
 }
 
+/**
+ * Kártya eltávolítása a pakliból
+ * @param {string} cardId - Az eltávolítandó kártya azonosítója
+ * Automatikusan újraszámozza a megmaradó kártyák pozícióját
+ */
 function removeCardFromDeck(cardId) {
     const card = allCardsData.find(c => c.id === cardId);
     if (!card) return;
@@ -1964,6 +2000,11 @@ function removeCardFromDeck(cardId) {
     showDeckMessage('Kártya eltávolítva a pakliból', true);
 }
 
+/**
+ * Gyűjtemény panel renderelése
+ * Megjeleníti az összes olyan kártyát, ami nincs a pakliban
+ * Támogatja a drag & drop műveletet a paklihoz való hozzáadáshoz
+ */
 function renderCollectionPanel(){
     const collectionPanel = document.getElementById('collectionPanel');
     const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
@@ -2152,6 +2193,10 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
 
 if(worldId){statusEl.textContent=`world_id: ${worldId}`;} else {statusEl.textContent='Adj meg world_id-t az URL-ben';}
 
+/**
+ * Kártya választó modal megjelenítése harc előtt
+ * A játékos kiválasztja, melyik kártyát szeretné fejleszteni győzelem esetén
+ */
 function showCardSelectionModal() {
     const modal = document.getElementById('card-selection-modal');
     const content = document.getElementById('card-selection-content');
@@ -2224,6 +2269,11 @@ function closeCardSelectionModal() {
     }, 300);
 }
 
+/**
+ * Harc indítása a kiválasztott kazamata ellen
+ * @param {string} selectedCardId - A fejlesztésre kiválasztott kártya azonosítója
+ * Elindítja a battle animációt és frissíti az eredményt
+ */
 async function startFight(selectedCardId) {
     const fightErrorMessage = document.getElementById('fightErrorMessage');
     statusEl.textContent='⚔️ Harc indítása...';
@@ -2269,6 +2319,12 @@ async function startFight(selectedCardId) {
     }
 }
 
+/**
+ * Battle kártya elem létrehozása az animációhoz
+ * @param {Object} card - A kártya adatok
+ * @param {boolean} isDungeon - Igaz, ha kazamata kártya, hamis ha játékos kártya
+ * @returns {HTMLElement} A létrehozott kártya HTML elem
+ */
 function createBattleCard(card, isDungeon = false) {
     const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
     
@@ -2311,6 +2367,12 @@ function createBattleCard(card, isDungeon = false) {
     return cardEl;
 }
 
+/**
+ * Harc animáció lejátszása köröként
+ * @param {Array} battles - A harc körök tömbje
+ * @param {string} overallWinner - A végső győztes ('player' vagy 'dungeon')
+ * Megjelenít minden kört külön animációval, kattintásra léptet tovább
+ */
 async function playBattleAnimation(battles, overallWinner) {
     const overlay = document.getElementById('battleAnimationOverlay');
     const playerColumn = document.getElementById('playerColumn');
@@ -2517,6 +2579,10 @@ document.getElementById('card-selection-modal').addEventListener('click', (e) =>
     }
 });
 
+/**
+ * Csatlakozás a világhoz meghívó kód alapján
+ * Ha a felhasználó már játékmester ebben a világban, átirányít a kezelő oldalra
+ */
 async function joinWorld(){
     const token = auth();
     if(!worldId) return;
