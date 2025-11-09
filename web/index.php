@@ -17,6 +17,17 @@ if ($request === 'manage-world') {
     return;
 }
 
+if ($request === 'game') {
+    include __DIR__ . '/game.html';
+    return;
+}
+
+if (file_exists(__DIR__ . '/404.html')) {
+    http_response_code(404);
+    include __DIR__ . '/404.html';
+    return;
+}
+
 http_response_code(404);
 echo '404 - Page Not Found';
 ?>
