@@ -224,13 +224,13 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.3);
+            box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
             position: relative;
         }
 
         .world-card:hover {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(196, 155, 59, 0.5);
+            box-shadow: 0 8px 10px rgba(196, 155, 59, 0.5);
             background: #d4ab4f;
         }
 
@@ -256,7 +256,18 @@
             width: 100%;
         }
 
-        .start-button {
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .start-button,
+        .refresh-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 15px 80px;
             background: transparent;
             border: 3px solid #C49B3B;
@@ -269,18 +280,57 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
             letter-spacing: 2px;
-            margin-top: 20px;
+            max-width: 220px;
+            text-align: center;
         }
 
-        .start-button:hover {
+        .start-button:hover,
+        .refresh-button:hover {
             background: #C49B3B;
             color: #1A1A1D;
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(196, 155, 59, 0.4);
         }
 
-        .start-button:active {
+        .start-button.no-selection:hover {
+            background: transparent;
+            color: #C49B3B;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
+        }
+
+        .start-button:active,
+        .refresh-button:active {
             transform: translateY(-1px);
+        }
+
+        .start-button.shake {
+            animation: shake 0.5s;
+        }
+
+        .start-button.shake:hover {
+            background: transparent;
+            color: #C49B3B;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
+        }
+
+        .refresh-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .refresh-button:disabled:hover {
+            background: transparent;
+            color: #C49B3B;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
         }
 
         #message {
@@ -417,6 +467,100 @@
         }
 
         
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .logout-modal-overlay.active {
+            display: flex;
+        }
+
+        .logout-modal {
+            background: #1A1A1D;
+            border: 3px solid #C49B3B;
+            border-radius: 15px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 40px rgba(196, 155, 59, 0.5);
+            position: relative;
+        }
+
+        .logout-modal-header {
+            font-family: 'Jaro', sans-serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #C49B3B;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(196, 155, 59, 0.4);
+        }
+
+        .logout-modal-message {
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.3rem;
+            color: #D9D9D9;
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .logout-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .logout-modal-btn {
+            padding: 12px 30px;
+            border: 2px solid;
+            border-radius: 8px;
+            font-family: 'Jaro', sans-serif;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            min-width: 120px;
+        }
+
+        .logout-confirm-btn {
+            background: transparent;
+            color: #C49B3B;
+            border-color: #C49B3B;
+        }
+
+        .logout-confirm-btn:hover {
+            background: #C49B3B;
+            color: #1A1A1D;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+        }
+
+        .logout-cancel-btn {
+            background: transparent;
+            color: #C49B3B;
+            border-color: #C49B3B;
+        }
+
+        .logout-cancel-btn:hover {
+            background: #C49B3B;
+            color: #1A1A1D;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+        }
+
         .delete-modal-overlay {
             display: none;
             position: fixed;
@@ -656,6 +800,19 @@
         </div>
     </div>
 
+    <div class="logout-modal-overlay" id="logout-modal-overlay">
+        <div class="logout-modal">
+            <div class="logout-modal-header">Kijelentkezés</div>
+            <div class="logout-modal-message">
+                Biztosan ki szeretnél jelentkezni?
+            </div>
+            <div class="logout-modal-buttons">
+                <button class="logout-modal-btn logout-cancel-btn" id="logout-cancel-btn">Mégse</button>
+                <button class="logout-modal-btn logout-confirm-btn" id="logout-confirm-btn">Kijelentkezés</button>
+            </div>
+        </div>
+    </div>
+
     <div class="delete-modal-overlay" id="delete-modal-overlay">
         <div class="delete-modal">
             <div class="delete-modal-header">Fiók törlése</div>
@@ -691,7 +848,10 @@
             </div>
         </div>
 
-        <button class="start-button" id="start-btn">Start</button>
+        <div class="action-buttons">
+            <button class="refresh-button" id="refresh-btn">Frissítés</button>
+            <button class="start-button" id="start-btn">Kezdés</button>
+        </div>
 
         <p id="message"></p>
     </div>
@@ -703,6 +863,17 @@
         const ownWorldsScroll = document.getElementById('own-worlds-scroll');
         
         let selectedWorldId = null;
+
+        function updateStartButtonState() {
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) {
+                if (selectedWorldId) {
+                    startBtn.classList.remove('no-selection');
+                } else {
+                    startBtn.classList.add('no-selection');
+                }
+            }
+        }
 
         worldsScroll.addEventListener('wheel', (e) => {
             if (e.deltaY !== 0) {
@@ -734,7 +905,6 @@
                 const userDisplay = document.getElementById('user-display');
                 if (userDisplay) userDisplay.textContent = `Üdv, ${username}!`;
                 
-                // Also set username in settings popup
                 const settingsUsername = document.getElementById('settings-username');
                 if (settingsUsername) settingsUsername.textContent = username;
             } catch (error) {
@@ -762,6 +932,12 @@
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'auth.html';
+                        return;
+                    }
                     throw new Error('Failed to fetch worlds');
                 }
 
@@ -797,12 +973,12 @@
             if (!worlds || Object.keys(worlds).length === 0) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-worlds-message';
-                emptyMessage.textContent = 'Még nincs létrehozva világ';
+                emptyMessage.textContent = 'Még nincs létrehozva új világ';
                 worldsScroll.appendChild(emptyMessage);
                 
                 const emptyOwnMessage = document.createElement('div');
                 emptyOwnMessage.className = 'empty-worlds-message';
-                emptyOwnMessage.textContent = 'Még nincs létrehozva világ';
+                emptyOwnMessage.textContent = 'Még nincs saját világod';
                 ownWorldsScroll.appendChild(emptyOwnMessage);
                 return;
             }
@@ -828,7 +1004,7 @@
                 const isMaster = whereUserIsMaster.includes(worldId);
                 if (isMaster) {
                     card.style.background = '#72a6ac';
-                    card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                    card.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.3)';
                     card.dataset.isMaster = 'true';
                 }
                 
@@ -841,29 +1017,30 @@
                 
                 card.addEventListener('mouseenter', () => {
                     if (isMaster) {
-                        card.style.boxShadow = '0 8px 25px rgba(114, 166, 172, 0.8)';
+                        card.style.boxShadow = '0 8px 10px rgba(114, 166, 172, 0.8)';
                     }
                 });
                 
                 card.addEventListener('mouseleave', () => {
                     if (isMaster && selectedWorldId !== worldId) {
-                        card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                        card.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.3)';
                     } else if (isMaster && selectedWorldId === worldId) {
-                        card.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.6)';
+                        card.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.6)';
                     }
                 });
                 
                 card.addEventListener('click', () => {
                     if (selectedWorldId === worldId) {
                         card.style.outline = 'none';
-                        card.style.boxShadow = isMaster ? '0 8px 25px rgba(114, 166, 172, 0.8)' : '0 8px 25px rgba(196, 155, 59, 0.5)';
+                        card.style.boxShadow = isMaster ? '0 8px 10px rgba(114, 166, 172, 0.8)' : '0 8px 10px rgba(196, 155, 59, 0.5)';
                         selectedWorldId = null;
                         messageElement.textContent = '';
+                        updateStartButtonState();
                     } else {
                         document.querySelectorAll('.world-card').forEach(c => {
                             c.style.outline = 'none';
                             if (c.dataset.isMaster === 'true') {
-                                c.style.boxShadow = '0 4px 15px rgba(114, 166, 172, 0.3)';
+                                c.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.3)';
                             } else {
                                 c.style.boxShadow = '';
                             }
@@ -872,11 +1049,12 @@
                         const outlineColor = isMaster ? '#72a6ac' : '#C49B3B';
                         card.style.outline = `3px solid ${outlineColor}`;
                         card.style.outlineOffset = '5px';
-                        card.style.boxShadow = isMaster ? '0 4px 15px rgba(114, 166, 172, 0.6)' : '0 4px 15px rgba(196, 155, 59, 0.3)';
+                        card.style.boxShadow = isMaster ? '0 4px 10px rgba(114, 166, 172, 0.6)' : '0 4px 10px rgba(196, 155, 59, 0.3)';
                         selectedWorldId = worldId;
                         
                         messageElement.textContent = `Kiválasztva: ${worldName}`;
                         messageElement.style.color = '#C49B3B';
+                        updateStartButtonState();
                         setTimeout(() => {
                             if (selectedWorldId === worldId) {
                                 messageElement.textContent = `Kiválasztva: ${worldName}`;
@@ -889,14 +1067,14 @@
             if (!hasDiscoveryWorlds) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-worlds-message';
-                emptyMessage.textContent = 'Még nincs létrehozva világ';
+                emptyMessage.textContent = 'Még nincs létrehozva új világ';
                 worldsScroll.appendChild(emptyMessage);
             }
             
             if (!hasOwnWorlds) {
                 const emptyOwnMessage = document.createElement('div');
                 emptyOwnMessage.className = 'empty-worlds-message';
-                emptyOwnMessage.textContent = 'Még nincs létrehozva világ';
+                emptyOwnMessage.textContent = 'Még nincs saját világod';
                 ownWorldsScroll.appendChild(emptyOwnMessage);
             }
             
@@ -916,25 +1094,56 @@
         }
 
         document.getElementById('start-btn').addEventListener('click', () => {
+            const startBtn = document.getElementById('start-btn');
+            
             if (!selectedWorldId) {
+                startBtn.classList.add('shake');
+                
                 messageElement.textContent = 'Kérlek válassz egy világot!';
                 messageElement.style.color = '#ff6b6b';
+                
+                setTimeout(() => {
+                    startBtn.classList.remove('shake');
+                }, 500);
+                
                 setTimeout(() => {
                     messageElement.textContent = '';
                 }, 2000);
                 return;
             }
             
-            messageElement.textContent = 'Indítás...';
+            const selectedCard = document.querySelector(`.world-card[data-world-id="${selectedWorldId}"]`);
+            const isMaster = selectedCard && selectedCard.dataset.isMaster === 'true';
+            
+            if (isMaster) {
+                window.location.href = `manage_world.html?world_id=${selectedWorldId}`;
+                return;
+            }
+            window.location.href = `game.html?world_id=${selectedWorldId}`;
+        });
+
+        document.getElementById('refresh-btn').addEventListener('click', async () => {
+            const refreshBtn = document.getElementById('refresh-btn');
+            const originalText = refreshBtn.textContent;
+            
+            refreshBtn.textContent = 'Frissítés...';
+            refreshBtn.disabled = true;
+            
+            messageElement.textContent = 'Világok betöltése...';
             messageElement.style.color = '#C49B3B';
             
+            selectedWorldId = null;
+            updateStartButtonState();
+            
+            await loadWorlds();
+            
+            refreshBtn.textContent = originalText;
+            refreshBtn.disabled = false;
+            
+            messageElement.textContent = 'Frissítve!';
             setTimeout(() => {
-                console.log('Starting world:', selectedWorldId);
-                messageElement.textContent = 'Világ betöltve!';
-                setTimeout(() => {
-                    messageElement.textContent = '';
-                }, 2000);
-            }, 1000);
+                messageElement.textContent = '';
+            }, 2000);
         });
 
         document.getElementById('add-world-btn').addEventListener('click', () => {
@@ -963,9 +1172,33 @@
         });
 
         logoutBtnPopup.addEventListener('click', () => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'auth.html';
+            const logoutModalOverlay = document.getElementById('logout-modal-overlay');
+            const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
+            const logoutCancelBtn = document.getElementById('logout-cancel-btn');
+            
+            settingsOverlay.classList.remove('active');
+            logoutModalOverlay.classList.add('active');
+            
+            const handleConfirm = () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'auth.html';
+            };
+            
+            const handleCancel = () => {
+                logoutModalOverlay.classList.remove('active');
+                logoutConfirmBtn.removeEventListener('click', handleConfirm);
+                logoutCancelBtn.removeEventListener('click', handleCancel);
+            };
+            
+            logoutConfirmBtn.addEventListener('click', handleConfirm);
+            logoutCancelBtn.addEventListener('click', handleCancel);
+            
+            logoutModalOverlay.addEventListener('click', (e) => {
+                if (e.target === logoutModalOverlay) {
+                    handleCancel();
+                }
+            });
         });
 
         deleteAccountBtn.addEventListener('click', async () => {
@@ -1039,6 +1272,12 @@
                                 window.location.href = 'auth.html';
                             }, 2000);
                         } else {
+                            if (response.status === 401 || response.status === 403) {
+                                localStorage.removeItem('token');
+                                localStorage.removeItem('user');
+                                window.location.href = 'auth.html';
+                                return;
+                            }
                             deleteModalError.textContent = data.error || data.message || 'Ismeretlen hiba történt';
                             deleteConfirmBtn.disabled = false;
                             deleteConfirmBtn.textContent = 'Fiók törlése';
@@ -1078,6 +1317,7 @@
 
         checkAuth();
         loadWorlds();
+        updateStartButtonState();
     </script>
 </body>
 </html>
