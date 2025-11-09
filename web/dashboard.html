@@ -792,6 +792,9 @@
                 Felhasználó: <span id="settings-username"></span>
             </div>
             <div class="settings-buttons">
+                <button class="settings-btn password-reset-btn" id="password-reset-btn">
+                    Jelszó megváltoztatása
+                </button>
                 <button class="settings-btn logout-btn-popup" id="logout-btn-popup">
                     Kijelentkezés
                 </button>
@@ -1153,11 +1156,65 @@
         });
 
         
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const settingsBtn = document.getElementById('settings-btn');
-        const closeSettingsBtn = document.getElementById('close-settings-btn');
-        const logoutBtnPopup = document.getElementById('logout-btn-popup');
-        const deleteAccountBtn = document.getElementById('delete-account-btn');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const settingsBtn = document.getElementById('settings-btn');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+    const logoutBtnPopup = document.getElementById('logout-btn-popup');
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
+    const passwordResetBtn = document.getElementById('password-reset-btn');
+        passwordResetBtn.addEventListener('click', async () => {
+            passwordResetBtn.disabled = true;
+            passwordResetBtn.textContent = 'Küldés...';
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (!token || !user) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            let email = '';
+            try {
+                const userData = JSON.parse(user);
+                email = userData.email || '';
+            } catch (e) {
+                email = '';
+            }
+            if (!email) {
+                passwordResetBtn.textContent = 'Nincs e-mail';
+                passwordResetBtn.style.color = '#ff6b6b';
+                setTimeout(() => {
+                    passwordResetBtn.textContent = 'Jelszó megváltoztatása';
+                    passwordResetBtn.style.color = '';
+                    passwordResetBtn.disabled = false;
+                }, 2000);
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/user/password-reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    passwordResetBtn.textContent = 'Email elküldve!';
+                    passwordResetBtn.style.color = '#C49B3B';
+                } else {
+                    passwordResetBtn.textContent = 'Hiba történt';
+                    passwordResetBtn.style.color = '#ff6b6b';
+                }
+            } catch (error) {
+                passwordResetBtn.textContent = 'Hiba történt';
+                passwordResetBtn.style.color = '#ff6b6b';
+            }
+            setTimeout(() => {
+                passwordResetBtn.textContent = 'Jelszó megváltoztatása';
+                passwordResetBtn.style.color = '';
+                passwordResetBtn.disabled = false;
+            }, 2000);
+        });
 
         settingsBtn.addEventListener('click', () => {
             settingsOverlay.classList.add('active');
