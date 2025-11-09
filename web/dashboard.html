@@ -354,10 +354,56 @@
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .settings-overlay.active {
             display: flex;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.7) translateY(-20px);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.05) translateY(0);
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes popOut {
+            0% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.8) translateY(-20px);
+                opacity: 0;
+            }
         }
 
         .settings-popup {
@@ -369,6 +415,20 @@
             max-width: 450px;
             box-shadow: 0 10px 40px rgba(196, 155, 59, 0.5);
             position: relative;
+            opacity: 0;
+            transform: scale(0.7) translateY(-20px);
+        }
+
+        .settings-overlay.active .settings-popup {
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        .settings-overlay.closing {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        .settings-overlay.closing .settings-popup {
+            animation: popOut 0.3s ease forwards;
         }
 
         .settings-header {
@@ -1415,16 +1475,25 @@
         });
 
         settingsBtn.addEventListener('click', () => {
+            settingsOverlay.classList.remove('closing');
             settingsOverlay.classList.add('active');
         });
 
+        function closeSettingsWithAnimation() {
+            settingsOverlay.classList.add('closing');
+            setTimeout(() => {
+                settingsOverlay.classList.remove('active');
+                settingsOverlay.classList.remove('closing');
+            }, 300);
+        }
+
         closeSettingsBtn.addEventListener('click', () => {
-            settingsOverlay.classList.remove('active');
+            closeSettingsWithAnimation();
         });
 
         settingsOverlay.addEventListener('click', (e) => {
             if (e.target === settingsOverlay) {
-                settingsOverlay.classList.remove('active');
+                closeSettingsWithAnimation();
             }
         });
 
@@ -1433,8 +1502,12 @@
             const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
             const logoutCancelBtn = document.getElementById('logout-cancel-btn');
             
-            settingsOverlay.classList.remove('active');
-            logoutModalOverlay.classList.add('active');
+            settingsOverlay.classList.add('closing');
+            setTimeout(() => {
+                settingsOverlay.classList.remove('active');
+                settingsOverlay.classList.remove('closing');
+                logoutModalOverlay.classList.add('active');
+            }, 300);
             
             const handleConfirm = () => {
                 localStorage.removeItem('token');
@@ -1476,8 +1549,12 @@
             
             let isPasswordStep = false;
             
-            settingsOverlay.classList.remove('active');
-            deleteModalOverlay.classList.add('active');
+            settingsOverlay.classList.add('closing');
+            setTimeout(() => {
+                settingsOverlay.classList.remove('active');
+                settingsOverlay.classList.remove('closing');
+                deleteModalOverlay.classList.add('active');
+            }, 300);
             
             const handleConfirm = async () => {
                 if (!isPasswordStep) {

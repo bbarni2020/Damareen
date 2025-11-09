@@ -171,6 +171,7 @@ h1:focus {
   display: flex;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
+  animation: scaleIn 0.4s ease-out;
 }
 .left-panel,
 .tabs-container {
@@ -298,6 +299,7 @@ h1:focus {
 }
 .card-preview-image:hover {
   background: rgba(196, 155, 59, 0.2);
+  transform: scale(1.02);
 }
 .card-preview-image::after {
   content: "📁";
@@ -520,6 +522,7 @@ h1:focus {
   font-weight: 700;
   font-size: 0.9rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.25s ease-out;
 }
 .dungeon-sequence {
   background: rgba(196, 155, 59, 0.1);
@@ -555,6 +558,7 @@ h1:focus {
   font-family: "Fira Code", monospace;
   gap: 8px;
   transition: all 0.3s;
+  animation: fadeIn 0.3s ease-out;
 }
 .sequence-number {
   background: #c49b3b;
@@ -896,6 +900,7 @@ h1:focus {
 }
 .modal-overlay.active {
   display: flex;
+  animation: fadeIn 0.25s ease-out;
 }
 .modal-content {
   background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
@@ -905,6 +910,7 @@ h1:focus {
   max-width: 400px;
   width: 90%;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.3s ease-out;
 }
 .modal-title {
   font-family: "Jaro", sans-serif;
@@ -962,6 +968,7 @@ h1:focus {
 .stat-option:hover {
   border-color: #c49b3b;
   background: rgba(196, 155, 59, 0.2);
+  transform: scale(1.03);
 }
 .stat-option.selected {
   border-color: #8a2be2;
@@ -1110,6 +1117,29 @@ h1:focus {
   10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .mini-card.shake {
   animation: shake 0.5s;
   border-color: #ff6b6b !important;
