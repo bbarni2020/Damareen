@@ -106,7 +106,7 @@ h1 {
   border-radius: 2px;
 }
 h1 {
-  font-size: 4rem;
+  font-size: 3rem;
   color: #c49b3b;
   margin-bottom: 40px;
   letter-spacing: 4px;
@@ -114,13 +114,42 @@ h1 {
   text-align: center;
   padding: 10px 30px;
   border-radius: 10px;
-}
-h1:hover {
-  background: rgba(196, 155, 59, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 h1:focus {
   outline: 2px solid #c49b3b;
   outline-offset: 5px;
+}
+
+#world-name-input {
+  margin-left: 14px;
+  padding: 10px 0;
+  padding-bottom: 6px;
+  font-family: "Jaro", sans-serif;
+  font-weight: 700;
+  font-size: 3rem;
+  letter-spacing: 4px;
+  color: #d9d9d9;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(196, 155, 59, 0.35);
+  border-radius: 0;
+  width: 300px;
+  transition: all 0.2s ease;
+}
+#world-name-input::placeholder {
+  color: rgba(217, 217, 217, 0.55);
+}
+#world-name-input:focus {
+  outline: none;
+  border-bottom-color: #c49b3b;
+  background: transparent;
+}
+#world-name-input:disabled {
+  opacity: 0.8;
+  cursor: default;
 }
 .main-container {
   width: 90%;
@@ -1130,7 +1159,7 @@ h1:focus {
         <button class="action-btn danger" id="delete-world-btn" onclick="deleteWorld()" disabled style="opacity: 0.5; cursor: not-allowed;">Világ törlése</button>
     </div>
 
-    <h1 id="world-name" contenteditable="true" spellcheck="false">Világ neve</h1>
+  <h1 id="world-name" spellcheck="false">Világ neve: <input type="text" id="world-name-input" placeholder="Kezdj gépelni" aria-label="Világ neve"></h1>
 
     <div class="main-container">
         <div class="left-panel">
@@ -1323,7 +1352,7 @@ h1:focus {
     </div>
 
     <script>
-        //const API_URL = 'http://127.0.0.1:7620';
+        
         const API_URL = 'https://damareen.deakteri.fun/api'; 
         let isPaused = false;
         let cards = [];
@@ -1377,7 +1406,7 @@ h1:focus {
             return urlParams.get(name);
         }
 
-        function enableWorldUI(fromUrl = false) {
+    function enableWorldUI(fromUrl = false) {
             document.getElementById('card-creation-tab').disabled = false;
             document.getElementById('dungeon-creation-tab').disabled = false;
             document.getElementById('delete-world-btn').disabled = false;
@@ -1398,17 +1427,23 @@ h1:focus {
                 tab.classList.remove('locked');
             });
 
-            if (fromUrl) {
-                const worldNameEl = document.getElementById('world-name');
-                worldNameEl.contentEditable = 'false';
-                worldNameEl.style.cursor = 'default';
-                worldNameEl.style.opacity = '0.8';
-                
-                document.getElementById('create-world-btn').style.display = 'none';
-            }
+      
+      const worldNameInput = document.getElementById('world-name-input');
+      if (worldNameInput) {
+        if (fromUrl) {
+          worldNameInput.disabled = true;
+          worldNameInput.style.opacity = '0.8';
+          worldNameInput.style.cursor = 'default';
+          document.getElementById('create-world-btn').style.display = 'none';
+        } else {
+          worldNameInput.disabled = false;
+          worldNameInput.style.opacity = '1';
+          worldNameInput.style.cursor = 'text';
+        }
+      }
         }
 
-        function disableWorldUI() {
+    function disableWorldUI() {
             document.getElementById('card-creation-tab').disabled = true;
             document.getElementById('dungeon-creation-tab').disabled = true;
             document.getElementById('delete-world-btn').disabled = true;
@@ -1419,10 +1454,13 @@ h1:focus {
             document.getElementById('create-world-btn').style.cursor = 'pointer';
             document.getElementById('create-world-btn').style.display = 'block';
             
-            const worldNameEl = document.getElementById('world-name');
-            worldNameEl.contentEditable = 'true';
-            worldNameEl.style.cursor = 'pointer';
-            worldNameEl.style.opacity = '1';
+      
+      const worldNameInput = document.getElementById('world-name-input');
+      if (worldNameInput) {
+        worldNameInput.disabled = false;
+        worldNameInput.style.opacity = '1';
+        worldNameInput.style.cursor = 'text';
+      }
             
             document.getElementById('card-type').disabled = true;
             document.getElementById('card-picture').disabled = true;
@@ -1547,18 +1585,16 @@ h1:focus {
             }
         });
 
-        document.getElementById('world-name').addEventListener('blur', function() {
-            if (this.textContent.trim() === '') {
-                this.textContent = 'Világ neve';
-            }
-        });
-
-        document.getElementById('world-name').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.blur();
-            }
-        });
+    
+    const worldNameInput = document.getElementById('world-name-input');
+    if (worldNameInput) {
+      worldNameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.blur();
+        }
+      });
+    }
 
         document.getElementById('assign-mode').addEventListener('change', function() {
             const mode = this.value;
@@ -1853,7 +1889,7 @@ h1:focus {
 
                 const worldsData = await worldsResponse.json();
                 
-                const worldName = worldsData.data?.worlds?.[worldId];
+        const worldName = worldsData.data?.worlds?.[worldId];
                 
                 if (!worldName) {
                     showAlert('Nem található ilyen világ!', 'error');
@@ -1861,7 +1897,8 @@ h1:focus {
                 }
 
                 currentWorldId = worldId;
-                document.getElementById('world-name').textContent = worldName;
+        const wInput = document.getElementById('world-name-input');
+        if (wInput) wInput.value = worldName;
                 enableWorldUI(true);
                 await loadWorldUsers();
                 await loadCards();
@@ -1986,7 +2023,7 @@ h1:focus {
         });
         if (response.ok) {
           await response.json();
-          // Do not push user copies into collection; only base cards are shown
+          
           renderCollection();
           showAlert('Kártya kiosztva', 'success');
         } else {
@@ -1999,7 +2036,7 @@ h1:focus {
       closeGiveModal();
     });
 
-    // Remove (deassign) modal logic
+    
     let removeBaseCardId = null;
     function openRemoveModal(cardId) {
       removeBaseCardId = cardId;
@@ -2078,9 +2115,10 @@ h1:focus {
         }
 
         async function createWorld() {
-            const worldName = document.getElementById('world-name').textContent.trim();
+      const nameInput = document.getElementById('world-name-input');
+      const worldName = (nameInput ? nameInput.value : '').trim();
             
-            if (worldName === 'Világ neve' || worldName === '') {
+      if (worldName === '') {
                 showAlert('Kérlek adj nevet a világnak!', 'warning');
                 return;
             }
@@ -2250,7 +2288,8 @@ h1:focus {
                     url.searchParams.delete('world_id');
                     window.history.pushState({}, '', url);
                     
-                    document.getElementById('world-name').textContent = 'Világ neve';
+                    const wInput = document.getElementById('world-name-input');
+                    if (wInput) wInput.value = '';
                     disableWorldUI();
                     renderCollection();
                     renderDungeonSequence();
