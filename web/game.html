@@ -935,6 +935,405 @@ h1 {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.battle-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('src/background.png') center/cover no-repeat fixed, rgba(0, 0, 0, 0.85);
+  background-blend-mode: darken;
+  z-index: 3000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.battle-animation-overlay.active {
+  display: flex;
+}
+.battle-arena {
+  width: 90%;
+  max-width: 1400px;
+  height: 80vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  overflow: hidden;
+}
+.battle-columns-container {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+.battle-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  position: relative;
+  z-index: 1;
+  min-height: 300px;
+}
+.battle-column.player {
+  align-items: flex-end;
+}
+.battle-column.dungeon {
+  align-items: flex-start;
+}
+.battle-card {
+  width: 180px;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 3px solid #c49b3b;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  position: absolute;
+  opacity: 0;
+  transform: translateX(-100px) scale(0.8);
+  transition: all 0.5s ease;
+}
+.battle-card.dungeon-card {
+  transform: translateX(100px) scale(0.8);
+}
+.battle-card.visible {
+  opacity: 1;
+  transform: translateX(0);
+  animation: cardAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes cardAppear {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px) scale(0.8);
+  }
+  60% {
+    transform: translateX(0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+.battle-card.dungeon-card.visible {
+  animation: cardAppearDungeon 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes cardAppearDungeon {
+  0% {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+  60% {
+    transform: translateX(0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+.battle-card .card-image {
+  width: 100%;
+  height: 50%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  overflow: hidden;
+}
+.battle-card .card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.battle-card .card-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 1rem;
+  color: #c49b3b;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.battle-card .card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 2px solid rgba(196, 155, 59, 0.3);
+}
+.battle-card .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.battle-card .stat-label {
+  font-size: 0.7rem;
+  color: rgba(196, 155, 59, 0.7);
+  text-transform: uppercase;
+}
+.battle-card .stat-value {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.1rem;
+  color: #d9d9d9;
+  font-weight: 700;
+}
+.battle-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+.battle-result-card {
+  width: 220px;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 4px solid #c49b3b;
+  border-radius: 15px;
+  padding: 15px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(196, 155, 59, 0.8);
+  position: absolute;
+  z-index: 10;
+  animation: cardVictory 0.8s ease forwards;
+}
+.battle-result-card.winner {
+  display: flex;
+}
+.battle-result-card.player-win {
+  border-color: #4caf50;
+  box-shadow: 0 10px 40px rgba(76, 175, 80, 0.8);
+}
+.battle-result-card.dungeon-win {
+  border-color: #ff6b6b;
+  box-shadow: 0 10px 40px rgba(255, 107, 107, 0.8);
+}
+@keyframes cardVictory {
+  0% {
+    transform: scale(0.3) rotate(-15deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.15) rotate(3deg);
+  }
+  80% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+.battle-result-card .card-image {
+  width: 100%;
+  height: 50%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  overflow: hidden;
+}
+.battle-result-card .card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.battle-result-card .card-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.2rem;
+  color: #c49b3b;
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.battle-result-card .card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 2px solid rgba(196, 155, 59, 0.3);
+}
+.winner-badge {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #c49b3b 0, #d4ab4f 100%);
+  color: #1a1a1d;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-family: "Jaro", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(196, 155, 59, 0.6);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.battle-result-card.player-win .winner-badge {
+  background: linear-gradient(135deg, #4caf50 0, #66bb6a 100%);
+  color: #fff;
+}
+.battle-result-card.dungeon-win .winner-badge {
+  background: linear-gradient(135deg, #ff6b6b 0, #ff5252 100%);
+  color: #fff;
+}
+.battle-reason {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 26, 29, 0.95);
+  border: 2px solid rgba(196, 155, 59, 0.5);
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: #d9d9d9;
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 300px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  animation: reasonFadeIn 0.5s ease 0.3s forwards;
+  opacity: 0;
+  white-space: normal;
+  line-height: 1.4;
+}
+@keyframes reasonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+.battle-round-indicator {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(196, 155, 59, 0.2);
+  border: 3px solid #c49b3b;
+  border-radius: 15px;
+  padding: 15px 30px;
+  font-family: "Jaro", sans-serif;
+  font-size: 1.8rem;
+  color: #c49b3b;
+  font-weight: 700;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+.battle-connecting-line {
+  position: fixed;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    rgba(196, 155, 59, 0) 0%, 
+    #c49b3b 5%, 
+    #d4ab4f 50%, 
+    #c49b3b 95%, 
+    rgba(196, 155, 59, 0) 100%);
+  opacity: 0;
+  transform-origin: left center;
+  animation: drawLine 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 0 15px rgba(196, 155, 59, 0.8), 0 0 25px rgba(196, 155, 59, 0.4);
+  z-index: 5;
+  pointer-events: none;
+}
+@keyframes drawLine {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+.battle-card.fighting {
+  animation: cardFight 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  z-index: 20;
+}
+@keyframes cardFight {
+  0% {
+    transform: translateX(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(calc(var(--move-x) * 0.8)) scale(0.95) rotate(-5deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(var(--move-x)) scale(0.5) rotate(10deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(var(--move-x)) scale(0) rotate(180deg);
+    opacity: 0;
+  }
+}
+.battle-card.dungeon-card.fighting {
+  animation: cardFightDungeon 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  z-index: 20;
+}
+@keyframes cardFightDungeon {
+  0% {
+    transform: translateX(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(calc(var(--move-x) * 0.8)) scale(0.95) rotate(5deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(var(--move-x)) scale(0.5) rotate(-10deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(var(--move-x)) scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+}
+.battle-skip-btn {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  padding: 12px 25px;
+  background: rgba(196, 155, 59, 0.2);
+  border: 2px solid #c49b3b;
+  border-radius: 8px;
+  color: #c49b3b;
+  font-family: "Jaro", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 1000;
+}
+.battle-skip-btn:hover {
+  background: #c49b3b;
+  color: #1a1a1d;
+  transform: translateY(-2px);
+}
 .settings-overlay {
   display: none;
   position: fixed;
@@ -1141,6 +1540,29 @@ h1 {
             <div id="card-selection-content" style="display: flex; flex-wrap: nowrap; gap: 15px; padding: 20px; overflow-x: auto; justify-content: flex-start;">
                 
             </div>
+        </div>
+    </div>
+
+    
+    <div class="battle-animation-overlay" id="battleAnimationOverlay">
+        <div class="battle-arena" id="battleArena">
+            <div class="battle-round-indicator" id="battleRoundIndicator">Kör 1</div>
+            
+            <div class="battle-columns-container" id="battleColumnsContainer">
+                <div class="battle-column player" id="playerColumn">
+                    
+                </div>
+                
+                <div class="battle-center" id="battleCenter">
+                    
+                </div>
+                
+                <div class="battle-column dungeon" id="dungeonColumn">
+                    
+                </div>
+            </div>
+            
+            <button class="battle-skip-btn" id="battleSkipBtn">Gyors befejezés</button>
         </div>
     </div>
 
@@ -1832,6 +2254,8 @@ function closeCardSelectionModal() {
     }, 300);
 }
 
+let skipAnimation = false;
+
 async function startFight(selectedCardId) {
     const fightErrorMessage = document.getElementById('fightErrorMessage');
     resultEl.style.display='none';
@@ -1854,10 +2278,16 @@ async function startFight(selectedCardId) {
             }, 2000);
             return;
         }
+        
+        const battles = data.data.battles||[];
         const winner = data.data.winner;
+        
+        
+        await playBattleAnimation(battles, winner);
+        
+        
         const isPlayerWinner = winner === 'player';
         statusEl.textContent = isPlayerWinner ? '🎉 GYŐZTÉL!' : '💀 VESZTETTÉL';
-        const battles = data.data.battles||[];
         const resultTitle = document.getElementById('resultTitle');
         resultTitle.textContent = isPlayerWinner ? '🏆 GYŐZELEM 🏆' : '⚰️ VERESÉG ⚰️';
         resultTitle.style.color = isPlayerWinner ? '#4caf50' : '#ff6b6b';
@@ -1898,6 +2328,222 @@ async function startFight(selectedCardId) {
             fightErrorMessage.style.display = 'none';
         }, 2000);
     }
+}
+
+function createBattleCard(card, isDungeon = false) {
+    const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+    
+    const cardEl = document.createElement('div');
+    cardEl.className = `battle-card ${isDungeon ? 'dungeon-card' : 'player-card'}`;
+    cardEl.dataset.cardId = card.id;
+    
+    const cardImage = document.createElement('div');
+    cardImage.className = 'card-image';
+    if (card.picture) {
+        const img = document.createElement('img');
+        img.src = card.picture;
+        img.alt = card.name;
+        cardImage.appendChild(img);
+    } else {
+        cardImage.textContent = typeEmojis[card.type] || '❓';
+    }
+    
+    const cardName = document.createElement('div');
+    cardName.className = 'card-name';
+    cardName.textContent = card.name;
+    
+    const cardStats = document.createElement('div');
+    cardStats.className = 'card-stats';
+    cardStats.innerHTML = `
+        <div class="stat">
+            <div class="stat-label">HP</div>
+            <div class="stat-value">${card.health}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">DMG</div>
+            <div class="stat-value">${card.damage}</div>
+        </div>
+    `;
+    
+    cardEl.appendChild(cardImage);
+    cardEl.appendChild(cardName);
+    cardEl.appendChild(cardStats);
+    
+    return cardEl;
+}
+
+async function playBattleAnimation(battles, overallWinner) {
+    skipAnimation = false;
+    const overlay = document.getElementById('battleAnimationOverlay');
+    const playerColumn = document.getElementById('playerColumn');
+    const dungeonColumn = document.getElementById('dungeonColumn');
+    const battleCenter = document.getElementById('battleCenter');
+    const roundIndicator = document.getElementById('battleRoundIndicator');
+    const skipBtn = document.getElementById('battleSkipBtn');
+    
+    
+    playerColumn.innerHTML = '';
+    dungeonColumn.innerHTML = '';
+    battleCenter.innerHTML = '';
+    
+    
+    overlay.classList.add('active');
+    
+    
+    skipBtn.onclick = () => {
+        skipAnimation = true;
+    };
+    
+    
+    for (let i = 0; i < battles.length; i++) {
+        if (skipAnimation) break;
+        
+        const battle = battles[i];
+        roundIndicator.textContent = `Kör ${i + 1}`;
+        
+        
+        playerColumn.innerHTML = '';
+        dungeonColumn.innerHTML = '';
+        battleCenter.innerHTML = '';
+        
+        
+        const playerCard = createBattleCard(battle.player_card, false);
+        const dungeonCard = createBattleCard(battle.dungeon_card, true);
+        
+        playerColumn.appendChild(playerCard);
+        dungeonColumn.appendChild(dungeonCard);
+        
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        playerCard.classList.add('visible');
+        dungeonCard.classList.add('visible');
+        
+        
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        
+        const playerRect = playerCard.getBoundingClientRect();
+        const dungeonRect = dungeonCard.getBoundingClientRect();
+        const centerX = (playerRect.right + dungeonRect.left) / 2;
+        
+        
+        const line = document.createElement('div');
+        line.className = 'battle-connecting-line';
+        const lineLeft = playerRect.right - 5;
+        const lineTop = playerRect.top + playerRect.height / 2 - 2;
+        const lineWidth = dungeonRect.left - playerRect.right + 10;
+        
+        line.style.position = 'fixed';
+        line.style.left = lineLeft + 'px';
+        line.style.top = lineTop + 'px';
+        line.style.width = lineWidth + 'px';
+        document.getElementById('battleArena').appendChild(line);
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        
+        const playerMoveX = centerX - (playerRect.left + playerRect.width / 2);
+        const dungeonMoveX = centerX - (dungeonRect.left + dungeonRect.width / 2);
+        
+        playerCard.style.setProperty('--move-x', playerMoveX + 'px');
+        dungeonCard.style.setProperty('--move-x', dungeonMoveX + 'px');
+        
+        
+        line.style.transition = 'opacity 0.2s ease';
+        line.style.opacity = '0';
+        
+        playerCard.classList.add('fighting');
+        dungeonCard.classList.add('fighting');
+        
+        
+        setTimeout(() => line.remove(), 200);
+        
+        await new Promise(resolve => setTimeout(resolve, 1100));
+        
+        
+        const winnerCard = battle.winner === 'player' ? battle.player_card : battle.dungeon_card;
+        const isPlayerWin = battle.winner === 'player';
+        
+        const resultCard = document.createElement('div');
+        resultCard.className = `battle-result-card winner ${isPlayerWin ? 'player-win' : 'dungeon-win'}`;
+        
+        const badge = document.createElement('div');
+        badge.className = 'winner-badge';
+        badge.textContent = isPlayerWin ? '🎯 TE GYŐZTÉL!' : '💀 KAZAMATA GYŐZÖTT';
+        resultCard.appendChild(badge);
+        
+        const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+        
+        const cardImage = document.createElement('div');
+        cardImage.className = 'card-image';
+        if (winnerCard.picture) {
+            const img = document.createElement('img');
+            img.src = winnerCard.picture;
+            img.alt = winnerCard.name;
+            cardImage.appendChild(img);
+        } else {
+            cardImage.textContent = typeEmojis[winnerCard.type] || '❓';
+        }
+        
+        const cardName = document.createElement('div');
+        cardName.className = 'card-name';
+        cardName.textContent = winnerCard.name;
+        
+        const cardStats = document.createElement('div');
+        cardStats.className = 'card-stats';
+        cardStats.innerHTML = `
+            <div class="stat">
+                <div class="stat-label">HP</div>
+                <div class="stat-value">${winnerCard.health}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">DMG</div>
+                <div class="stat-value">${winnerCard.damage}</div>
+            </div>
+        `;
+        
+        resultCard.appendChild(cardImage);
+        resultCard.appendChild(cardName);
+        resultCard.appendChild(cardStats);
+        
+        
+        const reasonDiv = document.createElement('div');
+        reasonDiv.className = 'battle-reason';
+        reasonDiv.textContent = battle.reason || 'Győzelem!';
+        resultCard.appendChild(reasonDiv);
+        
+        battleCenter.appendChild(resultCard);
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        
+        battleCenter.innerHTML = '';
+        
+        if (i < battles.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+    }
+    
+    
+    if (skipAnimation) {
+        
+        overlay.classList.remove('active');
+        return;
+    }
+    
+    
+    roundIndicator.textContent = overallWinner === 'player' ? '🏆 GYŐZELEM! 🏆' : '⚰️ VERESÉG ⚰️';
+    roundIndicator.style.fontSize = '2.5rem';
+    roundIndicator.style.background = overallWinner === 'player' ? 
+        'rgba(76, 175, 80, 0.3)' : 'rgba(255, 107, 107, 0.3)';
+    roundIndicator.style.borderColor = overallWinner === 'player' ? '#4caf50' : '#ff6b6b';
+    roundIndicator.style.color = overallWinner === 'player' ? '#4caf50' : '#ff6b6b';
+    
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    
+    overlay.classList.remove('active');
 }
 
 
