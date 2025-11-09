@@ -1306,13 +1306,24 @@ def fight():
     user = request.current_user
     world_id = request.args.get('world_id')
     dungeon_id = request.args.get('dungeon_id')
+    selected_card_id = request.args.get('selected_card_id')
+    
     if not dungeon_id:
         return error_response('A dungeon azonosítója kötelező', 400)
+    
+    if not selected_card_id:
+        return error_response('A kiválasztott kártya azonosítója kötelező', 400)
+    
     dungeon = Dungeon.query.filter_by(id=str(dungeon_id)).first()
     if not dungeon:
         return error_response('Dungeon nem található', 404)
     if world_id and str(dungeon.world_id) != str(world_id):
         return error_response('A dungeon nem ebben a világban található', 400)
+    
+    selected_card = Card.query.filter_by(id=str(selected_card_id), owner_id=user.id, world_id=dungeon.world_id).first()
+    if not selected_card:
+        return error_response('A kiválasztott kártya nem található vagy nem a tiéd', 404)
+    
     dungeon_card_ids = dungeon.list_of_card_ids or []
     dungeon_cards = []
     if dungeon_card_ids:
@@ -1398,9 +1409,41 @@ def fight():
     dungeon_wins = sum(1 for b in battles if b.get('winner') == 'dungeon')
     winner = 'player' if player_wins >= dungeon_wins else 'dungeon'
 
+    upgraded_card = None
+    if winner == 'player':
+        try:
+            num_cards = len(dungeon_card_ids)
+            
+            if num_cards == 1:
+                selected_card.damage += 1
+                upgrade_type = 'damage'
+                upgrade_amount = 1
+            elif num_cards == 4:
+                selected_card.health += 2
+                upgrade_type = 'health'
+                upgrade_amount = 2
+            elif num_cards == 6:
+                selected_card.damage += 3
+                upgrade_type = 'damage'
+                upgrade_amount = 3
+            else:
+                upgrade_type = None
+                upgrade_amount = 0
+            
+            if upgrade_type:
+                db.session.commit()
+                upgraded_card = {
+                    'card': selected_card.to_dict(),
+                    'upgrade_type': upgrade_type,
+                    'upgrade_amount': upgrade_amount
+                }
+        except Exception:
+            db.session.rollback()
+
     return success_response({
         'winner': winner,
-        'battles': battles
+        'battles': battles,
+        'upgraded_card': upgraded_card
     })
 
 @api.route('/health', methods=['GET'])
