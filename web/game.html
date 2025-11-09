@@ -130,13 +130,11 @@ h1 {
   flex: 1;
   overflow-y: hidden;
   overflow-x: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 15px;
   padding: 20px;
-  align-content: start;
-  justify-items: center;
-  justify-content: start;
+  align-items: flex-start;
 }
 .side-panel-content::-webkit-scrollbar {
   width: 8px;
@@ -153,8 +151,8 @@ h1 {
   background: rgba(196, 155, 59, 0.7);
 }
 .side-panel-card {
-  width: 100%;
-  max-width: 110px;
+  flex-shrink: 0;
+  width: 110px;
   aspect-ratio: 2/3;
   background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
   border: 3px solid #c49b3b;
@@ -166,12 +164,20 @@ h1 {
   transition: all 0.3s;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
   overflow: visible;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
+}
+.side-panel-card:active {
+  cursor: grabbing;
 }
 .side-panel-card.dragging {
   opacity: 0.5;
   transform: scale(0.95);
+}
+.side-panel-content.drag-over {
+  background: rgba(196, 155, 59, 0.15);
+  border: 2px solid #c49b3b;
+  border-radius: 10px;
 }
 .side-panel-card:hover {
   transform: scale(1.08) translateY(-3px);
@@ -293,13 +299,13 @@ h1 {
 }
 .cards-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: 15px;
   max-height: 500px;
-  overflow-y: auto;
-  overflow-x: visible;
+  overflow-y: hidden;
+  overflow-x: auto;
   padding-right: 10px;
 }
 .cards-grid::-webkit-scrollbar {
@@ -961,7 +967,7 @@ h1 {
 
             
             <div class="dungeons-section">
-                <div class="section-title">⚔️ Válassz ellenfél kazamatát</div>
+                <div class="section-title">Válassz ellenfél kazamatát</div>
                 <div class="dungeons-display" id="dungeons">
                     <div class="empty-message">Betöltés...</div>
                 </div>
@@ -975,7 +981,7 @@ h1 {
                 </div>
             </div>
         </div>
-        <button class="action-btn" id="fightBtn" style="max-width: 300px; font-size: 1.5rem; padding: 15px 40px; background: #c49b3b; border: 3px solid rgba(196, 155, 59, 0.5);" disabled>⚔️ HARC! ⚔️</button>
+        <button class="action-btn" id="fightBtn" style="max-width: 300px; font-size: 1.5rem; padding: 15px 40px; background: #c49b3b; border: 3px solid rgba(196, 155, 59, 0.5);" disabled>HARC!</button>
     </div>
 
     <div class="result-panel" id="result" style="display: none;">
@@ -1009,8 +1015,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) {
             el.addEventListener('wheel', (e) => {
                 if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    el.scrollLeft += e.deltaY;
+                    
+                    const hasHorizontalScroll = el.scrollWidth > el.clientWidth;
+                    
+                    
+                    if (hasHorizontalScroll) {
+                        e.preventDefault();
+                        el.scrollLeft += e.deltaY;
+                    }
+                   
                 }
             }, { passive: false });
         }
@@ -1102,12 +1115,12 @@ fightBtn.onclick = async () => {
     statusEl.textContent='⚔️ Harc indítása...';
     const token = auth();
     const dungeonId = dungeonInput.value.trim();
-    if(!dungeonId){statusEl.textContent='❌ Válassz egy kazamatát';return;}
-    if(!worldId){statusEl.textContent='❌ world_id hiányzik';return;}
+    if(!dungeonId){statusEl.textContent='Válassz egy kazamatát';return;}
+    if(!worldId){statusEl.textContent='world_id hiányzik';return;}
     const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0);
-    if(cardsInDeck.length === 0){statusEl.textContent='❌ Nincs kártya a paklidban';return;}
+    if(cardsInDeck.length === 0){statusEl.textContent='Nincs kártya a paklidban';return;}
     if(currentDungeonSize!==null){
-        if(cardsInDeck.length!==currentDungeonSize){statusEl.textContent=`❌ Pakli (${cardsInDeck.length}) ≠ Kazamata (${currentDungeonSize})`;return;}
+        if(cardsInDeck.length!==currentDungeonSize){statusEl.textContent=`Pakli (${cardsInDeck.length}) ≠ Kazamata (${currentDungeonSize})`;return;}
     }
     try{
         const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
@@ -1147,7 +1160,7 @@ fightBtn.onclick = async () => {
         resultContent.appendChild(table);
         resultEl.style.display='block';
         resultEl.scrollIntoView({behavior:'smooth'});
-    }catch(e){statusEl.textContent='❌ Hálózati hiba';}
+    }catch(e){statusEl.textContent='Hálózati hiba';}
 };
 async function loadCards(){
     const token = auth();
@@ -1170,6 +1183,31 @@ function renderDeckPanel(){
     deckCards = cardsInDeck;
     
     deckPanel.innerHTML='';
+    
+    
+    deckPanel.ondragover = (e) => {
+        e.preventDefault();
+        deckPanel.classList.add('drag-over');
+    };
+    
+    deckPanel.ondragleave = (e) => {
+        if (e.target === deckPanel) {
+            deckPanel.classList.remove('drag-over');
+        }
+    };
+    
+    deckPanel.ondrop = (e) => {
+        e.preventDefault();
+        deckPanel.classList.remove('drag-over');
+        const cardId = e.dataTransfer.getData('text/plain');
+        const card = allCardsData.find(c => c.id === cardId);
+        
+        if (card && (!card.position || card.position === 0)) {
+            
+            addCardToDeck(cardId);
+        }
+    };
+    
     if(cardsInDeck.length === 0){
         deckPanel.innerHTML='<div class="empty-message">Üres pakli</div>';
         return;
@@ -1263,7 +1301,7 @@ function renderDeckPanel(){
         };
         
         card.onclick=(e)=>{
-           
+            
             if (!card.classList.contains('dragging')) {
                 removeCardFromDeck(c.id);
             }
@@ -1340,14 +1378,46 @@ function renderCollectionPanel(){
     const cardsNotInDeck = allCardsData.filter(c=>!c.position || c.position === 0);
     
     collectionPanel.innerHTML='';
+    
+    
+    collectionPanel.ondragover = (e) => {
+        e.preventDefault();
+        collectionPanel.classList.add('drag-over');
+    };
+    
+    collectionPanel.ondragleave = (e) => {
+        if (e.target === collectionPanel) {
+            collectionPanel.classList.remove('drag-over');
+        }
+    };
+    
+    collectionPanel.ondrop = (e) => {
+        e.preventDefault();
+        collectionPanel.classList.remove('drag-over');
+        const cardId = e.dataTransfer.getData('text/plain');
+        const card = allCardsData.find(c => c.id === cardId);
+        
+        if (card && card.position && card.position > 0) {
+            
+            removeCardFromDeck(cardId);
+        }
+    };
+    
     if(cardsNotInDeck.length === 0){
-        collectionPanel.innerHTML='<div class="empty-message">Minden kártyád a pakliban van!</div>';
+        
+        if(allCardsData.length === 0){
+            collectionPanel.innerHTML='<div class="empty-message">A játékmester még nem rendelt hozzád kártyákat!</div>';
+        } else {
+            collectionPanel.innerHTML='<div class="empty-message">Minden kártyád a pakliban van!</div>';
+        }
         return;
     }
     
     cardsNotInDeck.forEach((c)=>{
         const card=document.createElement('div');
         card.className='side-panel-card';
+        card.draggable = true;
+        card.dataset.cardId = c.id;
         
         const imgDiv=document.createElement('div');
         imgDiv.className='card-image';
@@ -1393,8 +1463,22 @@ function renderCollectionPanel(){
         card.appendChild(statsDiv);
         card.appendChild(typeDiv);
         
-        card.onclick=()=>{
-            addCardToDeck(c.id);
+        
+        card.ondragstart = (e) => {
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', c.id);
+        };
+        
+        card.ondragend = (e) => {
+            card.classList.remove('dragging');
+        };
+        
+        card.onclick=(e)=>{
+            
+            if (!card.classList.contains('dragging')) {
+                addCardToDeck(c.id);
+            }
         };
         
         card.ondblclick=(e)=>{
@@ -1447,7 +1531,7 @@ saveDeckBtn.onclick = async () => {
         showDeckMessage('Hálózati hiba történt', false);
     } finally {
         saveDeckBtn.disabled = false;
-        saveDeckBtn.textContent = '💾 Pakli mentése';
+        saveDeckBtn.textContent = 'Pakli mentése';
     }
 };
 
