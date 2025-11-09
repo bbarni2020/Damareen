@@ -7,6 +7,11 @@ if ($request === '' || $request === 'dashboard') {
     return;
 }
 
+if ($request === 'game') {
+    include __DIR__ . '/game.html';
+    return;
+}
+
 if ($request === 'auth') {
     include __DIR__ . '/auth.html';
     return;

@@ -4,28 +4,774 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Damareen - Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="shortcut icon" href="src/favicon.ico">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
+    <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: "Jaro", sans-serif;
+  background: url('src/background.png') center/cover no-repeat fixed;
+  background-color: #1a1a1d;
+  color: #d9d9d9;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.home-btn {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  background: #c49b3b;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.home-btn:hover {
+  background: #d4ab4f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+}
+.home-icon {
+  width: 24px;
+  height: 24px;
+  fill: #1a1a1d;
+}
+h1 {
+  font-family: "Jaro", sans-serif;
+  font-size: 4rem;
+  color: #c49b3b;
+  margin-bottom: 30px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+  text-align: center;
+  font-weight: 700;
+}
+.status-bar {
+  width: 90%;
+  max-width: 1200px;
+  background: rgba(196, 155, 59, 0.1);
+  border: 2px solid rgba(196, 155, 59, 0.3);
+  border-radius: 15px;
+  padding: 15px 25px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+.arena-container {
+  width: 100%;
+  max-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding-top: 100px;
+  margin-bottom: 300px;
+}
+.dungeons-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+.section-title {
+  font-family: "Jaro", sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #c49b3b;
+  text-align: center;
+  letter-spacing: 3px;
+  text-shadow: 0 0 30px rgba(196, 155, 59, 0.8), 0 0 60px rgba(196, 155, 59, 0.4);
+  margin: 0;
+}
+.dungeons-display {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+.dungeon-pack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 25px;
+  border-radius: 20px;
+  border: 3px solid rgba(196, 155, 59, 0.3);
+  background: rgba(26, 26, 29, 0.6);
+  backdrop-filter: blur(10px);
+}
+.dungeon-pack:hover {
+  transform: translateY(-5px);
+  border-color: #c49b3b;
+  background: rgba(196, 155, 59, 0.1);
+  box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
+}
+.dungeon-pack.selected {
+  border-color: #c49b3b;
+  background: rgba(196, 155, 59, 0.15);
+  box-shadow: 0 10px 50px rgba(196, 155, 59, 0.6);
+  transform: translateY(-5px) scale(1.05);
+}
+.dungeon-stack {
+  position: relative;
+  width: 160px;
+  height: 240px;
+}
+.hidden-card {
+  position: absolute;
+  width: 160px;
+  height: 240px;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 4px solid #c49b3b;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s;
+}
+.dungeon-info {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #c49b3b;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.dungeon-pack.selected .hidden-card {
+  border-color: #d4ab4f;
+  box-shadow: 0 8px 30px rgba(196, 155, 59, 0.6);
+}
+.action-btn {
+  padding: 12px 30px;
+  background: #c49b3b;
+  border: 0;
+  border-radius: 8px;
+  color: #1a1a1d;
+  font-family: "Jaro", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
+  width: 100%;
+}
+.action-btn:hover {
+  background: #d4ab4f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
+}
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.action-btn.danger {
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+}
+.action-btn.danger:hover {
+  background: #ff6b6b;
+}
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.cards-grid::-webkit-scrollbar {
+  width: 8px;
+}
+.cards-grid::-webkit-scrollbar-track {
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 10px;
+}
+.cards-grid::-webkit-scrollbar-thumb {
+  background: rgba(196, 155, 59, 0.5);
+  border-radius: 10px;
+}
+.cards-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 155, 59, 0.7);
+}
+.game-card {
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 3px solid #c49b3b;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: visible;
+}
+.game-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(196, 155, 59, 0.4);
+  border-color: #d4ab4f;
+  z-index: 10;
+}
+.game-card.selected {
+  border-color: #4caf50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+}
+.game-card.in-deck {
+  border-color: #8a2be2;
+  box-shadow: 0 4px 20px rgba(138, 43, 226, 0.4);
+}
+.card-image {
+  width: 100%;
+  height: 50%;
+  background: rgba(196, 155, 59, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  overflow: hidden;
+}
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-name {
+  font-family: "Jaro", sans-serif;
+  font-size: 0.95rem;
+  color: #c49b3b;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 2px solid rgba(196, 155, 59, 0.3);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: rgba(196, 155, 59, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-family: "Jaro", sans-serif;
+  font-size: 1.1rem;
+  color: #d9d9d9;
+  font-weight: 700;
+}
+.card-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(196, 155, 59, 0.9);
+  color: #1a1a1d;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.deck-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #8a2be2;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 5;
+}
+.leader-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #8a2be2 0, #9d4eed 100%);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.6);
+  z-index: 5;
+  border: 2px solid #1a1a1d;
+}
+.deck-section {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.floating-island {
+  position: relative;
+  background: linear-gradient(135deg, rgba(42, 42, 46, 0.95) 0%, rgba(26, 26, 29, 0.95) 100%);
+  border-radius: 20px;
+  padding: 20px 25px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(196, 155, 59, 0.2);
+  border: 3px solid #c49b3b;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.floating-island::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(196, 155, 59, 0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+.floating-island::after {
+  display: none;
+}
+.deck-display {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+}
+.expand-deck-btn {
+  width: 50px;
+  height: 50px;
+  background: rgba(196, 155, 59, 0.3);
+  border: 2px solid #c49b3b;
+  border-radius: 50%;
+  color: #c49b3b;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.expand-deck-btn:hover {
+  background: rgba(196, 155, 59, 0.5);
+  border-color: #d4ab4f;
+  transform: scale(1.1);
+}
+.deck-card {
+  flex-shrink: 0;
+  width: 90px;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 3px solid #c49b3b;
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  position: relative;
+  transition: all 0.3s;
+  cursor: pointer;
+  user-select: none;
+}
+.deck-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(196, 155, 59, 0.4);
+  border-color: #d4ab4f;
+}
+.deck-card .card-image {
+  height: 40%;
+  font-size: 1.2rem;
+}
+.deck-card .card-name {
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+}
+.deck-card .card-stats {
+  padding-top: 4px;
+}
+.deck-card .stat-label {
+  font-size: 0.5rem;
+}
+.deck-card .stat-value {
+  font-size: 0.8rem;
+}
+.deck-card .card-type {
+  font-size: 0.5rem;
+  padding: 2px 5px;
+  top: 5px;
+  right: 5px;
+}
+.deck-card .deck-badge {
+  width: 20px;
+  height: 20px;
+  font-size: 0.7rem;
+  top: -5px;
+  left: -5px;
+  background: #c49b3b;
+  color: #1a1a1d;
+}
+.deck-card .leader-badge {
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  top: -5px;
+  right: -5px;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+.modal-content {
+  background: #1a1a1d;
+  border: 4px solid #c49b3b;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+}
+.deck-modal-content {
+  max-height: 85vh;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  border-bottom: 3px solid rgba(196, 155, 59, 0.3);
+}
+.modal-header h2 {
+  font-family: "Jaro", sans-serif;
+  font-size: 2.2rem;
+  color: #c49b3b;
+  margin: 0;
+  letter-spacing: 2px;
+}
+.close-modal {
+  width: 40px;
+  height: 40px;
+  background: #ff6b6b;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.close-modal:hover {
+  background: #ff5252;
+  transform: rotate(90deg);
+}
+.modal-content .deck-info {
+  text-align: center;
+  margin: 20px;
+  padding: 15px;
+  background: rgba(138, 43, 226, 0.1);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  border-radius: 10px;
+  font-size: 1.2rem;
+}
+.modal-content .cards-grid {
+  padding: 20px 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-content .game-card {
+  cursor: pointer;
+}
+.modal-content .game-card.in-deck {
+  border-color: #c49b3b;
+  box-shadow: 0 4px 20px rgba(196, 155, 59, 0.5);
+}
+.modal-content .game-card.dragging {
+  opacity: 0.5;
+}
+.deck-preview {
+  background: rgba(196, 155, 59, 0.1);
+  border: 2px solid rgba(196, 155, 59, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 30px 0;
+}
+.deck-preview-title {
+  font-size: 1.2rem;
+  color: #c49b3b;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+.deck-preview-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 50px;
+}
+.mini-deck-card {
+  width: 60px;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #2a2a2e 0, #1a1a1d 100%);
+  border: 2px solid #c49b3b;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  position: relative;
+  cursor: move;
+}
+.mini-deck-card .position-badge {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 18px;
+  height: 18px;
+  background: #c49b3b;
+  color: #1a1a1d;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.mini-deck-card .remove-mini {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  background: #ff6b6b;
+  color: #fff;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.mini-deck-card:hover .remove-mini {
+  display: flex;
+}
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 3px solid rgba(196, 155, 59, 0.3);
+  display: flex;
+  gap: 15px;
+}
+.modal-footer .action-btn {
+  flex: 1;
+}
+.result-panel {
+  width: 90%;
+  max-width: 1400px;
+  background: rgba(26, 26, 29, 0.95);
+  border: 3px solid #c49b3b;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  margin-top: 20px;
+  backdrop-filter: blur(10px);
+}
+.battle-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.battle-table th {
+  background: rgba(196, 155, 59, 0.2);
+  color: #c49b3b;
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 2px solid #c49b3b;
+}
+.battle-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(196, 155, 59, 0.2);
+}
+.battle-table tr:hover {
+  background: rgba(196, 155, 59, 0.05);
+}
+.winner-player {
+  color: #4caf50;
+  font-weight: 700;
+}
+.winner-dungeon {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+.empty-message {
+  text-align: center;
+  color: rgba(196, 155, 59, 0.5);
+  font-style: italic;
+  font-size: 1rem;
+  padding: 20px;
+}
+@media (max-width: 1024px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  .section-title {
+    font-size: 2rem;
+  }
+  .dungeons-display {
+    gap: 30px;
+  }
+  .dungeon-stack {
+    width: 120px;
+    height: 180px;
+  }
+  .hidden-card {
+    width: 120px;
+    height: 180px;
+    font-size: 3rem;
+  }
+  .floating-island {
+    min-width: auto;
+    padding: 20px 30px 15px;
+  }
+  .deck-title {
+    font-size: 1.2rem;
+  }
+  .deck-card {
+    width: 70px;
+  }
+  .arena-container {
+    padding-top: 50px;
+    margin-bottom: 250px;
+  }
+}
+    </style>
 </head>
 <body>
-<h1>Harc</h1>
-<div id="status"></div>
-<div id="dungeonInfo"></div>
-<div>
-    <label>Dungeon ID: <input id="dungeonId" type="text"></label>
-    <button id="loadDungeonsBtn">Kazamaták lekérése</button>
-    <div id="dungeons"></div>
-</div>
-<div>
-    <button id="fightBtn">Harc indítása</button>
-</div>
-<hr>
-<div>
-    <h2>Kártyáim</h2>
-    <div id="cards"></div>
-    <div>Választott: <span id="selectedCount">0</span></div>
-    <button id="saveDeckBtn">Pakli mentése</button>
-</div>
-<div id="result"></div>
-<script>
+    <button class="home-btn" onclick="window.location.href='/'">
+        <svg class="home-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+    </button>
+
+    <div id="status" style="display: none;"></div>
+
+    <div class="arena-container">
+        <div class="dungeons-section">
+            <div class="section-title">⚔️ Válassz ellenfelet</div>
+            <div class="dungeons-display" id="dungeons">
+                <div class="empty-message">Betöltés...</div>
+            </div>
+        </div>
+        <button class="action-btn" id="fightBtn" style="max-width: 300px; font-size: 1.5rem; padding: 15px 40px; background: #c49b3b; border: 3px solid rgba(196, 155, 59, 0.5);" disabled>⚔️ HARC! ⚔️</button>
+    </div>
+
+    <div class="result-panel" id="result" style="display: none;">
+        <div class="panel-title" id="resultTitle"></div>
+        <div id="resultContent"></div>
+    </div>
+
+    <div class="deck-section">
+        <div class="floating-island">
+            <div class="deck-display" id="deckCards">
+                <div class="empty-message" style="color: rgba(196, 155, 59, 0.6); font-size: 0.9rem; padding: 10px;">Üres pakli</div>
+            </div>
+            <button class="expand-deck-btn" id="expandDeckBtn" title="Pakli kezelése">➡️</button>
+        </div>
+    </div>
+
+    <div class="modal" id="deckModal" style="display: none;">
+        <div class="modal-content deck-modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Pakli kezelése</h2>
+                <button class="close-modal" onclick="closeDeckModal()">✖</button>
+            </div>
+            <div class="deck-preview">
+                <div class="deck-preview-title">📦 Jelenlegi pakli (<span id="deckCountModal">0</span> kártya)</div>
+                <div class="deck-preview-cards" id="deckPreview"></div>
+            </div>
+            <div class="deck-info">
+                Válassz <strong>1, 4 vagy 6</strong> kártyát a paklihoz
+            </div>
+            <div class="cards-grid" id="allCards">
+                <div class="empty-message">Betöltés...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" style="background: #6c757d;" onclick="closeDeckModal()">Bezár</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="dungeonId">
+
+    <script>
 const API_URL = 'https://damareen.deakteri.fun/api';
 function getParam(n){const u=new URL(window.location.href);return u.searchParams.get(n);} 
 const worldId = getParam('world_id');
@@ -34,110 +780,380 @@ const fightBtn = document.getElementById('fightBtn');
 const dungeonInput = document.getElementById('dungeonId');
 const resultEl = document.getElementById('result');
 const dungeonsEl = document.getElementById('dungeons');
-const loadBtn = document.getElementById('loadDungeonsBtn');
-const cardsEl = document.getElementById('cards');
+const deckCardsEl = document.getElementById('deckCards');
+const allCardsEl = document.getElementById('allCards');
 const saveDeckBtn = document.getElementById('saveDeckBtn');
-const selectedCountEl = document.getElementById('selectedCount');
-const dungeonInfoEl = document.getElementById('dungeonInfo');
+const deckCountEl = document.getElementById('deckCount');
+const manageDeckBtn = document.getElementById('manageDeckBtn');
+const expandDeckBtn = document.getElementById('expandDeckBtn');
+const deckModal = document.getElementById('deckModal');
+const deckPreview = document.getElementById('deckPreview');
+const deckCountModal = document.getElementById('deckCountModal');
 let currentDungeonSize = null;
+let allCardsData = [];
+let deckCardsOrder = [];
+
+function openDeckModal() {
+    deckModal.style.display = 'flex';
+    renderAllCards();
+    renderDeckPreview();
+}
+
+function closeDeckModal() {
+    deckModal.style.display = 'none';
+}
+
+expandDeckBtn.onclick = openDeckModal;
 function auth(){const t=localStorage.getItem('token');if(!t){statusEl.textContent='Nincs token';}return t;}
 async function loadDungeons(){
-    dungeonsEl.textContent='Betöltés...';
+    dungeonsEl.innerHTML='<div class="empty-message">Betöltés...</div>';
     const token = auth();
     if(!worldId){statusEl.textContent='Hiányzó world_id';return;}
     try{
         const r = await fetch(`${API_URL}/game/dungeon?world_id=${encodeURIComponent(worldId)}`,{headers:{'Authorization':`Bearer ${token}`}});
         const data = await r.json();
-        if(!r.ok){dungeonsEl.textContent=data.error||'Hiba';return;}
+        if(!r.ok){dungeonsEl.innerHTML=`<div class="empty-message">${data.error||'Hiba'}</div>`;return;}
         dungeonsEl.innerHTML='';
-        (data.data.dungeons||[]).forEach(d=>{
-            const div=document.createElement('div');
-            div.textContent=`${d.id} (${d.number_of_cards} lap)`;
-            div.dataset.id=d.id;
-            div.style.cursor='pointer';
-            div.onclick=()=>{dungeonInput.value=d.id;currentDungeonSize=d.number_of_cards;dungeonInfoEl.textContent=`Kazamata kártyák száma: ${currentDungeonSize}`;};
-            dungeonsEl.appendChild(div);
+        const dungeons = data.data.dungeons||[];
+        if(dungeons.length === 0){
+            dungeonsEl.innerHTML='<div class="empty-message">Még nincs kazamata</div>';
+            return;
+        }
+        dungeons.forEach(d=>{
+            const pack=document.createElement('div');
+            pack.className='dungeon-pack';
+            pack.dataset.id=d.id;
+            const stack=document.createElement('div');
+            stack.className='dungeon-stack';
+            for(let i=0; i<3; i++){
+                const card=document.createElement('div');
+                card.className='hidden-card';
+                card.textContent='�';
+                stack.appendChild(card);
+            }
+            const info=document.createElement('div');
+            info.className='dungeon-info';
+            info.textContent=`${d.number_of_cards} kártya`;
+            pack.appendChild(stack);
+            pack.appendChild(info);
+            pack.onclick=()=>{
+                document.querySelectorAll('.dungeon-pack').forEach(el=>el.classList.remove('selected'));
+                pack.classList.add('selected');
+                dungeonInput.value=d.id;
+                currentDungeonSize=d.number_of_cards;
+                statusEl.textContent=`Kiválasztva: ${d.number_of_cards} kártyás kazamata`;
+                fightBtn.disabled=false;
+            };
+            dungeonsEl.appendChild(pack);
         });
-    }catch(e){dungeonsEl.textContent='Hálózati hiba';}
+    }catch(e){dungeonsEl.innerHTML='<div class="empty-message">Hálózati hiba</div>';}
 }
-loadBtn.onclick = loadDungeons;
 fightBtn.onclick = async () => {
-    resultEl.textContent='';
-    statusEl.textContent='Indítás...';
+    resultEl.style.display='none';
+    statusEl.textContent='⚔️ Harc indítása...';
     const token = auth();
     const dungeonId = dungeonInput.value.trim();
-    if(!dungeonId){statusEl.textContent='Dungeon ID hiányzik';return;}
-    if(!worldId){statusEl.textContent='world_id hiányzik az URL-ben';return;}
+    if(!dungeonId){statusEl.textContent='❌ Válassz egy kazamatát';return;}
+    if(!worldId){statusEl.textContent='❌ world_id hiányzik';return;}
+    const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0);
+    if(cardsInDeck.length === 0){statusEl.textContent='❌ Nincs kártya a paklidban';return;}
     if(currentDungeonSize!==null){
-        const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
-        if(selected.length!==currentDungeonSize){statusEl.textContent=`A választott pakli (${selected.length}) nem egyezik a kazamata (${currentDungeonSize}) méretével`;return;}
+        if(cardsInDeck.length!==currentDungeonSize){statusEl.textContent=`❌ Pakli (${cardsInDeck.length}) ≠ Kazamata (${currentDungeonSize})`;return;}
     }
     try{
         const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
         const r = await fetch(url,{headers:{'Authorization':`Bearer ${token}`}});
         const data = await r.json();
         if(!r.ok){statusEl.textContent=data.error||'Hiba';return;}
-        statusEl.textContent = `Győztes: ${data.data.winner}`;
+        const winner = data.data.winner;
+        const isPlayerWinner = winner === 'player';
+        statusEl.textContent = isPlayerWinner ? '🎉 GYŐZTÉL!' : '💀 VESZTETTÉL';
         const battles = data.data.battles||[];
+        const resultTitle = document.getElementById('resultTitle');
+        resultTitle.textContent = isPlayerWinner ? '🏆 GYŐZELEM 🏆' : '⚰️ VERESÉG ⚰️';
+        resultTitle.style.color = isPlayerWinner ? '#4caf50' : '#ff6b6b';
+        const resultContent = document.getElementById('resultContent');
         const table = document.createElement('table');
-        const head = document.createElement('tr');
-        ['Pozíció','Játékos lap','Kazamata lap','Győztes','Ok'].forEach(h=>{const th=document.createElement('th');th.textContent=h;head.appendChild(th);});
+        table.className='battle-table';
+        const head = document.createElement('thead');
+        head.innerHTML='<tr><th>Kör</th><th>Te</th><th>Kazamata</th><th>Győztes</th><th>Indok</th></tr>';
         table.appendChild(head);
+        const tbody = document.createElement('tbody');
         battles.forEach(b=>{
             const tr=document.createElement('tr');
-            const pc=b.player_card||{};const dc=b.dungeon_card||{};
-            const cols=[b.position,pc.name,dc.name,b.winner,b.reason];
-            cols.forEach(c=>{const td=document.createElement('td');td.textContent=c;tr.appendChild(td);});
-            table.appendChild(tr);
+            const pc=b.player_card||{};
+            const dc=b.dungeon_card||{};
+            const roundWinner = b.winner;
+            tr.innerHTML=`
+                <td>${b.position}</td>
+                <td>${pc.name}</td>
+                <td>${dc.name}</td>
+                <td class="${roundWinner==='player'?'winner-player':'winner-dungeon'}">${roundWinner==='player'?'🎯 Te':'💀 Kazamata'}</td>
+                <td>${b.reason}</td>
+            `;
+            tbody.appendChild(tr);
         });
-        resultEl.innerHTML='';
-        resultEl.appendChild(table);
-    }catch(e){statusEl.textContent='Hálózati hiba';}
+        table.appendChild(tbody);
+        resultContent.innerHTML='';
+        resultContent.appendChild(table);
+        resultEl.style.display='block';
+        resultEl.scrollIntoView({behavior:'smooth'});
+    }catch(e){statusEl.textContent='❌ Hálózati hiba';}
 };
 async function loadCards(){
-    cardsEl.textContent='Betöltés...';
     const token = auth();
-    if(!worldId){cardsEl.textContent='Hiányzó world_id';return;}
+    if(!worldId){statusEl.textContent='Hiányzó world_id';return;}
     try{
         const r = await fetch(`${API_URL}/user/list/cards?world_id=${encodeURIComponent(worldId)}`,{headers:{'Authorization':`Bearer ${token}`}});
         const data = await r.json();
-        if(!r.ok){cardsEl.textContent=data.error||'Hiba';return;}
-        const allCards = data.data.cards||[];
-        const cardsInDeck = allCards.filter(c=>c.position && c.position > 0).sort((a,b)=>a.position - b.position);
-        cardsEl.innerHTML='';
-        allCards.forEach(c=>{
-            const row=document.createElement('div');
-            const cb=document.createElement('input');
-            cb.type='checkbox';
-            cb.value=c.id;
-            cb.checked = (c.position && c.position > 0);
-            cb.onchange=updateSelectedCount;
-            const span=document.createElement('span');
-            span.textContent=` ${c.name} [${c.type}] HP:${c.health} DMG:${c.damage}`;
-            if(c.position && c.position > 0){span.textContent += ` [Pakli #${c.position}]`;}
-            row.appendChild(cb);row.appendChild(span);cardsEl.appendChild(row);
-        });
-        updateSelectedCount();
-        if(cardsInDeck.length > 0){statusEl.textContent=`Betöltve ${cardsInDeck.length} kártya a pakliból`;}
-    }catch(e){cardsEl.textContent='Hálózati hiba';}
-}
-function updateSelectedCount(){
-    const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
-    selectedCountEl.textContent=selected.length;
-}
-saveDeckBtn.onclick = async () => {
-    const token = auth();
-    const selected = Array.from(cardsEl.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
-    if(selected.length===0){statusEl.textContent='Nincs kiválasztott kártya';return;}
-    if(![1,4,6].includes(selected.length)){statusEl.textContent='Pakli méret csak 1,4 vagy 6 lehet';return;}
-    if(currentDungeonSize!==null && selected.length!==currentDungeonSize){statusEl.textContent=`A pakli mérete (${selected.length}) térjen el a kazamata méretétől (${currentDungeonSize})`;}
-    try{
-        const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:selected})});
-        const data = await r.json();
         if(!r.ok){statusEl.textContent=data.error||'Hiba';return;}
-        statusEl.textContent='Pakli mentve';
+        allCardsData = data.data.cards||[];
+        renderDeckDisplay();
     }catch(e){statusEl.textContent='Hálózati hiba';}
-};
+}
+
+function renderDeckDisplay(){
+    const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+    const typeNames = {t:'Tűz',v:'Víz',f:'Föld',l:'Levegő'};
+    const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0).sort((a,b)=>a.position - b.position);
+    deckCardsOrder = cardsInDeck.map(c=>c.id);
+    deckCardsEl.innerHTML='';
+    if(cardsInDeck.length === 0){
+        deckCardsEl.innerHTML='<div style="color: rgba(196, 155, 59, 0.6); font-size: 0.9rem; padding: 10px; text-align: center;">Üres pakli</div>';
+        return;
+    }
+    cardsInDeck.forEach((c, index)=>{
+        const card=document.createElement('div');
+        card.className='deck-card';
+        card.dataset.id=c.id;
+        
+        const imgDiv=document.createElement('div');
+        imgDiv.className='card-image';
+        if(c.picture){
+            const img=document.createElement('img');
+            img.src=c.picture;
+            img.alt=c.name;
+            imgDiv.appendChild(img);
+        }else{
+            imgDiv.textContent=typeEmojis[c.type]||'❓';
+        }
+        const nameDiv=document.createElement('div');
+        nameDiv.className='card-name';
+        nameDiv.textContent=c.name;
+        const statsDiv=document.createElement('div');
+        statsDiv.className='card-stats';
+        statsDiv.innerHTML=`
+            <div class="stat">
+                <div class="stat-label">HP</div>
+                <div class="stat-value">${c.health}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">DMG</div>
+                <div class="stat-value">${c.damage}</div>
+            </div>
+        `;
+        const typeDiv=document.createElement('div');
+        typeDiv.className='card-type';
+        typeDiv.textContent=`${typeEmojis[c.type]||''} ${typeNames[c.type]||c.type}`;
+        const badge=document.createElement('div');
+        badge.className='deck-badge';
+        badge.textContent=c.position;
+        
+        card.appendChild(badge);
+        if(c.is_leader){
+            const leaderBadge=document.createElement('div');
+            leaderBadge.className='leader-badge';
+            leaderBadge.textContent='👑';
+            card.appendChild(leaderBadge);
+        }
+        card.appendChild(imgDiv);
+        card.appendChild(nameDiv);
+        card.appendChild(statsDiv);
+        card.appendChild(typeDiv);
+        deckCardsEl.appendChild(card);
+    });
+}
+
+function renderDeckPreview(){
+    const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+    const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0).sort((a,b)=>a.position - b.position);
+    deckCountModal.textContent = cardsInDeck.length;
+    deckPreview.innerHTML='';
+    
+    if(cardsInDeck.length === 0){
+        deckPreview.innerHTML='<div style="color: rgba(196, 155, 59, 0.6); font-size: 0.9rem; text-align: center; padding: 10px;">Üres pakli</div>';
+        return;
+    }
+    
+    cardsInDeck.forEach((c, index)=>{
+        const mini=document.createElement('div');
+        mini.className='mini-deck-card';
+        mini.draggable=true;
+        mini.dataset.id=c.id;
+        mini.textContent=c.name.substring(0,1);
+        
+        mini.ondragstart=(e)=>{
+            mini.classList.add('dragging');
+            e.dataTransfer.effectAllowed='move';
+            e.dataTransfer.setData('cardId', c.id);
+        };
+        
+        mini.ondragend=(e)=>{
+            mini.classList.remove('dragging');
+        };
+        
+        mini.ondragover=(e)=>{
+            e.preventDefault();
+            const dragging = document.querySelector('.mini-deck-card.dragging');
+            if(dragging && dragging !== mini){
+                const rect = mini.getBoundingClientRect();
+                const midpoint = rect.left + rect.width / 2;
+                if(e.clientX < midpoint){
+                    mini.parentNode.insertBefore(dragging, mini);
+                }else{
+                    mini.parentNode.insertBefore(dragging, mini.nextSibling);
+                }
+            }
+        };
+        
+        mini.ondrop=(e)=>{
+            e.preventDefault();
+            saveDeckOrder();
+        };
+        
+        const posBadge=document.createElement('div');
+        posBadge.className='position-badge';
+        posBadge.textContent=c.position;
+        
+        const removeBtn=document.createElement('div');
+        removeBtn.className='remove-mini';
+        removeBtn.textContent='✖';
+        removeBtn.onclick=(e)=>{
+            e.stopPropagation();
+            removeCardFromDeck(c.id);
+        };
+        
+        mini.appendChild(posBadge);
+        mini.appendChild(removeBtn);
+        deckPreview.appendChild(mini);
+    });
+}
+
+async function saveDeckOrder(){
+    const cards = Array.from(deckPreview.querySelectorAll('.mini-deck-card'));
+    const cardIds = cards.map(card=>card.dataset.id);
+    const token = auth();
+    try{
+        const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:cardIds})});
+        if(r.ok){
+            await loadCards();
+            renderDeckPreview();
+        }
+    }catch(e){}
+}
+
+async function removeCardFromDeck(cardId){
+    const remainingCards = allCardsData.filter(c=>(c.position && c.position > 0 && c.id !== cardId)).map(c=>c.id);
+    const token = auth();
+    if(remainingCards.length === 0){
+        try{
+            const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:[]})});
+            if(r.ok){
+                await loadCards();
+                renderDeckPreview();
+            }
+        }catch(e){}
+        return;
+    }
+    try{
+        const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:remainingCards})});
+        if(r.ok){
+            await loadCards();
+            renderDeckPreview();
+        }
+    }catch(e){}
+}
+
+function renderAllCards(){
+    const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+    const typeNames = {t:'Tűz',v:'Víz',f:'Föld',l:'Levegő'};
+    allCardsEl.innerHTML='';
+    if(allCardsData.length === 0){
+        allCardsEl.innerHTML='<div class="empty-message">Még nincs kártyád</div>';
+        return;
+    }
+    allCardsData.forEach(c=>{
+        const inDeck = c.position && c.position > 0;
+        const card=document.createElement('div');
+        card.className='game-card';
+        if(inDeck) card.classList.add('in-deck');
+        card.dataset.id=c.id;
+        card.onclick=()=>{
+            if(inDeck){
+                removeCardFromDeck(c.id);
+            }else{
+                addCardToDeck(c.id);
+            }
+        };
+        const imgDiv=document.createElement('div');
+        imgDiv.className='card-image';
+        if(c.picture){
+            const img=document.createElement('img');
+            img.src=c.picture;
+            img.alt=c.name;
+            imgDiv.appendChild(img);
+        }else{
+            imgDiv.textContent=typeEmojis[c.type]||'❓';
+        }
+        const nameDiv=document.createElement('div');
+        nameDiv.className='card-name';
+        nameDiv.textContent=c.name;
+        const statsDiv=document.createElement('div');
+        statsDiv.className='card-stats';
+        statsDiv.innerHTML=`
+            <div class="stat">
+                <div class="stat-label">HP</div>
+                <div class="stat-value">${c.health}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">DMG</div>
+                <div class="stat-value">${c.damage}</div>
+            </div>
+        `;
+        const typeDiv=document.createElement('div');
+        typeDiv.className='card-type';
+        typeDiv.textContent=`${typeEmojis[c.type]||''} ${typeNames[c.type]||c.type}`;
+        if(c.is_leader){
+            const leaderBadge=document.createElement('div');
+            leaderBadge.className='leader-badge';
+            leaderBadge.textContent='👑';
+            card.appendChild(leaderBadge);
+        }
+        card.appendChild(imgDiv);
+        card.appendChild(nameDiv);
+        card.appendChild(statsDiv);
+        card.appendChild(typeDiv);
+        allCardsEl.appendChild(card);
+    });
+}
+
+async function addCardToDeck(cardId){
+    const currentDeck = allCardsData.filter(c=>c.position && c.position > 0).map(c=>c.id);
+    if(currentDeck.length >= 6){
+        alert('A pakli maximum 6 kártyát tartalmazhat!');
+        return;
+    }
+    const newDeck = [...currentDeck, cardId];
+    const token = auth();
+    try{
+        const r = await fetch(`${API_URL}/deck`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({cards:newDeck})});
+        if(r.ok){
+            await loadCards();
+            renderAllCards();
+            renderDeckPreview();
+        }
+    }catch(e){}
+}
 if(worldId){statusEl.textContent=`world_id: ${worldId}`;} else {statusEl.textContent='Adj meg world_id-t az URL-ben';}
 async function joinWorld(){
     const token = auth();
