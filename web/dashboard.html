@@ -404,6 +404,14 @@
                     }
         }
 
+        .settings-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
         .settings-btn {
             padding: 15px 30px;
             border: 2px solid #C49B3B;
@@ -414,6 +422,9 @@
             cursor: pointer;
             transition: all 0.3s;
             letter-spacing: 1px;
+            width: 100%;
+            display: block;
+            text-align: center;
         }
 
         .logout-btn-popup {
@@ -930,6 +941,15 @@
                     min-height: 14px;
                 }
             }
+
+        ::selection {
+            background: #C49B3B;
+            color: #1A1A1D;
+        }
+        ::-moz-selection {
+            background: #C49B3B;
+            color: #1A1A1D;
+        }
         }
     </style>
 </head>
