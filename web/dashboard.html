@@ -17,58 +17,67 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
     <style>
+        /* === GLOBÁLIS ALAPBEÁLLÍTÁSOK === */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Oldal törzsének alapstílusa */
         body {
             font-family: 'Jaro', sans-serif;
-            background-color: #1A1A1D;
-            color: #D9D9D9;
+            background-color: #1A1A1D;  /* Sötét háttérszín */
+            color: #D9D9D9;  /* Világos szövegszín */
             min-height: 100vh;
             padding: 20px;
             position: relative;
-            overflow-x: hidden;
+            overflow-x: hidden;  /* Vízszintes görgetés letiltása */
         }
 
+       
+        /* === FELSŐ VEZÉRLŐGOMBOK KONTÉNERE === */
         .top-controls {
             position: fixed;
             top: 25px;
             left: 25px;
             display: flex;
             gap: 15px;
-            z-index: 100;
+            z-index: 100;  /* Mindig legfelül jelenjen meg */
         }
 
+        /* Vezérlőgombok általános stílusa (világ hozzáadás, frissítés) */
         .control-btn {
             width: 55px;
             height: 55px;
-            background: #C49B3B;
+            background: #C49B3B;  /* Arany háttér */
             border: none;
-            border-radius: 50%;
+            border-radius: 50%;  /* Kerek forma */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.28s;
-            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);
+            transition: all 0.28s;  /* Animáció minden változáshoz */
+            box-shadow: 0 4px 15px rgba(196, 155, 59, 0.4);  /* Arany árnyék */
             font-size: 2rem;
-            color: #1A1A1D;
+            color: #1A1A1D;  /* Sötét szöveg */
             font-weight: bold;
         }
 
+        /* Vezérlőgomb hover (egér rámutatás) állapota */
         .control-btn:hover {
-            background: #d4ab4f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+            background: #d4ab4f;  /* Világosabb arany */
+            transform: translateY(-2px);  /* Kiemelkedés hatás */
+            box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);  /* Erősebb árnyék */
         }
 
+        /* Vezérlőgomb aktív (kattintás) állapota */
         .control-btn:active {
-            transform: translateY(0px);
+            transform: translateY(0px);  /* Visszatérés alaphelyzetbe */
         }
 
+       
+        /* Beállítások/Szünet gomb jobb felső sarokban */
         .pause-btn {
             position: fixed;
             top: 25px;
@@ -93,6 +102,7 @@
             box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
         }
 
+        /* Szünet ikon vizuális megjelenítése */
         .pause-icon {
             width: 24px;
             height: 24px;
@@ -101,6 +111,7 @@
             align-items: center;
         }
 
+        /* Két függőleges vonal a szünet ikonhoz */
         .pause-icon::before,
         .pause-icon::after {
             content: '';
@@ -109,10 +120,13 @@
             background: #1A1A1D;
             border-radius: 2px;
         }
+
+       
+        /* Felhasználónév megjelenítése jobb felül */
         #user-display {
             position: fixed;
             top: 25px;
-            right: 95px;
+            right: 95px;  /* Beállítások gomb mellé igazítva */
             height: 55px;
             font-family: 'Jaro', sans-serif;
             font-size: 2rem;
@@ -122,10 +136,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            text-shadow: 0 0 12px rgba(196, 155, 59, 0.4);
+            text-shadow: 0 0 12px rgba(196, 155, 59, 0.4);  /* Ragyogó hatás */
             z-index: 100;
         }
 
+        /* === FŐ TARTALOM KONTÉNER === */
         #dashboard-container {
             width: 100%;
             height: 100vh;
@@ -133,9 +148,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 100px 20px 120px;
+            padding: 100px 20px 120px;  /* Felső és alsó térköz */
         }
 
+        /* Fő cím stílusa */
         h1 {
             font-family: 'Jaro', sans-serif;
             font-size: 4rem;
@@ -143,10 +159,12 @@
             color: #C49B3B;
             margin-bottom: 60px;
             letter-spacing: 4px;
-            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+            text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);  /* Ragyogó effekt */
             text-align: center;
         }
 
+        
+        /* Szekció címkék (pl. "Felfedezés", "Saját világok") */
         .section-label {
             font-family: 'Jaro', sans-serif;
             font-size: 2rem;
@@ -157,6 +175,8 @@
             text-align: center;
         }
 
+        /* === VILÁGOK KONTÉNERE ÉS GÖRGETÉS === */
+        /* Világok külső konténere gradiens árnyékokkal */
         .worlds-container {
             width: 100%;
             max-width: 1000px;
@@ -164,6 +184,7 @@
             position: relative;
         }
 
+        /* Bal oldali gradiens árnyék a görgetéshez */
         .worlds-container::before,
         .worlds-container::after {
             content: '';
@@ -171,7 +192,7 @@
             top: 0;
             bottom: 0;
             width: 40px;
-            pointer-events: none;
+            pointer-events: none;  /* Átenged minden kattintást */
             z-index: 10;
         }
 
@@ -180,20 +201,24 @@
             background: linear-gradient(to right, #1A1A1D, transparent);
         }
 
+        /* Jobb oldali gradiens árnyék */
         .worlds-container::after {
             right: 0;
             background: linear-gradient(to left, #1A1A1D, transparent);
         }
 
+        
+        /* Vízszintesen görgethető világok konténere */
         .worlds-scroll {
             display: flex;
             gap: 25px;
-            overflow-x: auto;
+            overflow-x: auto;  /* Vízszintes görgetés engedélyezése */
             padding: 20px 10px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;  /* Simább görgetés */
+            -webkit-overflow-scrolling: touch;  /* Mobil eszközök optimalizálása */
         }
 
+        /* Görgetősáv testreszabása WebKit böngészőkben */
         .worlds-scroll::-webkit-scrollbar {
             height: 8px;
         }
@@ -213,6 +238,8 @@
             background: rgba(196, 155, 59, 0.7);
         }
 
+        /* === VILÁG KÁRTYÁK === */
+        /* Egyedi világ kártya stílusa */
         .world-card {
             min-width: 140px;
             width: 140px;
@@ -228,16 +255,20 @@
             position: relative;
         }
 
+        /* Világ kártya hover állapot */
         .world-card:hover {
-            transform: translateY(-5px) scale(1.05);
+            transform: translateY(-5px) scale(1.05);  /* Kiemelkedés és nagyítás */
             box-shadow: 0 8px 10px rgba(196, 155, 59, 0.5);
             background: #d4ab4f;
         }
 
+        /* Világ kártya aktív/kattintott állapot */
         .world-card:active {
             transform: translateY(-2px) scale(1.02);
         }
 
+        
+        /* Világ neve a kártyán */
         .world-name {
             font-family: 'Jaro', sans-serif;
             font-size: 1.4rem;
@@ -247,6 +278,7 @@
             letter-spacing: 1px;
         }
 
+        /* Üres világok üzenet */
         .empty-worlds-message {
             text-align: center;
             color: rgba(196, 155, 59, 0.5);
@@ -256,6 +288,8 @@
             width: 100%;
         }
 
+        /* === MŰVELET GOMBOK === */
+        /* Műveletek konténere (Kezdés gomb) */
         .action-buttons {
             display: flex;
             gap: 20px;
@@ -264,6 +298,7 @@
             justify-content: center;
         }
 
+        /* Kezdés gomb stílusa */
         .start-button {
             display: flex;
             justify-content: center;
@@ -284,6 +319,7 @@
             text-align: center;
         }
 
+        /* Kezdés gomb hover állapot */
         .start-button:hover {
             background: #C49B3B;
             color: #1A1A1D;
@@ -291,6 +327,7 @@
             box-shadow: 0 6px 20px rgba(196, 155, 59, 0.4);
         }
 
+        /* Kezdés gomb letiltott hover (nincs kiválasztás) */
         .start-button.no-selection:hover {
             background: transparent;
             color: #C49B3B;
@@ -302,6 +339,7 @@
             transform: translateY(-1px);
         }
 
+        /* Rázási animáció hibás kattintáskor */
         .start-button.shake {
             animation: shake 0.5s;
         }
@@ -313,12 +351,15 @@
             box-shadow: 0 4px 15px rgba(196, 155, 59, 0.2);
         }
 
+        
+        /* Rázás animáció definíciója */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
             20%, 40%, 60%, 80% { transform: translateX(8px); }
         }
 
+        /* Üzenet megjelenítése */
         #message {
             margin-top: 30px;
             font-weight: bold;
@@ -327,7 +368,8 @@
             text-align: center;
         }
 
-        
+        /* === BEÁLLÍTÁSOK MODAL (FELBUKKANÓ ABLAK) === */
+        /* Beállítások háttér overlay */
         .settings-overlay {
             display: none;
             position: fixed;
@@ -335,20 +377,22 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.7);  /* Áttetsző sötét háttér */
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);  /* Háttér elmosása */
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
+        /* Aktív beállítások overlay */
         .settings-overlay.active {
             display: flex;
             animation: fadeIn 0.3s ease forwards;
         }
 
+        /* Beúszás animáció */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -1109,28 +1153,36 @@
     </div>
 
     <script>
-        const API_URL = 'https://damareen.deakteri.fun/api';
-        const messageElement = document.getElementById('message');
-        const worldsScroll = document.getElementById('worlds-scroll');
-        const ownWorldsScroll = document.getElementById('own-worlds-scroll');
+        // === API KONFIGURÁCIÓ ÉS GLOBÁLIS VÁLTOZÓK ===
+        const API_URL = 'https://damareen.deakteri.fun/api';  // Backend API alapcíme
+        const messageElement = document.getElementById('message');  // Üzenet megjelenítő elem
+        const worldsScroll = document.getElementById('worlds-scroll');  // Felfedezés világok konténer
+        const ownWorldsScroll = document.getElementById('own-worlds-scroll');  // Saját világok konténer
         
-        let selectedWorldId = null;
+        let selectedWorldId = null;  // Jelenleg kiválasztott világ azonosítója
 
+        // === KEZDÉS GOMB ÁLLAPOTÁNAK FRISSÍTÉSE ===
+        /**
+         * Frissíti a Kezdés gomb megjelenését aszerint,
+         * hogy van-e kiválasztott világ
+         */
         function updateStartButtonState() {
             const startBtn = document.getElementById('start-btn');
             if (startBtn) {
                 if (selectedWorldId) {
-                    startBtn.classList.remove('no-selection');
+                    startBtn.classList.remove('no-selection');  // Kattintható állapot
                 } else {
-                    startBtn.classList.add('no-selection');
+                    startBtn.classList.add('no-selection');  // Letiltott állapot
                 }
             }
         }
 
+        // === GÖRGETÉS KEZELÉSE EGÉRKERÉKKEL ===
+        // Vízszintes görgetés engedélyezése függőleges egérkerék mozgatáskor
         worldsScroll.addEventListener('wheel', (e) => {
             if (e.deltaY !== 0) {
-                e.preventDefault();
-                worldsScroll.scrollLeft += e.deltaY;
+                e.preventDefault();  // Alapértelmezett függőleges görgetés megakadályozása
+                worldsScroll.scrollLeft += e.deltaY;  // Vízszintes görgetés
             }
         });
 
@@ -1141,17 +1193,28 @@
             }
         });
         
+        // === FELHASZNÁLÓI HITELESÍTÉS ELLENŐRZÉSE ===
+        /**
+         * Ellenőrzi, hogy a felhasználó be van-e jelentkezve
+         * és megjeleníti a felhasználónevet
+         */
+        // === FELHASZNÁLÓI HITELESÍTÉS ELLENŐRZÉSE ===
+        /**
+         * Ellenőrzi, hogy a felhasználó be van-e jelentkezve
+         * és megjeleníti a felhasználónevet
+         */
         async function checkAuth() {
-            const token = localStorage.getItem('token');
-            const user = localStorage.getItem('user');
+            const token = localStorage.getItem('token');  // Token lekérése
+            const user = localStorage.getItem('user');  // Felhasználó adatok lekérése
             
+            // Ha nincs token vagy felhasználó, átirányítás a bejelentkezéshez
             if (!token || !user) {
                 window.location.href = 'auth';
                 return;
             }
             
             try {
-                const userData = JSON.parse(user);
+                const userData = JSON.parse(user);  // JSON adat feldolgozása
                 console.log('Logged in as:', userData.username);
                 const username = userData.username || userData.name || 'Ismeretlen';
                 const userDisplay = document.getElementById('user-display');
@@ -1166,15 +1229,25 @@
             }
         }
 
+        // === VILÁGOK BETÖLTÉSE A SZERVERRŐL ===
+        /**
+         * Lekéri az elérhető világok listáját az API-tól
+         */
+        // === VILÁGOK BETÖLTÉSE A SZERVERRŐL ===
+        /**
+         * Lekéri az elérhető világok listáját az API-tól
+         */
         async function loadWorlds() {
             const token = localStorage.getItem('token');
             
+            // Hitelesítés ellenőrzése
             if (!token) {
                 window.location.href = 'auth';
                 return;
             }
 
             try {
+                // API hívás a világok listájához
                 const response = await fetch(`${API_URL}/user/list/worlds`, {
                     method: 'GET',
                     headers: {
@@ -1183,6 +1256,7 @@
                     }
                 });
 
+                // Hitelesítési hibák kezelése
                 if (!response.ok) {
                     if (response.status === 401 || response.status === 403) {
                         localStorage.removeItem('token');
@@ -1195,13 +1269,15 @@
 
                 const data = await response.json();
                 
+                // Sikeres válasz feldolgozása
                 if (data.success) {
-                    const worlds = data.data.worlds;
-                    const whereUserIsMaster = data.data.where_user_is_master || [];
-                    const alreadyJoinedWorlds = data.data.already_joined_worlds || {};
+                    const worlds = data.data.worlds;  // Összes világ
+                    const whereUserIsMaster = data.data.where_user_is_master || [];  // Ahol mester a felhasználó
+                    const alreadyJoinedWorlds = data.data.already_joined_worlds || {};  // Csatlakozott világok
                     
                     renderWorlds(worlds, whereUserIsMaster, alreadyJoinedWorlds);
                 } else {
+                    // Hibaüzenet megjelenítése
                     messageElement.textContent = 'Hiba a világok betöltésekor';
                     messageElement.style.color = '#ff6b6b';
                     setTimeout(() => {
@@ -1218,10 +1294,23 @@
             }
         }
 
+        // === VILÁGOK MEGJELENÍTÉSE A FELÜLETEN ===
+        /**
+         * Rendereli a világokat két kategóriában:
+         * - Felfedezés (új világok)
+         * - Saját világok (már csatlakozott)
+         */
+        // === VILÁGOK MEGJELENÍTÉSE A FELÜLETEN ===
+        /**
+         * Rendereli a világokat két kategóriában:
+         * - Felfedezés (új világok)
+         * - Saját világok (már csatlakozott)
+         */
         function renderWorlds(worlds, whereUserIsMaster, alreadyJoinedWorlds) {
-            worldsScroll.innerHTML = '';
+            worldsScroll.innerHTML = '';  // Konténerek kiürítése
             ownWorldsScroll.innerHTML = '';
             
+            // Ha nincs egyetlen világ sem
             if (!worlds || Object.keys(worlds).length === 0) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-worlds-message';
@@ -1236,12 +1325,13 @@
             }
 
             const ownWorldIds = Object.keys(alreadyJoinedWorlds);
-            let hasDiscoveryWorlds = false;
-            let hasOwnWorlds = false;
+            let hasDiscoveryWorlds = false;  // Van-e felfedezésre váró világ
+            let hasOwnWorlds = false;  // Van-e saját világ
             
+            // Végigiterálás minden világon
             for (const [worldId, worldName] of Object.entries(worlds)) {
-                const isOwnWorld = ownWorldIds.includes(worldId);
-                const targetScroll = isOwnWorld ? ownWorldsScroll : worldsScroll;
+                const isOwnWorld = ownWorldIds.includes(worldId);  // Saját világ-e
+                const targetScroll = isOwnWorld ? ownWorldsScroll : worldsScroll;  // Cél konténer
                 
                 if (isOwnWorld) {
                     hasOwnWorlds = true;
@@ -1249,17 +1339,20 @@
                     hasDiscoveryWorlds = true;
                 }
                 
+                // Világ kártya létrehozása
                 const card = document.createElement('div');
                 card.className = 'world-card';
                 card.dataset.worldId = worldId;
                 
+                // Mester státusz kezelése (kék színű kártya)
                 const isMaster = whereUserIsMaster.includes(worldId);
                 if (isMaster) {
-                    card.style.background = '#72a6ac';
+                    card.style.background = '#72a6ac';  // Kék háttér mestereknek
                     card.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.3)';
                     card.dataset.isMaster = 'true';
                 }
                 
+                // Világ név hozzáadása
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'world-name';
                 nameDiv.textContent = worldName;
@@ -1267,12 +1360,14 @@
                 card.appendChild(nameDiv);
                 targetScroll.appendChild(card);
                 
+                // === HOVER (EGÉR RÁMUTATÁS) ESEMÉNY ===
                 card.addEventListener('mouseenter', () => {
                     if (isMaster) {
                         card.style.boxShadow = '0 8px 10px rgba(114, 166, 172, 0.8)';
                     }
                 });
                 
+                // === HOVER VÉGE ESEMÉNY ===
                 card.addEventListener('mouseleave', () => {
                     if (isMaster && selectedWorldId !== worldId) {
                         card.style.boxShadow = '0 4px 10px rgba(114, 166, 172, 0.3)';
@@ -1281,7 +1376,9 @@
                     }
                 });
                 
+                // === KATTINTÁS ESEMÉNY (VILÁG KIVÁLASZTÁSA) ===
                 card.addEventListener('click', () => {
+                    // Ha már ki van választva, kijelölés megszüntetése
                     if (selectedWorldId === worldId) {
                         card.style.outline = 'none';
                         card.style.boxShadow = isMaster ? '0 8px 10px rgba(114, 166, 172, 0.8)' : '0 8px 10px rgba(196, 155, 59, 0.5)';
@@ -1289,6 +1386,7 @@
                         messageElement.textContent = '';
                         updateStartButtonState();
                     } else {
+                        // Minden kártya kijelölésének törlése
                         document.querySelectorAll('.world-card').forEach(c => {
                             c.style.outline = 'none';
                             if (c.dataset.isMaster === 'true') {
@@ -1298,12 +1396,14 @@
                             }
                         });
                         
+                        // Új világ kijelölése
                         const outlineColor = isMaster ? '#72a6ac' : '#C49B3B';
                         card.style.outline = `3px solid ${outlineColor}`;
                         card.style.outlineOffset = '5px';
                         card.style.boxShadow = isMaster ? '0 4px 10px rgba(114, 166, 172, 0.6)' : '0 4px 10px rgba(196, 155, 59, 0.3)';
                         selectedWorldId = worldId;
                         
+                        // Visszajelzés üzenet
                         messageElement.textContent = `Kiválasztva: ${worldName}`;
                         messageElement.style.color = '#C49B3B';
                         updateStartButtonState();
@@ -1316,6 +1416,7 @@
                 });
             }
             
+            // Üres állapot kezelése
             if (!hasDiscoveryWorlds) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'empty-worlds-message';
@@ -1330,6 +1431,7 @@
                 ownWorldsScroll.appendChild(emptyOwnMessage);
             }
             
+            // Görgetés igazítása (középre vagy balra)
             setTimeout(() => {
                 if (worldsScroll.scrollWidth > worldsScroll.clientWidth) {
                     worldsScroll.style.justifyContent = 'flex-start';
@@ -1345,9 +1447,18 @@
             }, 0);
         }
 
+        // === KEZDÉS GOMB KATTINTÁS ESEMÉNY ===
+        /**
+         * Játék indítása vagy világ szerkesztése
+         */
+        // === KEZDÉS GOMB KATTINTÁS ESEMÉNY ===
+        /**
+         * Játék indítása vagy világ szerkesztése
+         */
         document.getElementById('start-btn').addEventListener('click', () => {
             const startBtn = document.getElementById('start-btn');
             
+            // Ha nincs kiválasztott világ, hibajelzés rázással
             if (!selectedWorldId) {
                 startBtn.classList.add('shake');
                 
@@ -1364,30 +1475,44 @@
                 return;
             }
             
+            // Kiválasztott világ adatainak lekérése
             const selectedCard = document.querySelector(`.world-card[data-world-id="${selectedWorldId}"]`);
             const isMaster = selectedCard && selectedCard.dataset.isMaster === 'true';
             
+            // Ha mester, szerkesztőbe átirányítás
             if (isMaster) {
                 window.location.href = `manage-world?world_id=${selectedWorldId}`;
                 return;
             }
+            // Különben játékba átirányítás
             window.location.href = `game?world_id=${selectedWorldId}`;
         });
 
+        // === FRISSÍTÉS GOMB KATTINTÁS ESEMÉNY ===
+        /**
+         * Világok újratöltése a szerverről
+         */
+        // === FRISSÍTÉS GOMB KATTINTÁS ESEMÉNY ===
+        /**
+         * Világok újratöltése a szerverről
+         */
         document.getElementById('refresh-btn').addEventListener('click', async () => {
             const refreshBtn = document.getElementById('refresh-btn');
             
+            // Gomb ideiglenes letiltása
             refreshBtn.disabled = true;
             refreshBtn.style.opacity = '0.5';
             
             messageElement.textContent = 'Világok betöltése...';
             messageElement.style.color = '#C49B3B';
             
+            // Kiválasztás törlése
             selectedWorldId = null;
             updateStartButtonState();
             
-            await loadWorlds();
+            await loadWorlds();  // Világok betöltése
             
+            // Gomb újra engedélyezése
             refreshBtn.disabled = false;
             refreshBtn.style.opacity = '1';
             
@@ -1398,26 +1523,43 @@
             }, 2000);
         });
 
+        // === VILÁG HOZZÁADÁSA GOMB ===
+        /**
+         * Átirányítás a világ létrehozó oldalra
+         */
         document.getElementById('add-world-btn').addEventListener('click', () => {
             window.location.href = 'manage-world';
         });
 
-        
+        // === BEÁLLÍTÁSOK KEZELÉSE ===
     const settingsOverlay = document.getElementById('settings-overlay');
     const settingsBtn = document.getElementById('settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings-btn');
     const logoutBtnPopup = document.getElementById('logout-btn-popup');
     const deleteAccountBtn = document.getElementById('delete-account-btn');
     const passwordResetBtn = document.getElementById('password-reset-btn');
+        
+        // === JELSZÓ VISSZAÁLLÍTÁS GOMB ===
+        /**
+         * Email küldése jelszó visszaállításhoz
+         */
+        // === JELSZÓ VISSZAÁLLÍTÁS GOMB ===
+        /**
+         * Email küldése jelszó visszaállításhoz
+         */
         passwordResetBtn.addEventListener('click', async () => {
             passwordResetBtn.disabled = true;
             passwordResetBtn.textContent = 'Küldés...';
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
+            
+            // Hitelesítés ellenőrzése
             if (!token || !user) {
                 window.location.href = 'auth';
                 return;
             }
+            
+            // Email cím lekérése a felhasználói adatokból
             let email = '';
             try {
                 const userData = JSON.parse(user);
@@ -1425,6 +1567,8 @@
             } catch (e) {
                 email = '';
             }
+            
+            // Hiányzó email kezelése
             if (!email) {
                 passwordResetBtn.textContent = 'Nincs e-mail';
                 passwordResetBtn.style.color = '#ff6b6b';
@@ -1435,6 +1579,8 @@
                 }, 2000);
                 return;
             }
+            
+            // API kérés jelszó visszaállításhoz
             try {
                 const response = await fetch(`${API_URL}/user/password-reset`, {
                     method: 'POST',
@@ -1445,6 +1591,8 @@
                     body: JSON.stringify({ email })
                 });
                 const data = await response.json();
+                
+                // Válasz feldolgozása
                 if (response.ok && data.success) {
                     passwordResetBtn.textContent = 'Email elküldve!';
                     passwordResetBtn.style.color = '#C49B3B';
@@ -1456,6 +1604,8 @@
                 passwordResetBtn.textContent = 'Hiba történt';
                 passwordResetBtn.style.color = '#ff6b6b';
             }
+            
+            // Gomb visszaállítása eredeti állapotra
             setTimeout(() => {
                 passwordResetBtn.textContent = 'Jelszó megváltoztatása';
                 passwordResetBtn.style.color = '';
@@ -1463,11 +1613,23 @@
             }, 2000);
         });
 
+        // === BEÁLLÍTÁSOK GOMB KATTINTÁS ===
+        /**
+         * Beállítások modal megnyitása
+         */
+        // === BEÁLLÍTÁSOK GOMB KATTINTÁS ===
+        /**
+         * Beállítások modal megnyitása
+         */
         settingsBtn.addEventListener('click', () => {
             settingsOverlay.classList.remove('closing');
             settingsOverlay.classList.add('active');
         });
 
+        // === BEÁLLÍTÁSOK BEZÁRÁSA ANIMÁCIÓVAL ===
+        /**
+         * Modal bezárása animált átmenettel
+         */
         function closeSettingsWithAnimation() {
             settingsOverlay.classList.add('closing');
             setTimeout(() => {
@@ -1476,21 +1638,32 @@
             }, 300);
         }
 
+        // === BEÁLLÍTÁSOK BEZÁRÁS GOMB ===
         closeSettingsBtn.addEventListener('click', () => {
             closeSettingsWithAnimation();
         });
 
+        // === BEÁLLÍTÁSOK HÁTTÉR KATTINTÁS (BEZÁRÁS) ===
         settingsOverlay.addEventListener('click', (e) => {
             if (e.target === settingsOverlay) {
                 closeSettingsWithAnimation();
             }
         });
 
+        // === KIJELENTKEZÉS GOMB ESEMÉNY ===
+        /**
+         * Kijelentkezési megerősítő ablak megnyitása
+         */
+        // === KIJELENTKEZÉS GOMB ESEMÉNY ===
+        /**
+         * Kijelentkezési megerősítő ablak megnyitása
+         */
         logoutBtnPopup.addEventListener('click', () => {
             const logoutModalOverlay = document.getElementById('logout-modal-overlay');
             const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
             const logoutCancelBtn = document.getElementById('logout-cancel-btn');
             
+            // Beállítások bezárása, kijelentkezés modal megnyitása
             settingsOverlay.classList.add('closing');
             setTimeout(() => {
                 settingsOverlay.classList.remove('active');
@@ -1498,12 +1671,14 @@
                 logoutModalOverlay.classList.add('active');
             }, 300);
             
+            // === KIJELENTKEZÉS MEGERŐSÍTÉSE ===
             const handleConfirm = () => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 window.location.href = 'auth';
             };
             
+            // === KIJELENTKEZÉS VISSZAVONÁSA ===
             const handleCancel = () => {
                 logoutModalOverlay.classList.remove('active');
                 logoutConfirmBtn.removeEventListener('click', handleConfirm);
@@ -1513,6 +1688,7 @@
             logoutConfirmBtn.addEventListener('click', handleConfirm);
             logoutCancelBtn.addEventListener('click', handleCancel);
             
+            // Háttérre kattintás = Mégse
             logoutModalOverlay.addEventListener('click', (e) => {
                 if (e.target === logoutModalOverlay) {
                     handleCancel();
@@ -1520,6 +1696,14 @@
             });
         });
 
+        // === FIÓK TÖRLÉSE GOMB ESEMÉNY ===
+        /**
+         * Fiók törlési folyamat kezelése
+         */
+        // === FIÓK TÖRLÉSE GOMB ESEMÉNY ===
+        /**
+         * Fiók törlési folyamat kezelése
+         */
         deleteAccountBtn.addEventListener('click', async () => {
             const deleteModalOverlay = document.getElementById('delete-modal-overlay');
             const deleteModalMessage = document.getElementById('delete-modal-message');
@@ -1529,6 +1713,7 @@
             const deleteCancelBtn = document.getElementById('delete-cancel-btn');
             const deleteModalError = document.getElementById('delete-modal-error');
             
+            // Modal alaphelyzetbe állítása
             deleteModalMessage.textContent = 'Biztosan törölni szeretnéd a fiókodat? Ez a művelet nem vonható vissza!';
             deletePasswordGroup.style.display = 'none';
             deletePasswordInput.value = '';
@@ -1536,8 +1721,9 @@
             deleteConfirmBtn.textContent = 'Tovább';
             deleteConfirmBtn.disabled = false;
             
-            let isPasswordStep = false;
+            let isPasswordStep = false;  // Jelszó megadási lépés jelzője
             
+            // Beállítások bezárása, törlés modal megnyitása
             settingsOverlay.classList.add('closing');
             setTimeout(() => {
                 settingsOverlay.classList.remove('active');
@@ -1545,7 +1731,9 @@
                 deleteModalOverlay.classList.add('active');
             }, 300);
             
+            // === TÖRLÉS MEGERŐSÍTÉSE ===
             const handleConfirm = async () => {
+                // Első lépés: figyelmeztetés
                 if (!isPasswordStep) {
                     deleteModalMessage.textContent = 'A folytatáshoz add meg a jelszavadat:';
                     deletePasswordGroup.style.display = 'block';
@@ -1553,6 +1741,7 @@
                     isPasswordStep = true;
                     deletePasswordInput.focus();
                 } else {
+                    // Második lépés: jelszó ellenőrzés és törlés
                     const password = deletePasswordInput.value.trim();
                     
                     if (!password) {
@@ -1572,6 +1761,7 @@
                     }
 
                     try {
+                        // API hívás fiók törléséhez
                         const response = await fetch(`${API_URL}/user/delete`, {
                             method: 'DELETE',
                             headers: {
@@ -1584,17 +1774,20 @@
                         const data = await response.json();
 
                         if (response.ok) {
+                            // Sikeres törlés
                             deleteModalMessage.textContent = 'Fiókod sikeresen törölve lett.';
                             deletePasswordGroup.style.display = 'none';
                             deleteConfirmBtn.style.display = 'none';
                             deleteCancelBtn.textContent = 'Bezárás';
                             
+                            // Átirányítás bejelentkezéshez 2 másodperc múlva
                             setTimeout(() => {
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('user');
                                 window.location.href = 'auth';
                             }, 2000);
                         } else {
+                            // Hiba esetén
                             if (response.status === 401 || response.status === 403) {
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('user');
@@ -1614,6 +1807,7 @@
                 }
             };
             
+            // === TÖRLÉS VISSZAVONÁSA ===
             const handleCancel = () => {
                 deleteModalOverlay.classList.remove('active');
                 deleteConfirmBtn.removeEventListener('click', handleConfirm);
@@ -1621,16 +1815,19 @@
                 deletePasswordInput.removeEventListener('keypress', handleEnter);
             };
             
+            // === ENTER BILLENTYŰ KEZELÉSE ===
             const handleEnter = (e) => {
                 if (e.key === 'Enter') {
                     handleConfirm();
                 }
             };
             
+            // Eseménykezelők hozzáadása
             deleteConfirmBtn.addEventListener('click', handleConfirm);
             deleteCancelBtn.addEventListener('click', handleCancel);
             deletePasswordInput.addEventListener('keypress', handleEnter);
             
+            // Háttérre kattintás = Mégse
             deleteModalOverlay.addEventListener('click', (e) => {
                 if (e.target === deleteModalOverlay) {
                     handleCancel();
@@ -1638,9 +1835,10 @@
             });
         });
 
-        checkAuth();
-        loadWorlds();
-        updateStartButtonState();
+        // === OLDAL BETÖLTÉSE UTÁN FUTTATANDÓ FUNKCIÓK ===
+        checkAuth();  // Hitelesítés ellenőrzése
+        loadWorlds();  // Világok betöltése
+        updateStartButtonState();  // Kezdés gomb állapotának frissítése
     </script>
 </body>
 </html>

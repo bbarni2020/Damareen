@@ -9,62 +9,80 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Jaro:opsz@6..72&display=swap" rel="stylesheet">
     <style>
+/* === GLOBÁLIS ALAPBEÁLLÍTÁSOK === */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Oldal törzsének alapstílusa */
 body {
   font-family: "Jaro", sans-serif;
-  background-color: #1a1a1d;
-  color: #d9d9d9;
+  background-color: #1a1a1d;  /* Sötét háttérszín */
+  color: #d9d9d9;  /* Világos szövegszín */
   min-height: 100vh;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  transition: padding 0.3s ease;
+  transition: padding 0.3s ease;  /* Simább átmenet padding változáskor */
 }
+
+/* === FELSŐ VEZÉRLŐGOMBOK === */
+/* Szünet/beállítások gomb, világ műveletek és kezdőlap gomb */
 .pause-btn,
 .world-actions,
 .home-btn {
   position: fixed;
   top: 25px;
   display: flex;
-  z-index: 100;
+  z-index: 100;  /* Mindig legfelül jelenjen meg */
 }
+
+/* Közös igazítási beállítások */
 .pause-btn,
 .home-btn,
 body {
   align-items: center;
   justify-content: center;
 }
+
+/* Kezdőlap gomb jobb felső sarokban */
 .home-btn {
   right: 25px;
   width: 50px;
   height: 50px;
-  background: #c49b3b;
+  background: #c49b3b;  /* Arany háttér */
   border: none;
-  border-radius: 50%;
+  border-radius: 50%;  /* Kerek forma */
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
 }
+
+/* Hover állapot a művelet gombokhoz */
 .action-btn:hover,
 .pause-btn:hover,
 .home-btn:hover {
-  background: #d4ab4f;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);
+  background: #d4ab4f;  /* Világosabb arany */
+  transform: translateY(-2px);  /* Kiemelkedés */
+  box-shadow: 0 6px 20px rgba(196, 155, 59, 0.6);  /* Erősebb árnyék */
 }
+
+/* Kezdőlap ikon stílusa */
 .home-icon {
   width: 24px;
   height: 24px;
   fill: #1a1a1d;
 }
+
+/* Világ műveletek konténere (bal felső sarok) */
 .world-actions {
   left: 25px;
   gap: 10px;
 }
+
+/* Általános gomb és cím stílusok */
 .action-btn,
 h1 {
   font-family: "Jaro", sans-serif;
@@ -72,6 +90,8 @@ h1 {
   cursor: pointer;
   transition: all 0.3s;
 }
+
+/* Művelet gombok alapstílusa */
 .action-btn {
   padding: 10px 20px;
   background: #c49b3b;
@@ -81,17 +101,22 @@ h1 {
   font-size: 1rem;
   box-shadow: 0 4px 10px rgba(196, 155, 59, 0.3);
 }
+
 .action-btn:hover {
   box-shadow: 0 6px 15px rgba(196, 155, 59, 0.5);
 }
+
+/* Veszélyes művelet gomb (pl. törlés) */
 .action-btn.danger {
-  background: rgba(255, 107, 107, 0.9);
+  background: rgba(255, 107, 107, 0.9);  /* Piros háttér */
   color: #fff;
 }
+
 .action-btn.danger:hover {
   background: #ff6b6b;
 }
 
+/* Szöveg kijelölés stílusai */
 ::selection {
   background: #C49B3B;
   color: #1A1A1D;
@@ -100,6 +125,8 @@ h1 {
   background: #C49B3B;
   color: #1A1A1D;
 }
+
+/* Szünet ikon megjelenítése */
 .pause-icon {
   width: 24px;
   height: 24px;
@@ -107,6 +134,8 @@ h1 {
   gap: 6px;
   align-items: center;
 }
+
+/* Két függőleges vonal a szünet ikonhoz */
 .pause-icon::after,
 .pause-icon::before {
   content: "";
@@ -115,12 +144,14 @@ h1 {
   background: #1a1a1d;
   border-radius: 2px;
 }
+
+/* === FŐ CÍM (VILÁG NEVE) === */
 h1 {
   font-size: 3rem;
   color: #c49b3b;
   margin-bottom: 40px;
   letter-spacing: 4px;
-  text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);
+  text-shadow: 0 0 30px rgba(196, 155, 59, 0.5);  /* Ragyogó hatás */
   text-align: center;
   padding: 10px 30px;
   border-radius: 10px;
@@ -129,11 +160,14 @@ h1 {
   justify-content: center;
   transition: all 0.3s ease;
 }
+
+/* Cím fókusz állapota */
 h1:focus {
   outline: 2px solid #c49b3b;
   outline-offset: 5px;
 }
 
+/* Világ név beviteli mező */
 #world-name-input {
   margin-left: 14px;
   padding: 10px 0;
@@ -145,23 +179,31 @@ h1:focus {
   color: #d9d9d9;
   background: transparent;
   border: none;
-  border-bottom: 2px solid rgba(196, 155, 59, 0.35);
+  border-bottom: 2px solid rgba(196, 155, 59, 0.35);  /* Aláhúzás */
   border-radius: 0;
   width: 300px;
   transition: all 0.2s ease;
 }
+
+/* Placeholder szöveg stílusa */
 #world-name-input::placeholder {
   color: rgba(217, 217, 217, 0.55);
 }
+
+/* Beviteli mező fókusz állapota */
 #world-name-input:focus {
   outline: none;
   border-bottom-color: #c49b3b;
   background: transparent;
 }
+
+/* Letiltott beviteli mező */
 #world-name-input:disabled {
   opacity: 0.8;
   cursor: default;
 }
+
+/* === FŐ KONTÉNER === */
 .main-container {
   width: 90%;
   max-width: 1200px;
@@ -171,13 +213,17 @@ h1:focus {
   display: flex;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(196, 155, 59, 0.3);
-  animation: scaleIn 0.4s ease-out;
+  animation: scaleIn 0.4s ease-out;  /* Beúszás animáció */
 }
+
+/* Közös stílusok a panelek számára */
 .left-panel,
 .tabs-container {
   display: flex;
   background: #1a1a1d;
 }
+
+/* Bal oldali panel (fülek és tartalom) */
 .left-panel {
   flex: 1;
   padding: 0;
@@ -185,15 +231,19 @@ h1:focus {
   border-right: 3px solid #c49b3b;
   overflow: hidden;
 }
+
+/* Fülek konténere */
 .tabs-container {
   border-bottom: 3px solid #c49b3b;
 }
+
+/* === FÜL GOMBOK === */
 .tab-button {
   flex: 1;
   padding: 15px 20px;
-  background: 0 0;
+  background: 0 0;  /* Átlátszó háttér */
   border: 0;
-  color: rgba(196, 155, 59, 0.5);
+  color: rgba(196, 155, 59, 0.5);  /* Halvány arany */
   font-family: "Jaro", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
@@ -203,32 +253,44 @@ h1:focus {
   border-bottom: 3px solid transparent;
   margin-bottom: -3px;
 }
+
+/* Fül gomb hover állapota (nem letiltott) */
 .tab-button:hover:not(:disabled) {
   color: rgba(196, 155, 59, 0.8);
   background: rgba(196, 155, 59, 0.05);
 }
+
+/* Aktív fül */
 .tab-button.active {
   color: #c49b3b;
   border-bottom-color: #c49b3b;
   background: rgba(196, 155, 59, 0.1);
 }
+
+/* Letiltott fül */
 .tab-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
   color: rgba(196, 155, 59, 0.3);
 }
+
+/* === FÜL TARTALOM === */
 .tab-content {
-  display: none;
+  display: none;  /* Alapértelmezetten rejtett */
   flex: 1;
   padding: 30px;
-  overflow-y: auto;
+  overflow-y: auto;  /* Függőleges görgetés */
   position: relative;
 }
+
+/* Aktív fül tartalom és jobb panel */
 .right-panel,
 .tab-content.active {
   display: flex;
   flex-direction: column;
 }
+
+/* Zárolt fül tartalom (világ létrehozás előtt) */
 .tab-content.locked::before {
   content: "🔒 Először hozz létre egy világot!";
   position: absolute;
@@ -245,16 +307,22 @@ h1:focus {
   z-index: 10;
   padding: 20px;
 }
+
+/* Jobb oldali panel */
 .right-panel {
   flex: 1;
   background: #1a1a1d;
   padding: 30px;
 }
+
+/* Panel cím és zárolt szöveg közös stílusa */
 .panel-title,
 .tab-content.locked::before {
   font-family: "Jaro", sans-serif;
   text-align: center;
 }
+
+/* Panel cím stílusa */
 .panel-title {
   font-size: 2.2rem;
   font-weight: 700;
@@ -262,6 +330,8 @@ h1:focus {
   margin-bottom: 25px;
   letter-spacing: 2px;
 }
+
+/* Kártya űrlap és előnézet */
 .card-form,
 .card-preview {
   display: flex;
@@ -1669,22 +1739,28 @@ h1:focus {
     </div>
 
     <script>
-        
-        const API_URL = 'https://damareen.deakteri.fun/api'; 
-        let isPaused = false;
-        let cards = [];
-        let cardIdCounter = 0;
-        let currentImageData = null;
-        let dungeonSequence = [];
-        let editingCardId = null;
-        let leaderBaseCard = null;
-        let selectedStat = null;
-        let currentWorldId = null;
-        let dungeonLeaderCard = null;
-        let worldDungeons = [];
-        let worldUsers = [];
-        let giveBaseCardId = null;
+        // === GLOBÁLIS VÁLTOZÓK ÉS KONFIGURÁCIÓ ===
+        const API_URL = 'https://damareen.deakteri.fun/api';  // Backend API alapcíme
+        let isPaused = false;  // Játék szüneteltetett állapota
+        let cards = [];  // Összes kártya tömbje
+        let cardIdCounter = 0;  // Kártya azonosító számláló
+        let currentImageData = null;  // Aktuális kártya kép adatok
+        let dungeonSequence = [];  // Kazamata kártya sorrend
+        let editingCardId = null;  // Szerkesztés alatt álló kártya ID-ja
+        let leaderBaseCard = null;  // Vezér kártya alapja
+        let selectedStat = null;  // Kiválasztott statisztika
+        let currentWorldId = null;  // Aktuális világ azonosítója
+        let dungeonLeaderCard = null;  // Kazamata vezér kártya
+        let worldDungeons = [];  // Világ kazamatái
+        let worldUsers = [];  // Világ felhasználói
+        let giveBaseCardId = null;  // Kiosztandó kártya ID-ja
 
+        // === FIGYELMEZTETŐ ÜZENET MEGJELENÍTÉSE ===
+        /**
+         * Egyedi alert doboz megjelenítése különböző típusokkal
+         * @param {string} message - Megjelenítendő üzenet
+         * @param {string} type - Üzenet típusa: 'info', 'success', 'warning', 'error'
+         */
         function showAlert(message, type = 'info') {
             const alertBox = document.getElementById('custom-alert');
             const alertOverlay = document.getElementById('alert-overlay');
@@ -1693,6 +1769,7 @@ h1:focus {
             
             alertBox.className = 'custom-alert';
             
+            // Ikonok típusonként
             const icons = {
                 error: '❌',
                 success: '✅',
@@ -1704,10 +1781,15 @@ h1:focus {
             alertMessage.textContent = message;
             alertBox.classList.add(type);
             
+            // Alert megjelenítése
             alertOverlay.classList.add('show');
             alertBox.classList.add('show');
         }
 
+        // === ALERT BEZÁRÁSA ===
+        /**
+         * Figyelmeztető ablak bezárása
+         */
         function closeAlert() {
             const alertBox = document.getElementById('custom-alert');
             const alertOverlay = document.getElementById('alert-overlay');
@@ -1716,23 +1798,46 @@ h1:focus {
             alertOverlay.classList.remove('show');
         }
 
+        // Alert overlay kattintás esemény - bezárás
         document.getElementById('alert-overlay').addEventListener('click', closeAlert);
 
+        // === URL PARAMÉTER LEKÉRÉSE ===
+        /**
+         * URL paraméter értékének lekérése
+         * @param {string} name - Paraméter neve
+         * @returns {string|null} Paraméter értéke vagy null
+         */
         function getUrlParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
+        // === VILÁG UI ENGEDÉLYEZÉSE ===
+        /**
+         * Világ felület aktiválása (kártya- és kazamata készítés)
+         * @param {boolean} fromUrl - URL-ből betöltött világ esetén true
+         */
+        // === VILÁG UI ENGEDÉLYEZÉSE ===
+        /**
+         * Világ felület aktiválása (kártya- és kazamata készítés)
+         * @param {boolean} fromUrl - URL-ből betöltött világ esetén true
+         */
     function enableWorldUI(fromUrl = false) {
+            // Fülek engedélyezése
             document.getElementById('card-creation-tab').disabled = false;
             document.getElementById('dungeon-creation-tab').disabled = false;
+            
+            // Világ törlése gomb aktiválása
             document.getElementById('delete-world-btn').disabled = false;
             document.getElementById('delete-world-btn').style.opacity = '1';
             document.getElementById('delete-world-btn').style.cursor = 'pointer';
+            
+            // Világ létrehozása gomb letiltása (már létezik)
             document.getElementById('create-world-btn').disabled = true;
             document.getElementById('create-world-btn').style.opacity = '0.5';
             document.getElementById('create-world-btn').style.cursor = 'not-allowed';
             
+            // Kártya beviteli mezők engedélyezése
             document.getElementById('card-type').disabled = false;
             document.getElementById('card-picture').disabled = false;
             document.getElementById('card-name').disabled = false;
@@ -1740,20 +1845,23 @@ h1:focus {
             document.getElementById('card-damage').disabled = false;
             document.querySelector('.create-btn').disabled = false;
             
+            // Zárolt tartalom feloldása
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('locked');
             });
 
-      
+      // Világ név mező kezelése
       const worldNameInput = document.getElementById('world-name-input');
       if (worldNameInput) {
         if (fromUrl) {
+          // URL-ből betöltött világ - név szerkesztés tiltása
           worldNameInput.disabled = true;
           worldNameInput.style.opacity = '0.7';
           worldNameInput.style.cursor = 'not-allowed';
           worldNameInput.style.pointerEvents = 'none';
           document.getElementById('create-world-btn').style.display = 'none';
         } else {
+          // Újonnan létrehozott világ - szerkeszthető
           worldNameInput.disabled = false;
           worldNameInput.style.opacity = '1';
           worldNameInput.style.cursor = 'text';
@@ -1761,24 +1869,34 @@ h1:focus {
         }
       }
 
+      // Mobil nézet kezelése
       if (window.innerWidth <= 600) {
         document.body.classList.add('world-active');
         document.querySelector('.main-container').classList.remove('hidden-mobile');
       }
         }
 
+        // === VILÁG UI LETILTÁSA ===
+        /**
+         * Világ felület letiltása (nincs aktív világ)
+         */
     function disableWorldUI() {
+            // Fülek letiltása
             document.getElementById('card-creation-tab').disabled = true;
             document.getElementById('dungeon-creation-tab').disabled = true;
+            
+            // Világ törlése gomb letiltása
             document.getElementById('delete-world-btn').disabled = true;
             document.getElementById('delete-world-btn').style.opacity = '0.5';
             document.getElementById('delete-world-btn').style.cursor = 'not-allowed';
+            
+            // Világ létrehozása gomb engedélyezése
             document.getElementById('create-world-btn').disabled = false;
             document.getElementById('create-world-btn').style.opacity = '1';
             document.getElementById('create-world-btn').style.cursor = 'pointer';
             document.getElementById('create-world-btn').style.display = 'block';
             
-      
+      // Világ név mező engedélyezése
       const worldNameInput = document.getElementById('world-name-input');
       if (worldNameInput) {
         worldNameInput.disabled = false;
@@ -1786,6 +1904,7 @@ h1:focus {
         worldNameInput.style.cursor = 'text';
       }
             
+            // Kártya beviteli mezők letiltása
             document.getElementById('card-type').disabled = true;
             document.getElementById('card-picture').disabled = true;
             document.getElementById('card-name').disabled = true;
@@ -1793,18 +1912,25 @@ h1:focus {
             document.getElementById('card-damage').disabled = true;
             document.querySelector('.create-btn').disabled = true;
             
+            // Tartalom zárolása
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.add('locked');
             });
 
+            // Mobil nézet kezelése
             if (window.innerWidth <= 600) {
               document.body.classList.remove('world-active');
               document.querySelector('.main-container').classList.add('hidden-mobile');
             }
         }
 
+        // === FÜL VÁLTÁS ESEMÉNYKEZELŐK ===
+        /**
+         * Fülek közötti váltás kezelése
+         */
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
+                // Ha fül le van tiltva, figyelmeztetés
                 if (button.disabled) {
                     showAlert('Először hozz létre egy világot!', 'warning');
                     return;
@@ -1812,20 +1938,23 @@ h1:focus {
                 
                 const tabName = button.dataset.tab;
                 
+                // Összes fül és tartalom inaktívvá tétele
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 
+                // Kiválasztott fül aktiválása
                 button.classList.add('active');
                 document.getElementById(tabName).classList.add('active');
                 
+                // Fül-specifikus műveletek
                 if (tabName === 'dungeon-creation') {
-                    renderDungeonsList();
-                    renderCollection();
-                    updateCreateDungeonButton();
+                    renderDungeonsList();  // Kazamaták listázása
+                    renderCollection();  // Kártyák megjelenítése
+                    updateCreateDungeonButton();  // Gomb frissítése
                 } else if (tabName === 'card-creation') {
-                    renderCollection();
+                    renderCollection();  // Kártyák megjelenítése
                     if (editingCardId) {
-                        cancelEdit();
+                        cancelEdit();  // Szerkesztés megszakítása
                     }
                 }
             });
@@ -2228,13 +2357,23 @@ h1:focus {
             }
         }
 
+        // === KÁRTYÁK BETÖLTÉSE ===
+        /**
+         * Világ kártyáinak betöltése a szerverről
+         * - Lekéri az aktuális világ összes kártyáját
+         * - Frissíti a kártya számlálót
+         * - Megjeleníti a kártyákat
+         */
         async function loadCards() {
+            // Ha nincs aktív világ, kilépés
             if (!currentWorldId) {
                 return;
             }
 
             try {
                 const token = localStorage.getItem('token');
+                
+                // API hívás kártyák lekéréséhez
                 const response = await fetch(`${API_URL}/world/list/cards?world_id=${currentWorldId}`, {
                     method: 'GET',
                     headers: {
@@ -2245,30 +2384,45 @@ h1:focus {
                 if (response.ok) {
                     const data = await response.json();
                     cards = data.data?.cards || [];
+                    
+                    // Kártya ID számláló frissítése
                     if (cards.length > 0) {
                         cardIdCounter = Math.max(...cards.map(c => c.id));
                     }
-                    renderCollection();
+                    
+                    renderCollection();  // Kártyák megjelenítése
                 }
       } catch (error) {
         console.error('Error loading cards:', error);
       }
     }
 
+        // === VILÁG FELHASZNÁLÓINAK BETÖLTÉSE ===
+        /**
+         * Világhoz tartozó felhasználók lekérése
+         * - Frissíti a worldUsers tömböt
+         * - Frissíti a kártya kiosztás UI-t
+         */
   async function loadWorldUsers() {
       if (!currentWorldId) return;
+      
       try {
         const token = localStorage.getItem('token');
+        
+        // API hívás felhasználók lekéréséhez
         const response = await fetch(`${API_URL}/world/list/users?world_id=${currentWorldId}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        
         if (response.ok) {
           const data = await response.json();
           worldUsers = data.data.users || [];
-          updateAssignModeUI();
+          updateAssignModeUI();  // UI frissítése
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error loading world users:', e);
+      }
     }
 
     function updateAssignModeUI() {
@@ -2431,10 +2585,19 @@ h1:focus {
             }
         }
 
+        // === VILÁG LÉTREHOZÁSA ===
+        /**
+         * Új világ létrehozása API hívássa
+         * - Validálja a világ nevét
+         * - Elküldi a szervernek
+         * - Frissíti az URL-t az új világ ID-val
+         * - Aktiválja a UI-t
+         */
         async function createWorld() {
       const nameInput = document.getElementById('world-name-input');
       const worldName = (nameInput ? nameInput.value : '').trim();
             
+      // Név validálás
       if (worldName === '') {
                 showAlert('Kérlek adj nevet a világnak!', 'warning');
                 return;
@@ -2444,6 +2607,7 @@ h1:focus {
                 const token = localStorage.getItem('token');
                 const userStr = localStorage.getItem('user');
                 
+                // Felhasználó adatok ellenőrzése
                 if (!userStr) {
                     showAlert('Nem található felhasználó adat. Kérlek jelentkezz be újra!', 'error');
                     return;
@@ -2457,6 +2621,7 @@ h1:focus {
                     return;
                 }
                 
+                // API hívás világ létrehozásához
                 const response = await fetch(`${API_URL}/create/world`, {
                     method: 'POST',
                     headers: {
@@ -2475,13 +2640,16 @@ h1:focus {
                     
                     currentWorldId = newWorldId;
                     
+                    // URL frissítése a világ ID-val
                     const url = new URL(window.location);
                     url.searchParams.set('world_id', newWorldId);
                     window.history.pushState({}, '', url);
                     
+                    // UI aktiválása
                     enableWorldUI(false);
                     showAlert('Világ sikeresen létrehozva!', 'success');
                     
+                    // Adatok betöltése
                     await loadWorldUsers();
                     await loadCards();
                     await loadDungeons();
@@ -2497,24 +2665,31 @@ h1:focus {
             }
         }
 
+        // === KAZAMATA LÉTREHOZÁSA ===
+        /**
+         * Kazamata létrehozása a kiválasztott kártyákból
+         * - Validálja a kártyák számát (1, 4 vagy 6)
+         * - Ellenőrzi a vezér pozícióját
+         * - Elküldi a szervernek
+         */
         async function createDungeon() {
             const normalCards = dungeonSequence.length;
             const hasLeader = dungeonLeaderCard !== null;
             const totalCards = normalCards + (hasLeader ? 1 : 0);
             
-            
+            // Üres kazamata ellenőrzés
             if (totalCards === 0) {
                 showAlert('A kazamata 1, 4 vagy 6 kártyát kell tartalmazzon', 'warning');
                 return;
             }
             
-            
+            // Kártyaszám validálás (1, 4 vagy 6 kártya lehet)
             if (totalCards !== 1 && totalCards !== 4 && totalCards !== 6) {
                 showAlert('A kazamata 1, 4 vagy 6 kártyát kell tartalmazzon', 'warning');
                 return;
             }
             
-            
+            // Vezér kötelező 4 és 6 kártyás kazamatában
             if ((totalCards === 4 || totalCards === 6) && !hasLeader) {
                 showAlert('Az utolsó kártya csak vezér lehet', 'warning');
                 return;
@@ -2573,18 +2748,30 @@ h1:focus {
             }
         }
 
+        // === VILÁG TÖRLÉSE ===
+        /**
+         * Aktív világ törlése megerősítés után
+         * - Megerősítést kér a felhasználótól
+         * - Törli a világot a szerverről
+         * - Visszaállítja az alapállapotot
+         * - Frissíti az URL-t
+         */
         async function deleteWorld() {
+            // Ellenőrzi, hogy van-e aktív világ
             if (!currentWorldId) {
                 showAlert('Nincs aktív világ törölni!', 'warning');
                 return;
             }
             
+            // Megerősítés kérése
             if (!confirm('Biztosan törölni szeretnéd ezt a világot? Ez nem visszavonható!')) {
                 return;
             }
             
             try {
                 const token = localStorage.getItem('token');
+                
+                // API hívás világ törléséhez
                 const response = await fetch(`${API_URL}/delete/world`, {
                     method: 'DELETE',
                     headers: {
@@ -2599,12 +2786,14 @@ h1:focus {
                 if (response.ok) {
                     showAlert('Világ sikeresen törölve!', 'success');
                     
+                    // Állapot visszaállítása
                     currentWorldId = null;
                     cards = [];
                     worldDungeons = [];
                     dungeonSequence = [];
                     dungeonLeaderCard = null;
                     
+                    // URL tisztítása
                     const url = new URL(window.location);
                     url.searchParams.delete('world_id');
                     window.history.pushState({}, '', url);
@@ -2783,21 +2972,21 @@ h1:focus {
               if (isSelectedLeader) {
                 dungeonLeaderCard = null;
               } else {
-                // Check if trying to add a leader when there's already one
+                
                 if (dungeonLeaderCard !== null) {
                   showAlert('Egy kazamata csak egy vezért tartalmazhat', 'warning');
                   shakeCard(cardElement);
                   return;
                 }
                 
-                // Check if trying to add leader to empty dungeon (would be first card)
+                
                 if (dungeonSequence.length === 0) {
                   showAlert('Vezér nem lehet az első kártya', 'warning');
                   shakeCard(cardElement);
                   return;
                 }
                 
-                // Check if leader is being added anywhere not last
+                
                 const normalCardsCount = dungeonSequence.length;
                 if (normalCardsCount !== 3 && normalCardsCount !== 5) {
                   showAlert('A vezért csak utolsóként szabad választani', 'warning');
@@ -2815,7 +3004,7 @@ h1:focus {
                   dungeonLeaderCard = null;
                 }
               } else {
-                // Check if trying to add a 7th card
+                
                 const totalCards = dungeonSequence.length + (dungeonLeaderCard !== null ? 1 : 0);
                 if (totalCards >= 6) {
                   showAlert('A kazamata maximum 6 kártyából állhat', 'warning');
@@ -2823,7 +3012,7 @@ h1:focus {
                   return;
                 }
                 
-                // Check if trying to add a normal card as the 6th one (when there are already 5 cards)
+                
                 const normalCardsCount = dungeonSequence.length;
                 if (normalCardsCount === 5 && dungeonLeaderCard !== null) {
                   showAlert('Az utolsó kártya csak vezér lehet', 'warning');
