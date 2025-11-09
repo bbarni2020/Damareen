@@ -134,8 +134,17 @@ saveDeckBtn.onclick = async () => {
     }catch(e){statusEl.textContent='Hálózati hiba';}
 };
 if(worldId){statusEl.textContent=`world_id: ${worldId}`;} else {statusEl.textContent='Adj meg world_id-t az URL-ben';}
-if(worldId){loadDungeons();}
-if(worldId){loadCards();}
+async function joinWorld(){
+    const token = auth();
+    if(!worldId) return;
+    try{
+        const r = await fetch(`${API_URL}/game/join`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({invite_code:worldId})});
+        const data = await r.json();
+        if(r.ok){statusEl.textContent='Csatlakozva a világhoz';}
+        else if(r.status===409){/* már csatlakozott */}
+    }catch(e){}
+}
+if(worldId){(async()=>{await joinWorld();await loadDungeons();await loadCards();})();}
 </script>
 </body>
 </html>
