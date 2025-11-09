@@ -935,6 +935,110 @@ h1 {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.settings-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.settings-overlay.active {
+  display: flex;
+  animation: fadeInOverlay 0.3s ease forwards;
+}
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOutOverlay {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes popIn {
+  0% {
+    transform: scale(0.7) translateY(-20px);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes popOut {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) translateY(-20px);
+    opacity: 0;
+  }
+}
+.settings-popup {
+  background: #1A1A1D;
+  border: 4px solid #C49B3B;
+  border-radius: 20px;
+  padding: 40px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 40px rgba(196, 155, 59, 0.5);
+  position: relative;
+  opacity: 0;
+  transform: scale(0.7) translateY(-20px);
+}
+.settings-overlay.active .settings-popup {
+  animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+.settings-overlay.closing {
+  animation: fadeOutOverlay 0.3s ease forwards;
+}
+.settings-overlay.closing .settings-popup {
+  animation: popOut 0.3s ease forwards;
+}
+.settings-header {
+  font-family: "Jaro", sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #C49B3B;
+  margin-bottom: 30px;
+  letter-spacing: 3px;
+  text-align: center;
+  text-shadow: 0 0 25px rgba(196, 155, 59, 0.6);
+  text-transform: uppercase;
+}
+.close-settings-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 35px;
+  height: 35px;
+  background: transparent;
+  border: 2px solid #C49B3B;
+  border-radius: 50%;
+  color: #C49B3B;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+.close-settings-btn:hover {
+  background: #C49B3B;
+  color: #1A1A1D;
+  transform: rotate(90deg);
+}
 @media (max-width: 1024px) {
   h1 {
     font-size: 2.5rem;
@@ -1019,6 +1123,7 @@ h1 {
             </div>
         </div>
         <button class="action-btn" id="fightBtn" style="max-width: 300px; font-size: 1.5rem; padding: 15px 40px; background: #c49b3b; border: 3px solid rgba(196, 155, 59, 0.5);" disabled>HARC!</button>
+        <div id="fightErrorMessage" style="display: none; color: #ff6b6b; text-align: center; font-size: 1.1rem; margin-top: 10px; font-weight: 700; text-shadow: 0 2px 10px rgba(255, 107, 107, 0.5);"></div>
     </div>
 
     <div class="result-panel" id="result" style="display: none;">
@@ -1027,6 +1132,17 @@ h1 {
     </div>
 
     <input type="hidden" id="dungeonId">
+
+    
+    <div class="settings-overlay" id="card-selection-modal">
+        <div class="settings-popup" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <button class="close-settings-btn" id="close-card-selection">×</button>
+            <div class="settings-header">Melyik kártyát szeretnéd fejleszteni győzelem esetén?</div>
+            <div id="card-selection-content" style="display: flex; flex-wrap: nowrap; gap: 15px; padding: 20px; overflow-x: auto; justify-content: flex-start;">
+                
+            </div>
+        </div>
+    </div>
 
     <script>
 const API_URL = 'https://damareen.deakteri.fun/api';
@@ -1146,68 +1262,106 @@ async function loadDungeons(){
             pack.appendChild(stack);
             pack.appendChild(info);
             pack.onclick=()=>{
+                const isAlreadySelected = pack.classList.contains('selected');
                 document.querySelectorAll('.dungeon-pack').forEach(el=>el.classList.remove('selected'));
-                pack.classList.add('selected');
-                dungeonInput.value=d.id;
-                currentDungeonSize=d.number_of_cards;
-                statusEl.textContent=`Kiválasztva: ${d.number_of_cards} kártyás kazamata`;
-                fightBtn.disabled=false;
+                
+                if (isAlreadySelected) {
+                    
+                    dungeonInput.value = '';
+                    currentDungeonSize = null;
+                    statusEl.textContent = 'Válassz egy kazamatát';
+                    fightBtn.disabled = true;
+                } else {
+                    
+                    pack.classList.add('selected');
+                    dungeonInput.value=d.id;
+                    currentDungeonSize=d.number_of_cards;
+                    statusEl.textContent=`Kiválasztva: ${d.number_of_cards} kártyás kazamata`;
+                    fightBtn.disabled=false;
+                }
             };
             dungeonsEl.appendChild(pack);
         });
     }catch(e){dungeonsEl.innerHTML='<div class="empty-message">Hálózati hiba</div>';}
 }
 fightBtn.onclick = async () => {
-    resultEl.style.display='none';
-    statusEl.textContent='⚔️ Harc indítása...';
+    const fightErrorMessage = document.getElementById('fightErrorMessage');
+    fightErrorMessage.style.display = 'none';
+    
     const token = auth();
     const dungeonId = dungeonInput.value.trim();
-    if(!dungeonId){statusEl.textContent='Válassz egy kazamatát';return;}
-    if(!worldId){statusEl.textContent='world_id hiányzik';return;}
-    const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0);
-    if(cardsInDeck.length === 0){statusEl.textContent='Nincs kártya a paklidban';return;}
-    if(currentDungeonSize!==null){
-        if(cardsInDeck.length!==currentDungeonSize){statusEl.textContent=`Pakli (${cardsInDeck.length}) ≠ Kazamata (${currentDungeonSize})`;return;}
+    if(!dungeonId){
+        fightErrorMessage.textContent = 'Válassz egy kazamatát';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+        return;
     }
-    try{
-        const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
-        const r = await fetch(url,{headers:{'Authorization':`Bearer ${token}`}});
-        const data = await r.json();
-        if(!r.ok){statusEl.textContent=data.error||'Hiba';return;}
-        const winner = data.data.winner;
-        const isPlayerWinner = winner === 'player';
-        statusEl.textContent = isPlayerWinner ? '🎉 GYŐZTÉL!' : '💀 VESZTETTÉL';
-        const battles = data.data.battles||[];
-        const resultTitle = document.getElementById('resultTitle');
-        resultTitle.textContent = isPlayerWinner ? '🏆 GYŐZELEM 🏆' : '⚰️ VERESÉG ⚰️';
-        resultTitle.style.color = isPlayerWinner ? '#4caf50' : '#ff6b6b';
-        const resultContent = document.getElementById('resultContent');
-        const table = document.createElement('table');
-        table.className='battle-table';
-        const head = document.createElement('thead');
-        head.innerHTML='<tr><th>Kör</th><th>Te</th><th>Kazamata</th><th>Győztes</th><th>Indok</th></tr>';
-        table.appendChild(head);
-        const tbody = document.createElement('tbody');
-        battles.forEach(b=>{
-            const tr=document.createElement('tr');
-            const pc=b.player_card||{};
-            const dc=b.dungeon_card||{};
-            const roundWinner = b.winner;
-            tr.innerHTML=`
-                <td>${b.position}</td>
-                <td>${pc.name}</td>
-                <td>${dc.name}</td>
-                <td class="${roundWinner==='player'?'winner-player':'winner-dungeon'}">${roundWinner==='player'?'🎯 Te':'💀 Kazamata'}</td>
-                <td>${b.reason}</td>
-            `;
-            tbody.appendChild(tr);
+    if(!worldId){
+        fightErrorMessage.textContent = 'world_id hiányzik';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+        return;
+    }
+    const cardsInDeck = allCardsData.filter(c=>c.position && c.position > 0);
+    if(cardsInDeck.length === 0){
+        fightErrorMessage.textContent = 'Nincs kártya a paklidban';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+        return;
+    }
+    
+    
+    if(currentDungeonSize !== null && cardsInDeck.length !== currentDungeonSize){
+        fightErrorMessage.textContent = 'A pakli és a kazamata kártyáinak száma meg kell egyezzen';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+        return;
+    }
+    
+    
+    const cardIds = cardsInDeck.map(c => c.id);
+    try {
+        fightBtn.disabled = true;
+        fightBtn.textContent = 'Mentés...';
+        
+        const response = await fetch(`${API_URL}/deck`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cards: cardIds })
         });
-        table.appendChild(tbody);
-        resultContent.innerHTML='';
-        resultContent.appendChild(table);
-        resultEl.style.display='block';
-        resultEl.scrollIntoView({behavior:'smooth'});
-    }catch(e){statusEl.textContent='Hálózati hiba';}
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showCardSelectionModal();
+        } else {
+            fightErrorMessage.textContent = data.error || 'Hiba történt a pakli mentése során';
+            fightErrorMessage.style.display = 'block';
+            setTimeout(() => {
+                fightErrorMessage.style.display = 'none';
+            }, 2000);
+        }
+    } catch (error) {
+        fightErrorMessage.textContent = 'Hálózati hiba történt';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+    } finally {
+        fightBtn.disabled = false;
+        fightBtn.textContent = 'HARC!';
+    }
 };
 async function loadCards(){
     const token = auth();
@@ -1588,7 +1742,7 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
     const confirmed = confirm('A pakli módosításai el fognak veszni. Biztos szeretnél frissíteni?');
     
     if (!confirmed) {
-        return; 
+        return;
     }
     
     refreshBtn.disabled = true;
@@ -1605,6 +1759,160 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
 });
 
 if(worldId){statusEl.textContent=`world_id: ${worldId}`;} else {statusEl.textContent='Adj meg world_id-t az URL-ben';}
+
+function showCardSelectionModal() {
+    const modal = document.getElementById('card-selection-modal');
+    const content = document.getElementById('card-selection-content');
+    
+    content.innerHTML = '';
+    
+    
+    const typeEmojis = {t:'🔥',v:'💧',f:'🌍',l:'🌬️'};
+    const typeNames = {t:'Tűz',v:'Víz',f:'Föld',l:'Levegő'};
+    
+    allCardsData.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'side-panel-card';
+        cardEl.style.cursor = 'pointer';
+        
+        const cardImage = document.createElement('div');
+        cardImage.className = 'card-image';
+        if (card.picture) {
+            const img = document.createElement('img');
+            img.src = card.picture;
+            img.alt = card.name;
+            cardImage.appendChild(img);
+        } else {
+            cardImage.textContent = typeEmojis[card.type] || '❓';
+        }
+        
+        const cardName = document.createElement('div');
+        cardName.className = 'card-name';
+        cardName.textContent = card.name;
+        
+        const cardStats = document.createElement('div');
+        cardStats.className = 'card-stats';
+        cardStats.innerHTML = `
+            <div class="stat">
+                <div class="stat-label">HP</div>
+                <div class="stat-value">${card.health}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">DMG</div>
+                <div class="stat-value">${card.damage}</div>
+            </div>
+        `;
+        
+        const cardType = document.createElement('div');
+        cardType.className = 'card-type';
+        cardType.textContent = `${typeEmojis[card.type]||''} ${typeNames[card.type]||card.type}`;
+        
+        cardEl.appendChild(cardImage);
+        cardEl.appendChild(cardName);
+        cardEl.appendChild(cardStats);
+        cardEl.appendChild(cardType);
+        
+        
+        cardEl.onclick = () => {
+            closeCardSelectionModal();
+            startFight(card.id);
+        };
+        
+        content.appendChild(cardEl);
+    });
+    
+    modal.classList.add('active');
+}
+
+function closeCardSelectionModal() {
+    const modal = document.getElementById('card-selection-modal');
+    modal.classList.add('closing');
+    setTimeout(() => {
+        modal.classList.remove('active', 'closing');
+    }, 300);
+}
+
+async function startFight(selectedCardId) {
+    const fightErrorMessage = document.getElementById('fightErrorMessage');
+    resultEl.style.display='none';
+    statusEl.textContent='⚔️ Harc indítása...';
+    fightErrorMessage.style.display = 'none';
+    
+    const token = auth();
+    const dungeonId = dungeonInput.value.trim();
+    
+    try{
+        const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
+        const r = await fetch(url,{headers:{'Authorization':`Bearer ${token}`}});
+        const data = await r.json();
+        if(!r.ok){
+            statusEl.textContent=data.error||'Hiba';
+            fightErrorMessage.textContent = data.error || 'Hiba történt a harc során';
+            fightErrorMessage.style.display = 'block';
+            setTimeout(() => {
+                fightErrorMessage.style.display = 'none';
+            }, 2000);
+            return;
+        }
+        const winner = data.data.winner;
+        const isPlayerWinner = winner === 'player';
+        statusEl.textContent = isPlayerWinner ? '🎉 GYŐZTÉL!' : '💀 VESZTETTÉL';
+        const battles = data.data.battles||[];
+        const resultTitle = document.getElementById('resultTitle');
+        resultTitle.textContent = isPlayerWinner ? '🏆 GYŐZELEM 🏆' : '⚰️ VERESÉG ⚰️';
+        resultTitle.style.color = isPlayerWinner ? '#4caf50' : '#ff6b6b';
+        const resultContent = document.getElementById('resultContent');
+        const table = document.createElement('table');
+        table.className='battle-table';
+        const head = document.createElement('thead');
+        head.innerHTML='<tr><th>Kör</th><th>Te</th><th>Kazamata</th><th>Győztes</th><th>Indok</th></tr>';
+        table.appendChild(head);
+        const tbody = document.createElement('tbody');
+        battles.forEach(b=>{
+            const tr=document.createElement('tr');
+            const pc=b.player_card||{};
+            const dc=b.dungeon_card||{};
+            const roundWinner = b.winner;
+            tr.innerHTML=`
+                <td>${b.position}</td>
+                <td>${pc.name}</td>
+                <td>${dc.name}</td>
+                <td class="${roundWinner==='player'?'winner-player':'winner-dungeon'}">${roundWinner==='player'?'🎯 Te':'💀 Kazamata'}</td>
+                <td>${b.reason}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        resultContent.innerHTML='';
+        resultContent.appendChild(table);
+        resultEl.style.display='block';
+        resultEl.scrollIntoView({behavior:'smooth'});
+        
+        // TODO: Use selectedCardId to upgrade the card after winning
+        if (isPlayerWinner) {
+            console.log('Selected card for upgrade:', selectedCardId);
+            // Here you would call an API to upgrade the selected card
+        }
+    }catch(e){
+        statusEl.textContent='Hálózati hiba';
+        fightErrorMessage.textContent = 'Hálózati hiba történt';
+        fightErrorMessage.style.display = 'block';
+        setTimeout(() => {
+            fightErrorMessage.style.display = 'none';
+        }, 2000);
+    }
+}
+
+
+document.getElementById('close-card-selection').addEventListener('click', closeCardSelectionModal);
+
+
+document.getElementById('card-selection-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'card-selection-modal') {
+        closeCardSelectionModal();
+    }
+});
+
 async function joinWorld(){
     const token = auth();
     if(!worldId) return;
