@@ -4,10 +4,15 @@ from flask import Flask, render_template_string, request, abort, redirect, url_f
 
 app = Flask(__name__)
 
+# Adatbázis elérési útvonalak
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DB_DIR = os.path.join(BASE_DIR, 'backend/instance')
 
 def safe_db_path(db_name):
+    """
+    Biztonsági ellenőrzés - nem engedjük path traversal-t
+    csak .db fájlok, és csak az instance mappából
+    """
     if '/' in db_name or '\\' in db_name or not db_name.endswith('.db'):
         abort(400, "Érvénytelen adatbázis név")
     db_path = os.path.abspath(os.path.join(DB_DIR, db_name))
@@ -16,6 +21,7 @@ def safe_db_path(db_name):
     return db_path
 
 def get_db_tables(db_path):
+    """SQLite adatbázisból az összes tábla lekérése"""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -24,6 +30,12 @@ def get_db_tables(db_path):
     return tables
 
 def get_table_data(db_path, table):
+    """
+    Tábla adatok lekérése
+    
+    Logs táblát timestamp szerint csökkenő sorrendben
+    (hogy a legfrissebb legyen elől)
+    """
     if not table.replace('_', '').isalnum():
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
@@ -38,6 +50,7 @@ def get_table_data(db_path, table):
     return columns, rows
 
 def get_table_schema(db_path, table):
+    """Tábla séma lekérése - oszlopok, típusok, stb."""
     if not table.isalnum() and '_' not in table:
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
@@ -48,11 +61,13 @@ def get_table_schema(db_path, table):
     return schema
 
 def update_record(db_path, table, record_id, data):
+    """Rekord frissítése - csak valid oszlopokat engedi"""
     if not table.replace('_', '').isalnum():
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
+    # Csak azokat az oszlopokat frissítjük amik léteznek
     valid_columns = [col[1] for col in get_table_schema(db_path, table)]
     filtered_data = {k: v for k, v in data.items() if k in valid_columns}
     
@@ -67,6 +82,7 @@ def update_record(db_path, table, record_id, data):
     conn.close()
 
 def delete_record(db_path, table, record_id):
+    """Egyetlen rekord törlése ID alapján"""
     if not table.replace('_', '').isalnum():
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
@@ -76,6 +92,7 @@ def delete_record(db_path, table, record_id):
     conn.close()
 
 def add_record(db_path, table, data):
+    """Új rekord hozzáadása"""
     if not table.replace('_', '').isalnum():
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
@@ -95,6 +112,7 @@ def add_record(db_path, table, data):
     conn.close()
 
 def delete_all_records(db_path, table):
+    """Összes rekord törlése egy táblából - veszélyes művelet!"""
     if not table.replace('_', '').isalnum():
         raise ValueError("Érvénytelen tábla név")
     conn = sqlite3.connect(db_path)
@@ -105,6 +123,7 @@ def delete_all_records(db_path, table):
 
 @app.route('/')
 def index():
+    """Főoldal - listázza az elérhető DB fájlokat"""
     db_files = [f for f in os.listdir(DB_DIR) if f.endswith('.db')]
     return render_template_string('''
         <h2>Elérhető adatbázisok</h2>
@@ -117,6 +136,7 @@ def index():
 
 @app.route('/db/<db_name>')
 def view_db(db_name):
+    """Egy adatbázis tábláinak listázása"""
     db_path = safe_db_path(db_name)
     if not os.path.exists(db_path):
         return "Adatbázis nem található", 404
@@ -521,5 +541,7 @@ def delete_all_execute(db_name, table):
         return f"Hiba az összes rekord törlése közben: {e}", 500
 
 if __name__ == '__main__':
+    # Egyszerű DB viewer - 6970-es porton fut
+    # Hasznos dev közben ha gyorsan akarunk nézelődni az adatbázisban
     app.run(host='0.0.0.0', port=6970, debug=True)
 

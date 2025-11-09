@@ -10,14 +10,20 @@ from app.email_config import EmailConfig
 
 
 def generate_verification_token():
+    """URL-safe random token generálás - 32 byte = 43 karakter base64-ben"""
     return secrets.token_urlsafe(32)
 
 
 def get_verification_expiry():
+    """Token lejárati idő - 24 óra mostantól"""
     return datetime.utcnow() + timedelta(hours=EmailConfig.VERIFICATION_TOKEN_EXPIRATION_HOURS)
 
 
 def get_logo_image():
+    """
+    Logo képfájl betöltése az emailekhez
+    Ha nem létezik, nem gond - akkor csak nem lesz logo
+    """
     logo_path = os.path.join(os.path.dirname(__file__), '../../web/src/icon.png')
     try:
         with open(logo_path, 'rb') as img_file:
@@ -29,6 +35,12 @@ def get_logo_image():
 
 
 def send_verification_email(recipient_email, username, verification_token):
+    """
+    Email megerősítés küldése új regisztrációnál
+    
+    HTML + plain text verzió is van, ha valaki nem tud HTML-t renderelni
+    A logo inline attachment-ként van beágyazva (cid:logo)
+    """
     try:
         verification_url = f"{EmailConfig.VERIFICATION_URL_BASE}/auth.html?token={verification_token}"
         

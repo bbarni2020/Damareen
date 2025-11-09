@@ -1,7 +1,9 @@
 import uuid
 
 def generate_unique_id():
+    """32 karakteres hex ID generálás - ezzel azonosítunk mindent"""
     return uuid.uuid4().hex
+
 from flask import jsonify
 import re
 import bcrypt
@@ -13,14 +15,10 @@ from flask import request
 
 def success_response(data, status_code=200):
     """
-    Return a standardized success response
+    Szabványos success válasz JSON formátumban
     
-    Args:
-        data: The data to return
-        status_code: HTTP status code (default: 200)
-    
-    Returns:
-        Flask response object
+    Példa:
+        return success_response({'message': 'Siker!'})
     """
     response = {
         'success': True,
@@ -31,14 +29,10 @@ def success_response(data, status_code=200):
 
 def error_response(message, status_code=400):
     """
-    Return a standardized error response
+    Szabványos error válasz JSON formátumban
     
-    Args:
-        message: Error message
-        status_code: HTTP status code (default: 400)
-    
-    Returns:
-        Flask response object
+    Példa:
+        return error_response('Valami elromlott', 500)
     """
     response = {
         'success': False,
@@ -49,15 +43,9 @@ def error_response(message, status_code=400):
 
 def paginate_query(query, page=1, per_page=10):
     """
-    Paginate a SQLAlchemy query
+    SQLAlchemy query lapozása
     
-    Args:
-        query: SQLAlchemy query object
-        page: Page number (default: 1)
-        per_page: Items per page (default: 10)
-    
-    Returns:
-        Dictionary with pagination data
+    Ez még nincs használva, de ha sok adat lenne jó lenne
     """
     paginated = query.paginate(page=page, per_page=per_page, error_out=False)
     
@@ -73,6 +61,7 @@ def paginate_query(query, page=1, per_page=10):
 
 
 def validate_email(email):
+    """Email formátum ellenőrzés - egyszerű regex"""
     if not email or not isinstance(email, str):
         return False
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -80,6 +69,7 @@ def validate_email(email):
 
 
 def validate_username(username):
+    """Username validáció: 3-80 karakter, csak alfanumerikus + aláhúzás"""
     if not username or not isinstance(username, str):
         return False
     username = username.strip()
@@ -89,6 +79,12 @@ def validate_username(username):
 
 
 def validate_password(password):
+    """
+    Jelszó validáció - minimum 8 karakter, kell benne:
+    - nagybetű
+    - kisbetű  
+    - szám
+    """
     if not password or not isinstance(password, str):
         return False
     if len(password) < 8:
@@ -100,33 +96,45 @@ def validate_password(password):
 
 
 def hash_password(password):
+    """bcrypt hash - biztonságos jelszó tárolás"""
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def verify_password(password, password_hash):
+    """Jelszó ellenőrzés hash-el szemben"""
     return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
 
 def generate_token(user_id, secret_key, expiration_hours=24):
+    """JWT token generálás - 24 óra lejárattal"""
     payload = {
         'user_id': user_id,
         'exp': datetime.utcnow() + timedelta(hours=expiration_hours),
-        'iat': datetime.utcnow()
+        'iat': datetime.utcnow()  # issued at
     }
     return jwt.encode(payload, secret_key, algorithm='HS256')
 
 
 def decode_token(token, secret_key):
+    """JWT token dekódolás - ha lejárt vagy invalid, None-t ad vissza"""
     try:
         payload = jwt.decode(token, secret_key, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
-        return None
+        return None  # lejárt
     except jwt.InvalidTokenError:
-        return None
+        return None  # rossz token
 
 
 def require_auth(f):
+    """
+    Decorator - token-alapú auth-ot ellenőriz
+    
+    Használat:
+        @require_auth
+        def protected_endpoint():
+            user = request.current_user
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         from flask import current_app
@@ -136,6 +144,7 @@ def require_auth(f):
         if not auth_header:
             return error_response('Az Authorization fejléc hiányzik', 401)
         
+        # "Bearer <token>" formátumot várunk
         parts = auth_header.split()
         if len(parts) != 2 or parts[0].lower() != 'bearer':
             return error_response('Érvénytelen Authorization fejléc formátum', 401)
@@ -151,6 +160,7 @@ def require_auth(f):
         if not user:
             return error_response('Felhasználó nem található', 401)
         
+        # Requestbe rakjuk a user adatokat
         request.user_id = user_id
         request.current_user = user
         return f(*args, **kwargs)
@@ -158,12 +168,18 @@ def require_auth(f):
 
 
 def is_master_of_world(user, world_id):
+    """Megnézi hogy a user game master-e az adott világban"""
     if not user or not user.world_ids:
         return False
     return user.world_ids.get(str(world_id)) is True
 
 
 def require_master(f):
+    """
+    Decorator - ellenőrzi hogy a user game master-e
+    
+    A world_id-t vagy body-ból vagy query param-ből veszi
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = request.current_user
@@ -184,6 +200,7 @@ def require_master(f):
 
 
 def check_master_status():
+    """Master status ellenőrzés - ezt az endpoint hívja"""
     user = request.current_user
     world_id = request.args.get('world_id')
     

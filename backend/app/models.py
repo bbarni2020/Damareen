@@ -7,22 +7,34 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
     
+    # Egyedi 32 karakteres ID minden userhez
     id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)  # bcrypt hash
+    
+    # Világok, amikben részt vesz - JSON, mert dict-et tárolunk
+    # Formátum: {"world_id": True/False} - True = game master
     world_ids = db.Column(db.JSON, nullable=True, default=list)
-    settings = db.Column(db.JSON, nullable=True, default=dict)
+    settings = db.Column(db.JSON, nullable=True, default=dict)  # user beállítások
+    
+    # Email verifikáció - ha be van kapcsolva
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
     verification_token = db.Column(db.String(256), nullable=True)
     verification_token_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Login verifikáció (ha kéne kettős faktor)
     login_verification_token = db.Column(db.String(256), nullable=True)
     login_verification_token_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Jelszó reset
     password_reset_token = db.Column(db.String(256), nullable=True)
     password_reset_token_expires = db.Column(db.DateTime, nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
     def to_dict(self):
+        """JSON serialization - érzékeny adatok nélkül"""
         return {
             'id': self.id,
             'username': self.username,
@@ -41,15 +53,15 @@ class Card(db.Model):
     __tablename__ = 'cards'
 
     id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
-    world_id = db.Column(db.String(32), nullable=False)
-    owner_id = db.Column(db.String(32), nullable=False)
+    world_id = db.Column(db.String(32), nullable=False)  # melyik világban létezik
+    owner_id = db.Column(db.String(32), nullable=False)  # kié a kártya
     name = db.Column(db.String(16), nullable=False)
-    picture = db.Column(db.LargeBinary, nullable=True)
-    health = db.Column(db.Integer, nullable=False)
-    damage = db.Column(db.Integer, nullable=False)
-    type = db.Column(db.String(6), nullable=False)
-    position = db.Column(db.Integer, nullable=False)
-    is_leader = db.Column(db.String(32), nullable=False)
+    picture = db.Column(db.LargeBinary, nullable=True)  # base64 string binaryként tárolva
+    health = db.Column(db.Integer, nullable=False)  # életerő
+    damage = db.Column(db.Integer, nullable=False)  # sebzés
+    type = db.Column(db.String(6), nullable=False)  # t/f/v/l - tűz/föld/víz/levegő
+    position = db.Column(db.Integer, nullable=False)  # pozíció a pakliban (0 = nincs pakliban)
+    is_leader = db.Column(db.String(32), nullable=False)  # ha vezér, akkor az eredeti kártya ID-ja, különben ""
 
     def to_dict(self):
         return {
@@ -73,7 +85,7 @@ class World(db.Model):
     __tablename__ = 'worlds'
 
     world_id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
-    name = db.Column(db.String(120), nullable=False)
+    name = db.Column(db.String(120), nullable=False)  # a világ neve
     
     def to_dict(self):
         return {
@@ -90,8 +102,8 @@ class Dungeon(db.Model):
     
     id = db.Column(db.String(32), primary_key=True, unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
-    world_id = db.Column(db.String(32), nullable=False)
-    list_of_card_ids = db.Column(db.JSON, nullable=True, default=list)
+    world_id = db.Column(db.String(32), nullable=False)  # melyik világhoz tartozik
+    list_of_card_ids = db.Column(db.JSON, nullable=True, default=list)  # kártya ID lista
     
     def to_dict(self):
         return {

@@ -23,13 +23,22 @@ from sqlalchemy.orm.attributes import flag_modified
 
 api = Blueprint('api', __name__)
 
+# Rate limiting - egyszerű in-memory tárolás
+# Production-ben Redis kellene, de ez egyelőre elég
 _rate_limit_store = {}
-_RATE_LIMIT_WINDOW = 10 
-_RATE_LIMIT_MAX = 5
+_RATE_LIMIT_WINDOW = 10  # 10 másodperc
+_RATE_LIMIT_MAX = 5  # max 5 kérés per window
 
+# Dungeon választási cache - hogy ne mindig random legyen
 _dungeon_selection_cache = {}
 
 def ratelimit(func):
+    """
+    Rate limiting decorator
+    
+    IP + endpoint alapján limitál - 5 request / 10 sec
+    Ha túllépi, 429-et dob
+    """
     @wraps(func)
     def decorated_function(*args, **kwargs):
         ip = request.remote_addr or 'unknown'
@@ -37,7 +46,7 @@ def ratelimit(func):
         now = time.time()
         window_start = now - _RATE_LIMIT_WINDOW
         reqs = _rate_limit_store.get(key, [])
-        reqs = [t for t in reqs if t > window_start]
+        reqs = [t for t in reqs if t > window_start]  # régi kérések kiszűrése
         if len(reqs) >= _RATE_LIMIT_MAX:
             return error_response('Kéréskorlát túllépve', 429)
         reqs.append(now)
@@ -49,6 +58,13 @@ def ratelimit(func):
 @api.route('/user/register', methods=['POST'])
 @ratelimit
 def register():
+    """
+    User regisztráció
+    
+    Validál mindent (email, username, password), hash-eli a jelszót
+    Ha email verifikáció be van kapcsolva, küld egy megerősítő emailt
+    Különben egyből be is jelentkeztet
+    """
     data = request.get_json()
     
     if not data:
@@ -455,6 +471,12 @@ def create_world():
 @require_auth
 @require_master
 def create_card():
+    """
+    Kártya létrehozás - csak game master csinálhatja
+    
+    Validál: típus (t/f/v/l), health (1-100), damage (2-100)
+    Opcióálisan adható give_to_user_id vagy give_to_user_ids - ekkor másolatot készít nekik
+    """
     user = request.current_user
     
     data = request.get_json()
@@ -927,6 +949,13 @@ def create_leader():
 @ratelimit
 @require_auth
 def set_deck():
+    """
+    Pakli beállítás
+    
+    Pontosan 1, 4 vagy 6 kártyát kell megadni
+    Az összes kártyának ugyanabból a világból kell lennie
+    Position alapján állítja a sorrendet (1-től kezdődik)
+    """
     user = request.current_user
     data = request.get_json()
     if not data:
@@ -1358,6 +1387,22 @@ def delete_dungeon():
 @ratelimit
 @require_auth
 def fight():
+    """
+    Harc logika - ez a játék szíve
+    
+    Kártya vs kártya párosításban:
+    1. Sebzés alapján - ki öli meg a másikat
+    2. Ha egyenlő, akkor típus alapján (t > f > v > l > t)
+    3. Ha az is egyenlő, dungeon nyer (fallback)
+    
+    Többségi rendszer - aki több csatát nyer, nyer összesen
+    Ha a játékos nyer:
+      - 1 kártyás dungeon: +1 damage a kiválasztott kártyára
+      - 4 kártyás: +2 health
+      - 6 kártyás: +3 damage
+    
+    Végén törli a cache-ből a dungeon választást (új választás lesz legközelebb)
+    """
     user = request.current_user
     world_id = request.args.get('world_id')
     dungeon_id = request.args.get('dungeon_id')
@@ -1511,13 +1556,16 @@ def fight():
 @api.route('/health', methods=['GET'])
 @ratelimit
 def health_check():
+    """Health check endpoint - deployment-hez hasznos"""
     return success_response({'status': 'egészséges'})
 
 @api.errorhandler(404)
 def not_found(error):
+    """404-es hibák kezelése"""
     return error_response('Erőforrás nem található', 404)
 
 
 @api.errorhandler(500)
 def internal_error(error):
+    """500-as hibák kezelése"""
     return error_response('Belső szerverhiba', 500)
