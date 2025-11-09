@@ -959,6 +959,8 @@ def join_game():
         user.world_ids = {}
     
     if invite_code in user.world_ids:
+        if user.world_ids[invite_code] is True:
+            return error_response('Már játék mester vagy ebben a világban', 409)
         return error_response('Már csatlakoztál ehhez a világhoz', 409)
     
     try:
