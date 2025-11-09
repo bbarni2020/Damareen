@@ -1842,7 +1842,7 @@ async function startFight(selectedCardId) {
     const dungeonId = dungeonInput.value.trim();
     
     try{
-        const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}`;
+        const url = `${API_URL}/game/fight?dungeon_id=${encodeURIComponent(dungeonId)}&world_id=${encodeURIComponent(worldId)}&selected_card_id=${encodeURIComponent(selectedCardId)}`;
         const r = await fetch(url,{headers:{'Authorization':`Bearer ${token}`}});
         const data = await r.json();
         if(!r.ok){
@@ -1888,11 +1888,8 @@ async function startFight(selectedCardId) {
         resultEl.style.display='block';
         resultEl.scrollIntoView({behavior:'smooth'});
         
-        // TODO: Use selectedCardId to upgrade the card after winning
-        if (isPlayerWinner) {
-            console.log('Selected card for upgrade:', selectedCardId);
-            // Here you would call an API to upgrade the selected card
-        }
+        
+        await loadCards();
     }catch(e){
         statusEl.textContent='Hálózati hiba';
         fightErrorMessage.textContent = 'Hálózati hiba történt';
