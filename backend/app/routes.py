@@ -922,8 +922,22 @@ def set_deck():
     for c in cards:
         if c.owner_id != user.id:
             return error_response('Csak a saját kártyáidat állíthatod be paklinak', 403)
-    pos_map = {cid: i + 1 for i, cid in enumerate(cards_list)}
+    
+    world_ids = set(c.world_id for c in cards)
+    if len(world_ids) != 1:
+        return error_response('Minden kártyának ugyanabból a világból kell származnia', 400)
+    world_id = world_ids.pop()
+    
     try:
+        old_deck_cards = Card.query.filter_by(
+            owner_id=user.id,
+            world_id=world_id
+        ).filter(Card.position > 0).all()
+        
+        for old_card in old_deck_cards:
+            old_card.position = 0
+        
+        pos_map = {cid: i + 1 for i, cid in enumerate(cards_list)}
         for c in cards:
             c.position = pos_map.get(c.id, c.position)
         db.session.commit()
