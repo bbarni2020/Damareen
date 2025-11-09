@@ -14,6 +14,14 @@
   padding: 0;
   box-sizing: border-box;
 }
+::selection {
+  background: #C49B3B;
+  color: #1A1A1D;
+}
+::-moz-selection {
+  background: #C49B3B;
+  color: #1A1A1D;
+}
 body {
   font-family: "Jaro", sans-serif;
   background: url('src/background.png') center/cover no-repeat fixed;
@@ -1451,7 +1459,12 @@ async function joinWorld(){
         const r = await fetch(`${API_URL}/game/join`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({invite_code:worldId})});
         const data = await r.json();
         if(r.ok){statusEl.textContent='Csatlakozva a világhoz';}
-        else if(r.status===409){/* már csatlakozott */}
+        else if(r.status===409){
+            if(data.error && data.error.includes('Már játék mester vagy')){
+                window.location.href = `/manage-world?world_id=${encodeURIComponent(worldId)}`;
+                return;
+            }
+        }
     }catch(e){}
 }
 if(worldId){(async()=>{await joinWorld();await loadDungeons();await loadCards();})();}
