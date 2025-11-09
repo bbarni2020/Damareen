@@ -102,18 +102,23 @@ async function loadCards(){
         const r = await fetch(`${API_URL}/user/list/cards?world_id=${encodeURIComponent(worldId)}`,{headers:{'Authorization':`Bearer ${token}`}});
         const data = await r.json();
         if(!r.ok){cardsEl.textContent=data.error||'Hiba';return;}
+        const allCards = data.data.cards||[];
+        const cardsInDeck = allCards.filter(c=>c.position && c.position > 0).sort((a,b)=>a.position - b.position);
         cardsEl.innerHTML='';
-        (data.data.cards||[]).forEach(c=>{
+        allCards.forEach(c=>{
             const row=document.createElement('div');
             const cb=document.createElement('input');
             cb.type='checkbox';
             cb.value=c.id;
+            cb.checked = (c.position && c.position > 0);
             cb.onchange=updateSelectedCount;
             const span=document.createElement('span');
             span.textContent=` ${c.name} [${c.type}] HP:${c.health} DMG:${c.damage}`;
+            if(c.position && c.position > 0){span.textContent += ` [Pakli #${c.position}]`;}
             row.appendChild(cb);row.appendChild(span);cardsEl.appendChild(row);
         });
         updateSelectedCount();
+        if(cardsInDeck.length > 0){statusEl.textContent=`Betöltve ${cardsInDeck.length} kártya a pakliból`;}
     }catch(e){cardsEl.textContent='Hálózati hiba';}
 }
 function updateSelectedCount(){
