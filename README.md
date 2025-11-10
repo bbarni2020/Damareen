@@ -1,11 +1,9 @@
 # Damareen
 
-Gyűjtögetős fantasy kártyajáték (I. forduló Dusza Árpád Országos). Backend Flask + SQLite, egy minimalista statikus „frontend” a `web/` mappában. E-mail verifikáció, JWT, rate limit – és pár éjszakai jegyzet. Ha eltöröd, megtarthatod mindkét darabot.
-
-
+Gyűjtögetős fantasy kártyajáték (I. forduló Dusza Árpád Országos Emlékverseny). Backend Flask + SQLite, egy minimalista statikus „frontend” a `web/` mappában. E-mail verifikáció, JWT, rate limit.
 ## Miről szól? (rövid pitch)
 
-Játékmester világot hoz létre (világkártyák + kazamaták), ebből a játékos kap saját gyűjteményt, összeállít paklit (1/4/6 lap), majd kazamatákkal harcol. Nyersz? Az egyik kiválasztott saját lapod automatikusan fejlődik (típusfüggő +1/+2/+3). A játék nem ér véget – fejlesztesz tovább.
+Játékmester világot hoz létre (világkártyák + kazamaták), ebből a játékos kap saját gyűjteményt, összeállít paklit (1/4/6 lap), majd kazamatákkal harcol. Nyersz? Az egyik kiválasztott saját lapod automatikusan fejlődik (típusfüggő +1/+2/+3). A játék nem ér véget – fejleszthetsz tovább.
 
 
 ## Gyors indító
