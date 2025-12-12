@@ -2,8 +2,8 @@ services:
   damareen:
     build: .
     ports:
-      - "7621:7621"  # Flask backend (host:container)
-      - "8000:8000"  # PHP frontend (host:container)
+      - "38781:7621"  # Flask backend (host:container)
+      - "40287:8000"  # PHP frontend (host:container)
     volumes:
       - ./backend:/app/backend
       - ./web:/app/web
