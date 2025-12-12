@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  damareen:
+    build: .
+    ports:
+      - "7621:7621"  # Flask backend (host:container)
+      - "8000:8000"  # PHP frontend (host:container)
+    volumes:
+      - ./backend:/app/backend
+      - ./web:/app/web
+      - damareen-db:/app/backend/instance
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///app.db}
+      - EMAIL_USERNAME=${EMAIL_USERNAME:-damareen@example.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-secret}
+      - REQUIRE_EMAIL_VERIFICATION=${REQUIRE_EMAIL_VERIFICATION:-false}
+      - PORT=7621
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+volumes:
+  damareen-db:

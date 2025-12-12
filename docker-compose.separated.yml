@@ -1,0 +1,39 @@
+# Alternative docker-compose with separate services
+# Use this if you want backend and frontend in separate containers
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "7621:7621"
+    volumes:
+      - ./backend:/app/backend
+      - damareen-db:/app/backend/instance
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///app.db}
+      - EMAIL_USERNAME=${EMAIL_USERNAME:-damareen@example.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-secret}
+      - REQUIRE_EMAIL_VERIFICATION=${REQUIRE_EMAIL_VERIFICATION:-false}
+      - PORT=7621
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "8000:8000" # host:container
+    volumes:
+      - ./web:/app/web
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  damareen-db:
