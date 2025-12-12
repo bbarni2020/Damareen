@@ -40,18 +40,22 @@ Dev módban állítsd `REQUIRE_EMAIL_VERIFICATION=false`-ra, különben SMTP kon
 Ha Dockerrel akarod futtatni (Python backend + PHP frontend egy containerben):
 
 ```bash
+# .env fájl létrehozása (először)
+cp .env.example .env
+# Szerkeszd a .env-et a saját értékeiddel
+
 # Build & run
 docker-compose up -d
 
 # Vagy csak a build
 docker build -t damareen .
-docker run -p 7621:7621 -p 8000:8000 damareen
+docker run -p 7621:7621 -p 8000:8000 --env-file .env damareen
 ```
 
 Backend: http://localhost:7621  
 Frontend: http://localhost:8000
 
-Env var-okat a `docker-compose.yml`-ben vagy `.env` fájlban állíthatod.
+**Fontos:** A docker-compose automatikusan beolvassa a project root `.env` fájlt. Másold le a `.env.example`-t `.env`-re és állítsd be a saját értékeidet (SECRET_KEY, email config, stb.).
 
 ### Frontend
 

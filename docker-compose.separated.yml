@@ -13,6 +13,8 @@ services:
     volumes:
       - ./backend:/app/backend
       - damareen-db:/app/backend/instance
+    env_file:
+      - .env
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///app.db}
