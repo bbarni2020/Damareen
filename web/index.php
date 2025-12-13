@@ -2,6 +2,13 @@
 $request = trim($_SERVER['REQUEST_URI'], '/');
 $request = explode('?', $request)[0];
 
+if (strpos($request, '..') === false && ($request === 'src' || str_starts_with($request, 'src/'))) {
+    $file_path = __DIR__ . '/' . $request;
+    if (file_exists($file_path) && is_file($file_path)) {
+        return false;
+    }
+}
+
 if ($request === '' || $request === 'dashboard') {
     include __DIR__ . '/dashboard.html';
     return;
