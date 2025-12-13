@@ -20,6 +20,8 @@ def create_app(config_class=Config):
                 "http://127.0.0.1:7621",
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
+                "https://damareen.bbarni.hackclub.app",
+                "https://api.damareen.bbarni.hackclub.app",
             ],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
